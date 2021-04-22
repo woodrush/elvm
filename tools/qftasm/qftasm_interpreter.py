@@ -8,11 +8,15 @@ import sys
 QFTASM_RAM_AS_STDIN_BUFFER = True
 QFTASM_RAM_AS_STDOUT_BUFFER = True
 
-QFTASM_RAMSTDIN_BUF_STARTPOSITION = 7167
-QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 8191
+# QFTASM_RAMSTDIN_BUF_STARTPOSITION = 7167
+# QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 8191
+# QFTASM_RAMSTDIN_BUF_STARTPOSITION = (4499 - 1024)
+# QFTASM_RAMSTDOUT_BUF_STARTPOSITION = (4999 - 1024)
+QFTASM_RAMSTDIN_BUF_STARTPOSITION = 4095-1024-512
+QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 4095-1024
 
-debug_ramdump = False
-debug_plot_memdist = False   # Requires numpy and matplotlib when set to True
+debug_ramdump = True
+debug_plot_memdist = True   # Requires numpy and matplotlib when set to True
 use_stdio = True
 stdin_from_pipe = True
 
@@ -77,6 +81,7 @@ def interpret_file(filepath):
         rom_lines = f.readlines()
     rom = rom_lines
     ram = []
+    rom_reads = [0 for _ in range(len(rom))]
     for _ in range(1 << 16):
         ram.append([0,0])
 
@@ -106,6 +111,7 @@ def interpret_file(filepath):
         # 1. Fetch instruction
         pc = ram[0][0]
         inst = rom[pc]
+        rom_reads[pc] += 1
         if type(inst) == str:
             rom[pc] = parser.parse_string(inst)[0]
             inst = rom[pc]
@@ -190,9 +196,11 @@ def interpret_file(filepath):
             import matplotlib.pyplot as plt
             a = np.array(ram[:n_nonzero_write_count_ram_maxindex+1])
             plt.figure()
-            plt.plot(np.log(a[:,1]+1), "o-")
-            plt.show()
+            plt.plot(np.log(np.hstack((a[-1024:,1], a[:QFTASM_RAMSTDOUT_BUF_STARTPOSITION,1]))+1), "o-")
             plt.savefig("./memdist.png")
+            plt.figure()
+            plt.plot(np.log(rom_reads), "og-")
+            plt.savefig("./romdist.png")
 
 
 if __name__ == "__main__":
