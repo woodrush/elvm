@@ -58,6 +58,9 @@ static const int QFTASM_JMPTABLE_OFFSET = 11;
 
 static void qftasm_emit_line(const char* fmt, ...) {
   static int qftasm_lineno_counter_ = 0;
+  if (qftasm_lineno_counter_ > 0) {
+    printf("\n");
+  }
   printf("%d. ", qftasm_lineno_counter_);
   qftasm_lineno_counter_++;
 
@@ -67,7 +70,6 @@ static void qftasm_emit_line(const char* fmt, ...) {
     vprintf(fmt, ap);
     va_end(ap);
   }
-  putchar('\n');
 }
 
 static int qftasm_int24_to_int16(int x) {
@@ -283,10 +285,16 @@ static void qftasm_emit_func_epilogue(void) {
 }
 
 
+static Inst* qftasm_prev_inst;
+static int qftasm_is_pc_init_inst = 0;
+
 static void qftasm_emit_pc_change(int pc) {
   // The comments in this line are required for post-processing step in ./tools/qftasm_pp.py
-  qftasm_emit_line("MNZ 0 0 0; pc == %d:", pc);
+  // qftasm_emit_line("MNZ 0 0 0; pc == %d:", pc);
+
+  // qftasm_emit_line("MNZ 0 0 0; pc == %d:", pc);
   if (pc == 0) {
+    qftasm_emit_line("MNZ 0 0 0; pc == %d:", pc);
   // stdin, stdout
 #ifdef QFTASM_RAM_AS_STDIN_BUFFER
   qftasm_emit_line("MNZ 1 %d %d; Register initialization (stdin buffer pointer)", QFTASM_RAMSTDIN_BUF_STARTPOSITION, QFTASM_STDIN);
@@ -299,10 +307,45 @@ static void qftasm_emit_pc_change(int pc) {
   qftasm_emit_line("MNZ 1 %d %d; Register initialization (stdout)", QFTASM_STDIO_CLOSED, QFTASM_STDOUT);
 #endif
   qftasm_emit_memory_initialization(initdata);
+  } else {
+    printf("; pc == %d:", pc);    
   }
+  qftasm_is_pc_init_inst = 1;
 }
 
 static void qftasm_emit_inst(Inst* inst) {
+  if (qftasm_is_pc_init_inst && qftasm_prev_inst) {
+    switch (qftasm_prev_inst->op) {
+    case JEQ:
+    case JNE:
+    case JLT:
+    case JGT:
+    case JLE:
+    case JGE:
+    case JMP:
+      qftasm_emit_line("MNZ 0 0 0;");
+      // switch (inst->op) {
+      // case JEQ:
+      // case JNE:
+      // case JLT:
+      // case JGT:
+      // case JLE:
+      // case JGE:
+      // case JMP:
+      //   qftasm_emit_line("MNZ 0 0 0;");
+      //   break;
+
+      // default:
+      //   break;
+      // }
+      break;
+
+    default:
+      break;
+    }
+  }
+  qftasm_is_pc_init_inst = 0;
+
   switch (inst->op) {
   case MOV:
     qftasm_emit_line("MNZ 1 %s %d; MOV",
@@ -458,6 +501,7 @@ static void qftasm_emit_inst(Inst* inst) {
   default:
     error("oops");
   }
+  qftasm_prev_inst = inst;
 }
 
 void target_qftasm(Module* module) {
