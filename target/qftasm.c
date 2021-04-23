@@ -22,7 +22,7 @@ static const int QFTASM_RAMSTDIN_BUF_STARTPOSITION = 4095-1024-512;
 #ifdef QFTASM_RAM_AS_STDOUT_BUFFER
 // static const int QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 8191;
 // static const int QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 3975;
-static const int QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 4095-1024-(512-128);
+static const int QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 4095-1024-(512-32);
 // static const int QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 127-64;
 #endif
 
@@ -328,161 +328,205 @@ static void qftasm_emit_pc_change(int pc) {
   }
 }
 
+int qftasm_opt_skip_count = 0;
+static int qftasm_init_optimization (Inst* inst) {
+  if (
+    inst->op == MOV
+    && inst->next && inst->next->op == ADD
+    && inst->dst.reg == inst->next->dst.reg
+  ) {
+    qftasm_emit_line("ADD %s %s %d; MOV-ADD",
+      qftasm_src_str(inst), qftasm_src_str(inst->next), qftasm_reg2addr(inst->next->dst.reg));
+    qftasm_opt_skip_count = 1;
+    return 1;
+  } else if (
+    inst->op == LOAD
+    && inst->next && inst->next->op == MOV
+    && inst->next->next && inst->next->next->op == LOAD
+    && inst->src.type == REG
+    && inst->next->next->src.type == REG
+    && inst->src.reg == inst->next->dst.reg
+    && inst->dst.reg == inst->next->src.reg
+    && inst->src.reg == inst->next->next->src.reg
+    && inst->dst.reg == inst->next->next->dst.reg
+  ) {
+    qftasm_emit_line("MNZ 32768 C%d %d; LOAD-MOV-LOAD",
+                     qftasm_reg2addr(inst->src.reg),
+                     qftasm_reg2addr(inst->dst.reg));
+    qftasm_emit_line("MNZ 32768 B%d %d;",
+                     qftasm_reg2addr(inst->src.reg),
+                     qftasm_reg2addr(inst->src.reg));
+    qftasm_opt_skip_count = 2;
+    return 1;
+  }
+  return 0;
+}
+
 static void qftasm_emit_inst(Inst* inst) {
-  switch (inst->op) {
-  case MOV:
-    qftasm_emit_line("MNZ 32768 %s %d; MOV",
-                     qftasm_src_str(inst), qftasm_reg2addr(inst->dst.reg));
-    break;
+  if (qftasm_opt_skip_count > 0) {
+    qftasm_opt_skip_count--;
+    return;
+  }
+  int optimized = qftasm_init_optimization(inst);
+  if (!optimized) {
+    switch (inst->op) {
+    case MOV:
+      qftasm_emit_line("MNZ 32768 %s %d; MOV",
+                      qftasm_src_str(inst), qftasm_reg2addr(inst->dst.reg));
+      break;
 
-  case ADD:
-    qftasm_emit_line("ADD A%d %s %d; ADD",
-                     qftasm_reg2addr(inst->dst.reg),
-                     qftasm_src_str(inst),
-                     qftasm_reg2addr(inst->dst.reg));
-    break;
+    case ADD:
+      qftasm_emit_line("ADD A%d %s %d; ADD",
+                      qftasm_reg2addr(inst->dst.reg),
+                      qftasm_src_str(inst),
+                      qftasm_reg2addr(inst->dst.reg));
+      break;
 
-  case SUB:
-    qftasm_emit_line("SUB A%d %s %d; SUB",
-                     qftasm_reg2addr(inst->dst.reg),
-                     qftasm_src_str(inst),
-                     qftasm_reg2addr(inst->dst.reg));
-    break;
+    case SUB:
+      qftasm_emit_line("SUB A%d %s %d; SUB",
+                      qftasm_reg2addr(inst->dst.reg),
+                      qftasm_src_str(inst),
+                      qftasm_reg2addr(inst->dst.reg));
+      // qftasm_emit_line("XOR %s 65535 %d; SUB", qftasm_src_str(inst), QFTASM_TEMP);
+      // qftasm_emit_line("ADD 1 A%d %d;", QFTASM_TEMP, QFTASM_TEMP);
+      // qftasm_emit_line("ADD A%d A%d %d;", QFTASM_TEMP, qftasm_reg2addr(inst->dst.reg), qftasm_reg2addr(inst->dst.reg));
+      break;
 
-  case LOAD:
-    qftasm_emit_load_inst(inst);
-    break;
+    case LOAD:
+      qftasm_emit_load_inst(inst);
+      break;
 
-  case STORE:
-    qftasm_emit_store_inst(inst);
-    break;
+    case STORE:
+      qftasm_emit_store_inst(inst);
+      break;
 
-  case PUTC:
-#ifdef QFTASM_RAM_AS_STDOUT_BUFFER
-    qftasm_emit_line("MNZ 32768 %s A%d; PUTC", qftasm_src_str(inst), QFTASM_STDOUT);
-    qftasm_emit_line("SUB A%d 1 %d;", QFTASM_STDOUT, QFTASM_STDOUT);
-#else
-    qftasm_emit_line("MNZ 32768 %s %d; PUTC", qftasm_src_str(inst), QFTASM_STDOUT);
-    qftasm_emit_line("MNZ 32768 %d %d;", QFTASM_STDIO_CLOSED, QFTASM_STDOUT);
-#endif
-    break;
+    case PUTC:
+  #ifdef QFTASM_RAM_AS_STDOUT_BUFFER
+      qftasm_emit_line("MNZ 32768 %s A%d; PUTC", qftasm_src_str(inst), QFTASM_STDOUT);
+      qftasm_emit_line("SUB A%d 1 %d;", QFTASM_STDOUT, QFTASM_STDOUT);
+  #else
+      qftasm_emit_line("MNZ 32768 %s %d; PUTC", qftasm_src_str(inst), QFTASM_STDOUT);
+      qftasm_emit_line("MNZ 32768 %d %d;", QFTASM_STDIO_CLOSED, QFTASM_STDOUT);
+  #endif
+      break;
 
-  case GETC:
-#ifdef QFTASM_RAM_AS_STDIN_BUFFER
-    qftasm_emit_line("MNZ 32768 B%d %d; GETC", QFTASM_STDIN, qftasm_reg2addr(inst->dst.reg));
-    qftasm_emit_line("SUB A%d 1 %d;", QFTASM_STDIN, QFTASM_STDIN);
-#else
-    qftasm_emit_line("MNZ 32768 %d %d; GETC", QFTASM_STDIO_OPEN, QFTASM_STDIN);
-    qftasm_emit_line("MNZ 0 0 0;"); // Required due to the delay between memory writing and instruction execution
-    qftasm_emit_line("MNZ 32768 A%d %d;", QFTASM_STDIN, qftasm_reg2addr(inst->dst.reg));
-    qftasm_emit_line("MNZ 32768 %d %d;", QFTASM_STDIO_CLOSED, QFTASM_STDIN);
-#endif
-    break;
+    case GETC:
+  #ifdef QFTASM_RAM_AS_STDIN_BUFFER
+      qftasm_emit_line("MNZ 32768 B%d %d; GETC", QFTASM_STDIN, qftasm_reg2addr(inst->dst.reg));
+      qftasm_emit_line("SUB A%d 1 %d;", QFTASM_STDIN, QFTASM_STDIN);
+  #else
+      qftasm_emit_line("MNZ 32768 %d %d; GETC", QFTASM_STDIO_OPEN, QFTASM_STDIN);
+      qftasm_emit_line("MNZ 0 0 0;"); // Required due to the delay between memory writing and instruction execution
+      qftasm_emit_line("MNZ 32768 A%d %d;", QFTASM_STDIN, qftasm_reg2addr(inst->dst.reg));
+      qftasm_emit_line("MNZ 32768 %d %d;", QFTASM_STDIO_CLOSED, QFTASM_STDIN);
+  #endif
+      break;
 
-  case EXIT:
-    qftasm_emit_line("MNZ 32768 65534 0; EXIT");
-    qftasm_emit_line("MNZ 0 0 0;");
-    break;
+    case EXIT:
+      qftasm_emit_line("MNZ 32768 65534 0; EXIT");
+      qftasm_emit_line("MNZ 0 0 0;");
+      break;
 
-  case DUMP:
-    break;
+    case DUMP:
+      break;
 
-  case EQ:
-    qftasm_emit_line("XOR %s A%d %d; EQ",
-                     qftasm_src_str(inst),
-                     qftasm_reg2addr(inst->dst.reg),
-                     qftasm_reg2addr(inst->dst.reg));
-    qftasm_emit_line("MNZ A%d 1 %d;", qftasm_reg2addr(inst->dst.reg), qftasm_reg2addr(inst->dst.reg));
-    qftasm_emit_line("XOR 1 A%d %d;", qftasm_reg2addr(inst->dst.reg), qftasm_reg2addr(inst->dst.reg));
-    break;
-  case NE:
-    qftasm_emit_line("XOR %s A%d %d; NE",
-                     qftasm_src_str(inst), qftasm_reg2addr(inst->dst.reg), qftasm_reg2addr(inst->dst.reg));
-    qftasm_emit_line("MNZ A%d 1 %d;", qftasm_reg2addr(inst->dst.reg), qftasm_reg2addr(inst->dst.reg));
-    break;
-  case LT:
-    qftasm_emit_line("MNZ 32768 0 %d; LT", QFTASM_TEMP);
-    qftasm_emit_line("SUB A%d %s %d",
-                     qftasm_reg2addr(inst->dst.reg), qftasm_src_str(inst), qftasm_reg2addr(inst->dst.reg));
-    qftasm_emit_line("MLZ A%d 1 %d", qftasm_reg2addr(inst->dst.reg), QFTASM_TEMP);
-    qftasm_emit_line("MNZ 32768 A%d %d", QFTASM_TEMP, qftasm_reg2addr(inst->dst.reg));
-    break;
-  case GT:
-    qftasm_emit_line("MNZ 32768 0 %d; GT", QFTASM_TEMP);
-    qftasm_emit_line("SUB %s %s %d",
-                     qftasm_src_str(inst), qftasm_dst_str(inst), qftasm_reg2addr(inst->dst.reg));
-    qftasm_emit_line("MLZ A%d 1 %d", qftasm_reg2addr(inst->dst.reg), QFTASM_TEMP);
-    qftasm_emit_line("MNZ 32768 A%d %d", QFTASM_TEMP, qftasm_reg2addr(inst->dst.reg));
-    break;
-  case LE:
-    qftasm_emit_line("MNZ 32768 0 %d; LE", QFTASM_TEMP);
-    qftasm_emit_line("SUB %s %s %d",
-                     qftasm_src_str(inst), qftasm_dst_str(inst), qftasm_reg2addr(inst->dst.reg));
-    qftasm_emit_line("MLZ A%d 1 %d", qftasm_reg2addr(inst->dst.reg), QFTASM_TEMP);
-    qftasm_emit_line("MNZ 32768 A%d %d", QFTASM_TEMP, qftasm_reg2addr(inst->dst.reg));
-    qftasm_emit_line("XOR 1 A%d %d", qftasm_reg2addr(inst->dst.reg), qftasm_reg2addr(inst->dst.reg));
-    break;
-  case GE:
-    qftasm_emit_line("MNZ 32768 0 %d; GE", QFTASM_TEMP);
-    qftasm_emit_line("SUB %s %s %d",
-                     qftasm_dst_str(inst), qftasm_src_str(inst), qftasm_reg2addr(inst->dst.reg));
-    qftasm_emit_line("MLZ A%d 1 %d", qftasm_reg2addr(inst->dst.reg), QFTASM_TEMP);
-    qftasm_emit_line("MNZ 32768 A%d %d", QFTASM_TEMP, qftasm_reg2addr(inst->dst.reg));
-    qftasm_emit_line("XOR 1 A%d %d", qftasm_reg2addr(inst->dst.reg), qftasm_reg2addr(inst->dst.reg));
-    break;
+    case EQ:
+      qftasm_emit_line("SUB %s A%d %d; EQ",
+                      qftasm_src_str(inst),
+                      qftasm_reg2addr(inst->dst.reg),
+                      qftasm_reg2addr(inst->dst.reg));
+      qftasm_emit_line("MNZ A%d 1 %d;", qftasm_reg2addr(inst->dst.reg), qftasm_reg2addr(inst->dst.reg));
+      qftasm_emit_line("SUB 1 A%d %d;", qftasm_reg2addr(inst->dst.reg), qftasm_reg2addr(inst->dst.reg));
+      break;
+    case NE:
+      qftasm_emit_line("SUB %s A%d %d; NE",
+                      qftasm_src_str(inst), qftasm_reg2addr(inst->dst.reg), qftasm_reg2addr(inst->dst.reg));
+      qftasm_emit_line("MNZ A%d 1 %d;", qftasm_reg2addr(inst->dst.reg), qftasm_reg2addr(inst->dst.reg));
+      break;
+    case LT:
+      qftasm_emit_line("MNZ 32768 0 %d; LT", QFTASM_TEMP);
+      qftasm_emit_line("SUB A%d %s %d",
+                      qftasm_reg2addr(inst->dst.reg), qftasm_src_str(inst), qftasm_reg2addr(inst->dst.reg));
+      qftasm_emit_line("MLZ A%d 1 %d", qftasm_reg2addr(inst->dst.reg), QFTASM_TEMP);
+      qftasm_emit_line("MNZ 32768 A%d %d", QFTASM_TEMP, qftasm_reg2addr(inst->dst.reg));
+      break;
+    case GT:
+      qftasm_emit_line("MNZ 32768 0 %d; GT", QFTASM_TEMP);
+      qftasm_emit_line("SUB %s %s %d",
+                      qftasm_src_str(inst), qftasm_dst_str(inst), qftasm_reg2addr(inst->dst.reg));
+      qftasm_emit_line("MLZ A%d 1 %d", qftasm_reg2addr(inst->dst.reg), QFTASM_TEMP);
+      qftasm_emit_line("MNZ 32768 A%d %d", QFTASM_TEMP, qftasm_reg2addr(inst->dst.reg));
+      break;
+    case LE:
+      qftasm_emit_line("MNZ 32768 0 %d; LE", QFTASM_TEMP);
+      qftasm_emit_line("SUB %s %s %d",
+                      qftasm_src_str(inst), qftasm_dst_str(inst), qftasm_reg2addr(inst->dst.reg));
+      qftasm_emit_line("MLZ A%d 1 %d", qftasm_reg2addr(inst->dst.reg), QFTASM_TEMP);
+      qftasm_emit_line("MNZ 32768 A%d %d", QFTASM_TEMP, qftasm_reg2addr(inst->dst.reg));
+      qftasm_emit_line("SUB 1 A%d %d", qftasm_reg2addr(inst->dst.reg), qftasm_reg2addr(inst->dst.reg));
+      break;
+    case GE:
+      qftasm_emit_line("MNZ 32768 0 %d; GE", QFTASM_TEMP);
+      qftasm_emit_line("SUB %s %s %d",
+                      qftasm_dst_str(inst), qftasm_src_str(inst), qftasm_reg2addr(inst->dst.reg));
+      qftasm_emit_line("MLZ A%d 1 %d", qftasm_reg2addr(inst->dst.reg), QFTASM_TEMP);
+      qftasm_emit_line("MNZ 32768 A%d %d", QFTASM_TEMP, qftasm_reg2addr(inst->dst.reg));
+      qftasm_emit_line("SUB 1 A%d %d", qftasm_reg2addr(inst->dst.reg), qftasm_reg2addr(inst->dst.reg));
+      break;
 
-  case JEQ:
-    qftasm_emit_line("XOR %s A%d %d; JEQ",
-                     qftasm_src_str(inst), qftasm_reg2addr(inst->dst.reg), QFTASM_TEMP);
-    qftasm_emit_line("MNZ A%d 1 %d;", QFTASM_TEMP, QFTASM_TEMP);
-    qftasm_emit_line("XOR 1 A%d %d;", QFTASM_TEMP, QFTASM_TEMP);
-    qftasm_emit_conditional_jmp_inst(inst);
-    break;
-  case JNE:
-    qftasm_emit_line("XOR %s A%d %d; JNE",
-                     qftasm_src_str(inst), qftasm_reg2addr(inst->dst.reg), QFTASM_TEMP);
-    qftasm_emit_conditional_jmp_inst(inst);
-    break;
-  case JLT:
-    qftasm_emit_line("MNZ 32768 0 %d; JLT", QFTASM_TEMP_2);
-    qftasm_emit_line("SUB %s %s %d",
-                     qftasm_dst_str(inst), qftasm_src_str(inst), QFTASM_TEMP);
-    qftasm_emit_line("MLZ A%d 1 %d", QFTASM_TEMP, QFTASM_TEMP_2);
-    qftasm_emit_line("MNZ 32768 A%d %d", QFTASM_TEMP_2, QFTASM_TEMP);
-    qftasm_emit_conditional_jmp_inst(inst);
-    break;
-  case JGT:
-    qftasm_emit_line("MNZ 32768 0 %d; JGT", QFTASM_TEMP_2);
-    qftasm_emit_line("SUB %s %s %d",
-                     qftasm_src_str(inst), qftasm_dst_str(inst), QFTASM_TEMP);
-    qftasm_emit_line("MLZ A%d 1 %d", QFTASM_TEMP, QFTASM_TEMP_2);
-    qftasm_emit_line("MNZ 32768 A%d %d", QFTASM_TEMP_2, QFTASM_TEMP);
-    qftasm_emit_conditional_jmp_inst(inst);
-    break;
-  case JLE:
-    qftasm_emit_line("MNZ 32768 0 %d; JLE", QFTASM_TEMP_2);
-    qftasm_emit_line("SUB %s %s %d",
-                     qftasm_src_str(inst), qftasm_dst_str(inst), QFTASM_TEMP);
-    qftasm_emit_line("MLZ A%d 1 %d", QFTASM_TEMP, QFTASM_TEMP_2);
-    qftasm_emit_line("MNZ 32768 A%d %d", QFTASM_TEMP_2, QFTASM_TEMP);
-    qftasm_emit_line("XOR 1 A%d %d", QFTASM_TEMP, QFTASM_TEMP);
-    qftasm_emit_conditional_jmp_inst(inst);
-    break;
-  case JGE:
-    qftasm_emit_line("MNZ 32768 0 %d; JGE", QFTASM_TEMP_2);
-    qftasm_emit_line("SUB %s %s %d",
-                     qftasm_dst_str(inst), qftasm_src_str(inst), QFTASM_TEMP);
-    qftasm_emit_line("MLZ A%d 1 %d", QFTASM_TEMP, QFTASM_TEMP_2);
-    qftasm_emit_line("MNZ 32768 A%d %d", QFTASM_TEMP_2, QFTASM_TEMP);
-    qftasm_emit_line("XOR 1 A%d %d", QFTASM_TEMP, QFTASM_TEMP);
-    qftasm_emit_conditional_jmp_inst(inst);
-    break;
-  case JMP:
-    qftasm_emit_unconditional_jmp_inst(inst);
-    break;
+    case JEQ:
+      qftasm_emit_line("SUB %s A%d %d; JEQ",
+                      qftasm_src_str(inst), qftasm_reg2addr(inst->dst.reg), QFTASM_TEMP);
+      qftasm_emit_line("MNZ A%d 1 %d;", QFTASM_TEMP, QFTASM_TEMP);
+      qftasm_emit_line("SUB 1 A%d %d;", QFTASM_TEMP, QFTASM_TEMP);
+      qftasm_emit_conditional_jmp_inst(inst);
+      break;
+    case JNE:
+      qftasm_emit_line("SUB %s A%d %d; JNE",
+                      qftasm_src_str(inst), qftasm_reg2addr(inst->dst.reg), QFTASM_TEMP);
+      qftasm_emit_conditional_jmp_inst(inst);
+      break;
+    case JLT:
+      qftasm_emit_line("MNZ 32768 0 %d; JLT", QFTASM_TEMP_2);
+      qftasm_emit_line("SUB %s %s %d",
+                      qftasm_dst_str(inst), qftasm_src_str(inst), QFTASM_TEMP);
+      qftasm_emit_line("MLZ A%d 1 %d", QFTASM_TEMP, QFTASM_TEMP_2);
+      qftasm_emit_line("MNZ 32768 A%d %d", QFTASM_TEMP_2, QFTASM_TEMP);
+      qftasm_emit_conditional_jmp_inst(inst);
+      break;
+    case JGT:
+      qftasm_emit_line("MNZ 32768 0 %d; JGT", QFTASM_TEMP_2);
+      qftasm_emit_line("SUB %s %s %d",
+                      qftasm_src_str(inst), qftasm_dst_str(inst), QFTASM_TEMP);
+      qftasm_emit_line("MLZ A%d 1 %d", QFTASM_TEMP, QFTASM_TEMP_2);
+      qftasm_emit_line("MNZ 32768 A%d %d", QFTASM_TEMP_2, QFTASM_TEMP);
+      qftasm_emit_conditional_jmp_inst(inst);
+      break;
+    case JLE:
+      qftasm_emit_line("MNZ 32768 0 %d; JLE", QFTASM_TEMP_2);
+      qftasm_emit_line("SUB %s %s %d",
+                      qftasm_src_str(inst), qftasm_dst_str(inst), QFTASM_TEMP);
+      qftasm_emit_line("MLZ A%d 1 %d", QFTASM_TEMP, QFTASM_TEMP_2);
+      qftasm_emit_line("MNZ 32768 A%d %d", QFTASM_TEMP_2, QFTASM_TEMP);
+      qftasm_emit_line("SUB 1 A%d %d", QFTASM_TEMP, QFTASM_TEMP);
+      qftasm_emit_conditional_jmp_inst(inst);
+      break;
+    case JGE:
+      qftasm_emit_line("MNZ 32768 0 %d; JGE", QFTASM_TEMP_2);
+      qftasm_emit_line("SUB %s %s %d",
+                      qftasm_dst_str(inst), qftasm_src_str(inst), QFTASM_TEMP);
+      qftasm_emit_line("MLZ A%d 1 %d", QFTASM_TEMP, QFTASM_TEMP_2);
+      qftasm_emit_line("MNZ 32768 A%d %d", QFTASM_TEMP_2, QFTASM_TEMP);
+      qftasm_emit_line("SUB 1 A%d %d", QFTASM_TEMP, QFTASM_TEMP);
+      qftasm_emit_conditional_jmp_inst(inst);
+      break;
+    case JMP:
+      qftasm_emit_unconditional_jmp_inst(inst);
+      break;
 
-  default:
-    error("oops");
+    default:
+      error("oops");
+    }
   }
   qftasm_prev_inst = inst;
 }
