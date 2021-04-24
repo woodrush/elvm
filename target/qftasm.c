@@ -462,15 +462,15 @@ static void qftasm_emit_inst(Inst* inst) {
       break;
 
     case JEQ:
-      // if (inst->src.type == IMM & inst->src.imm == 0) {
-      //   qftasm_emit_line("MNZ 32768 1 %d; JEQ (with 0)", QFTASM_TEMP);
-      //   qftasm_emit_line("MNZ A%d 0 %d;", qftasm_reg2addr(inst->dst.reg), QFTASM_TEMP);
-      // } else {
+      if (inst->src.type == IMM & inst->src.imm == 0) {
+        qftasm_emit_line("MNZ 32768 1 %d; JEQ (with 0)", QFTASM_TEMP);
+        qftasm_emit_line("MNZ A%d 0 %d;", qftasm_reg2addr(inst->dst.reg), QFTASM_TEMP);
+      } else {
         qftasm_emit_line("SUB %s A%d %d; JEQ",
                         qftasm_src_str(inst), qftasm_reg2addr(inst->dst.reg), QFTASM_TEMP);
         qftasm_emit_line("MNZ A%d 1 %d;", QFTASM_TEMP, QFTASM_TEMP);
         qftasm_emit_line("SUB 1 A%d %d;", QFTASM_TEMP, QFTASM_TEMP);
-      // }
+      }
       qftasm_emit_conditional_jmp_inst(inst);
       break;
     case JNE:
