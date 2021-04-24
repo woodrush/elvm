@@ -135,8 +135,22 @@ static void qftasm_emit_memory_initialization(Data* data) {
 
 Data* initdata;
 static void init_state_qftasm(Data* data, Inst* init_inst) {
-  // qftasm_emit_jump_table(init_inst);
   initdata = data;
+  // qftasm_emit_jump_table(init_inst);
+    // qftasm_emit_line("MNZ 0 0 0; pc == %d:", pc);
+  // stdin, stdout
+#ifdef QFTASM_RAM_AS_STDIN_BUFFER
+  qftasm_emit_line("MNZ 32768 %d %d; Register initialization (stdin buffer pointer)", QFTASM_RAMSTDIN_BUF_STARTPOSITION, QFTASM_STDIN);
+#else
+  qftasm_emit_line("MNZ 32768 %d %d; Register initialization (stdin)", QFTASM_STDIO_CLOSED, QFTASM_STDIN);
+#endif
+#ifdef QFTASM_RAM_AS_STDOUT_BUFFER
+  qftasm_emit_line("MNZ 32768 %d %d; Register initialization (stdout buffer pointer)", QFTASM_RAMSTDOUT_BUF_STARTPOSITION, QFTASM_STDOUT);
+#else
+  qftasm_emit_line("MNZ 32768 %d %d; Register initialization (stdout)", QFTASM_STDIO_CLOSED, QFTASM_STDOUT);
+#endif
+  qftasm_emit_memory_initialization(initdata);
+
   if (init_inst) {
     return;
   }
@@ -320,23 +334,8 @@ static void qftasm_emit_pc_change(int pc) {
   // qftasm_emit_line("MNZ 0 0 0; pc == %d:", pc);
 
   // qftasm_emit_line("MNZ 0 0 0; pc == %d:", pc);
-  if (pc == 0) {
-    qftasm_emit_line("MNZ 0 0 0; pc == %d:", pc);
-  // stdin, stdout
-#ifdef QFTASM_RAM_AS_STDIN_BUFFER
-  qftasm_emit_line("MNZ 32768 %d %d; Register initialization (stdin buffer pointer)", QFTASM_RAMSTDIN_BUF_STARTPOSITION, QFTASM_STDIN);
-#else
-  qftasm_emit_line("MNZ 32768 %d %d; Register initialization (stdin)", QFTASM_STDIO_CLOSED, QFTASM_STDIN);
-#endif
-#ifdef QFTASM_RAM_AS_STDOUT_BUFFER
-  qftasm_emit_line("MNZ 32768 %d %d; Register initialization (stdout buffer pointer)", QFTASM_RAMSTDOUT_BUF_STARTPOSITION, QFTASM_STDOUT);
-#else
-  qftasm_emit_line("MNZ 32768 %d %d; Register initialization (stdout)", QFTASM_STDIO_CLOSED, QFTASM_STDOUT);
-#endif
-  qftasm_emit_memory_initialization(initdata);
-  } else {
-    if (qftasm_prev_inst) {
-      switch (qftasm_prev_inst->op) {
+  if (pc > 0 && qftasm_prev_inst) {
+    switch (qftasm_prev_inst->op) {
       case JEQ:
       case JNE:
       case JLT:
@@ -348,10 +347,9 @@ static void qftasm_emit_pc_change(int pc) {
         break;
       default:
         break;
-      }
     }
-    printf(" pc == %d:", pc);
   }
+  printf(" pc == %d:", pc);
 }
 
 int qftasm_opt_skip_count = 0;
