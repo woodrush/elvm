@@ -2,6 +2,8 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
+#include <ir/ir.h>
 
 Table* table_add(Table* tbl, const char* key, const void* value) {
   Table* ntbl = malloc(sizeof(Table));
@@ -15,7 +17,29 @@ bool table_get(Table* tbl, const char* key, const void** value) {
   for (; tbl; tbl = tbl->next) {
     if (!strcmp(tbl->key, key)) {
       *value = tbl->value;
-      return true;
+      return value ? true : true;
+    }
+  }
+  return false;
+}
+
+bool table_get_dry(Table* tbl, const char* key, const void** value) {
+  for (; tbl; tbl = tbl->next) {
+    if (!strcmp(tbl->key, key)) {
+      // *value = tbl->value;
+      printf(";;; %s : %ld\n", key, (long)tbl->value);
+      return value ? true : true;
+    }
+  }
+  return false;
+}
+
+bool table_get_jmp(Table* tbl, const char* key, const void** value) {
+  for (; tbl; tbl = tbl->next) {
+    if (!strcmp(tbl->key, key)) {
+      // *value = tbl->value;
+      // printf("%s : %ld\n", key, (long)tbl->value);
+      return value ? true : true;
     }
   }
   return false;

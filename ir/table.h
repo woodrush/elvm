@@ -13,4 +13,8 @@ Table* table_add(Table* tbl, const char* key, const void* value);
 
 bool table_get(Table* tbl, const char* key, const void** value);
 
+bool table_get_dry(Table* tbl, const char* key, const void** value);
+
+bool table_get_jmp(Table* tbl, const char* key, const void** value);
+
 #endif  // ELVM_TABLE_H_

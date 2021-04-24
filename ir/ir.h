@@ -2,6 +2,7 @@
 #define ELVM_IR_H_
 
 #include <stdio.h>
+#include <ir/ir.h>
 
 #define UINT_MAX 16777215
 #define UINT_MAX_STR "16777215"
@@ -56,6 +57,7 @@ typedef struct Data_ {
 typedef struct {
   Inst* text;
   Data* data;
+  struct Table_* table;
 } Module;
 
 Module* load_eir(FILE* fp);

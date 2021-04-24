@@ -12,8 +12,12 @@ QFTASM_RAM_AS_STDOUT_BUFFER = True
 # QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 8191
 # QFTASM_RAMSTDIN_BUF_STARTPOSITION = (4499 - 1024)
 # QFTASM_RAMSTDOUT_BUF_STARTPOSITION = (4999 - 1024)
-QFTASM_RAMSTDIN_BUF_STARTPOSITION = 4095-1024-512
-QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 4095-1024
+
+QFTASM_RAMSTDIN_BUF_STARTPOSITION = 2144 #4095-1024-512-390-25
+QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 2176 #4095-1024-(512-32)-390-25 #4095-1024
+
+# QFTASM_RAMSTDIN_BUF_STARTPOSITION = 125-64
+# QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 127-64
 
 debug_ramdump = True
 debug_plot_memdist = True   # Requires numpy and matplotlib when set to True
@@ -60,12 +64,16 @@ class Parser(object):
 def interpret_file(filepath):
     def wrap(x):
         return x & ((1 << 16) - 1)
-
+    def sub(a,b,c):
+        if (wrap(a-b + (1 << 16)) == 0) ^ ((a^b) == 0):
+            print("sub:", wrap(a-b + (1 << 16)), "xor:", a^b)
+        return (True, wrap(a-b + (1 << 16)), c)
     d_inst = {
         "MNZ": lambda a, b, c: (True, b, c) if a != 0 else (False, None, None),
         "MLZ": lambda a, b, c: (True, b, c) if (wrap(a) >> 15) == 1 else (False, None, None),
         "ADD": lambda a, b, c: (True, wrap(a+b), c),
-        "SUB": lambda a, b, c: (True, wrap(a-b + (1 << 16)), c),
+        # "SUB": lambda a, b, c: (True, wrap(a-b + (1 << 16)), c),
+        "SUB": sub,
         "AND": lambda a, b, c: (True, (a & b), c),
         "OR" : lambda a, b, c: (True, (a | b), c),
         "XOR": lambda a, b, c: (True, (a ^ b), c),
@@ -125,10 +133,13 @@ def interpret_file(filepath):
         # 3. Read the data for the current instruction from the RAM
         for _ in range(mode_1):
             d1 = ram[d1][0]
+            # ram[d1][1] += 1
         for _ in range(mode_2):
             d2 = ram[d2][0]
+            # ram[d2][1] += 1
         for _ in range(mode_3):
             d3 = ram[d3][0]
+            # ram[d3][1] += 1
 
         # 4. Compute the result
         prev_result_write_flag, prev_result_value, prev_result_dst = d_inst[opcode](d1, d2, d3)
@@ -183,6 +194,16 @@ def interpret_file(filepath):
                 n_nonzero_write_count_ram += 1
                 n_nonzero_write_count_ram_maxindex = max(n_nonzero_write_count_ram_maxindex, i_index)
         print()
+        print()
+        if QFTASM_RAM_AS_STDIN_BUFFER:
+            stdin_buf = []
+            i_stdin = QFTASM_RAMSTDIN_BUF_STARTPOSITION
+            while ram[i_stdin][0]:
+                c = chr(ram[i_stdin][0] & ((1 << 8) - 1))
+                stdin_buf.append(c)
+                i_stdin -= 1
+            stdin_buf = "".join(stdin_buf)
+            print("stdin buffer: {}".format(stdin_buf))
         print("ROM size: {}".format(len(rom_lines)))
         print("n_steps: {}".format(n_steps))
         print("Nonzero write count ram addresses: {}".format(n_nonzero_write_count_ram))
@@ -190,14 +211,23 @@ def interpret_file(filepath):
 
         print(ram[:20])
 
+        print(list(reversed(ram[QFTASM_RAMSTDOUT_BUF_STARTPOSITION-20:QFTASM_RAMSTDOUT_BUF_STARTPOSITION+1])))
+
         # Requires numpy and matplotlib
         if debug_plot_memdist:
             import numpy as np
             import matplotlib.pyplot as plt
             a = np.array(ram[:n_nonzero_write_count_ram_maxindex+1])
             plt.figure()
-            plt.plot(np.log(np.hstack((a[-1024:,1], a[:QFTASM_RAMSTDOUT_BUF_STARTPOSITION,1]))+1), "o-")
+            plt.plot(np.log(np.hstack((a[-340:,1], a[:QFTASM_RAMSTDOUT_BUF_STARTPOSITION,1]))+1), "o-")
+            # plt.plot(np.log(np.hstack((a[-50:,1], a[:QFTASM_RAMSTDOUT_BUF_STARTPOSITION,1]))+1), "o-")
             plt.savefig("./memdist.png")
+
+            plt.figure()
+            plt.plot(np.log(a[-340:,1]+1), "o-")
+            # plt.plot(np.log(np.hstack((a[-50:,1], a[:QFTASM_RAMSTDOUT_BUF_STARTPOSITION,1]))+1), "o-")
+            plt.savefig("./stackdist.png")
+
             plt.figure()
             plt.plot(np.log(rom_reads), "og-")
             plt.savefig("./romdist.png")

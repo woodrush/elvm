@@ -1,9 +1,12 @@
+void placeholder (){
+    const char* __header = "\0\0\0\0\0\0\0\0\0\0";
+}
 extern int getchar();
 extern void putchar(int c);
 extern int* _edata;
 #define malloc(n) (_edata += n);
 
-#define QFTASM_MEM_OFFSET 95
+#define QFTASM_MEM_OFFSET 0
 #define QFTASM_NATIVE_ADDR(x) (x - QFTASM_MEM_OFFSET)
 
 #define STDIN_BUF_POINTER_REG ((char*) QFTASM_NATIVE_ADDR(1))

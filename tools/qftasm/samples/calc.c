@@ -64,4 +64,5 @@ int eval (Node* node) {
 int main (void) {
     Node* parsed = parseExpr();
     putchar('0' + eval(parsed));
+    putchar('a');
 }

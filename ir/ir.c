@@ -175,6 +175,7 @@ static void serialize_data(Parser* p, DataPrivate* data_root) {
 
       if (data->val.type == (ValueType)LABEL) {
         p->symtab = table_add(p->symtab, data->val.tmp, (void*)mp);
+        // printf("%s : %ld\n", data->val.tmp, mp);
       } else {
         serialized->next = data;
         serialized = data;
@@ -186,6 +187,7 @@ static void serialize_data(Parser* p, DataPrivate* data_root) {
   }
 
   p->symtab = table_add(p->symtab, "_edata", (void*)mp);
+  // printf("%s : %ld\n", "_edata", mp);
   serialized->next = malloc(sizeof(DataPrivate));
   serialized->next->v = mp + 1;
   serialized->next->next = 0;
@@ -330,6 +332,7 @@ static void parse_line(Parser* p, int c) {
         value = p->pc;
         p->prev_boundary = true;
         p->symtab = table_add(p->symtab, strdup(buf), (void*)value);
+        printf(";; %s : %ld\n", buf, value);
       } else {
         DataPrivate* d = add_data(p);
         d->val.type = LABEL;
@@ -508,7 +511,7 @@ static void parse_eir(Parser* p) {
   p->text->jmp.tmp = "main";
   p->text->next = 0;
   p->symtab = table_add(p->symtab, "main", (void*)1);
-
+  printf(";; %s : %d\n", "main", 1);
   for (;;) {
     skip_ws(p);
     c = ir_getc(p);
@@ -535,30 +538,51 @@ static void parse_eir(Parser* p) {
   p->data = data_root.next;
 }
 
-static void resolve(Value* v, Table* symtab) {
+// static void resolve(Value* v, Table* symtab) {
+//   if (v->type != (ValueType)REF)
+//     return;
+//   const char* name = (const char*)v->tmp;
+//   if (!table_get(symtab, name, (void*)&v->imm)) {
+//     fprintf(stderr, "undefined sym: %s\n", name);
+//     exit(1);
+//   }
+//   v->type = IMM;
+// }
+
+static void resolve_dry(Value* v, Table* symtab) {
   if (v->type != (ValueType)REF)
     return;
   const char* name = (const char*)v->tmp;
-  if (!table_get(symtab, name, (void*)&v->imm)) {
+  if (!table_get_dry(symtab, name, (void*)&v->imm)) {
     fprintf(stderr, "undefined sym: %s\n", name);
     exit(1);
   }
-  //fprintf(stderr, "resolved: %s %d\n", name, v->imm);
-  v->type = IMM;
+  // v->type = IMM;
+}
+
+static void resolve_jmp(Value* v, Table* symtab) {
+  if (v->type != (ValueType)REF)
+    return;
+  const char* name = (const char*)v->tmp;
+  if (!table_get_jmp(symtab, name, (void*)&v->imm)) {
+    fprintf(stderr, "undefined sym: %s\n", name);
+    exit(1);
+  }
+  // v->type = IMM;
 }
 
 static void resolve_syms(Parser* p) {
   for (DataPrivate* data = p->data; data; data = data->next) {
     if (data->val.type == (ValueType)REF) {
-      resolve(&data->val, p->symtab);
+      resolve_dry(&data->val, p->symtab);
     }
     data->v = MOD24(data->val.imm);
   }
 
   for (Inst* inst = p->text; inst; inst = inst->next) {
-    resolve(&inst->dst, p->symtab);
-    resolve(&inst->src, p->symtab);
-    resolve(&inst->jmp, p->symtab);
+    resolve_dry(&inst->dst, p->symtab);
+    resolve_dry(&inst->src, p->symtab);
+    resolve_jmp(&inst->jmp, p->symtab);
   }
 }
 
@@ -573,6 +597,7 @@ Module* load_eir_impl(const char* filename, FILE* fp) {
   Module* m = malloc(sizeof(Module));
   m->text = parser.text;
   m->data = (Data*)parser.data;
+  m->table = parser.symtab;
   return m;
 }
 
