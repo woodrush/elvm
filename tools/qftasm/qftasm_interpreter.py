@@ -13,8 +13,8 @@ QFTASM_RAM_AS_STDOUT_BUFFER = True
 # QFTASM_RAMSTDIN_BUF_STARTPOSITION = (4499 - 1024)
 # QFTASM_RAMSTDOUT_BUF_STARTPOSITION = (4999 - 1024)
 
-QFTASM_RAMSTDIN_BUF_STARTPOSITION = 2144 #4095-1024-512-390-25
-QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 2176 #4095-1024-(512-32)-390-25 #4095-1024
+QFTASM_RAMSTDIN_BUF_STARTPOSITION = 1742 #4095-1024-512-390-25
+QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 1774 #4095-1024-(512-32)-390-25 #4095-1024
 
 # QFTASM_RAMSTDIN_BUF_STARTPOSITION = 125-64
 # QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 127-64
@@ -61,6 +61,14 @@ class Parser(object):
     def parse_string(self, string):
         return self.program.parseString(string)
 
+def decode_stdin_buffer(stdin_buf):
+    ret = []
+    for b in stdin_buf:
+        ret.append(b & 0b0000000011111111)
+        ret.append(b >> 8)
+    return "".join([chr(i) for i in ret])
+
+
 def interpret_file(filepath):
     def wrap(x):
         return x & ((1 << 16) - 1)
@@ -85,6 +93,7 @@ def interpret_file(filepath):
 
     parser = Parser()
 
+
     with open(filepath, "rt") as f:
         rom_lines = f.readlines()
     rom = rom_lines
@@ -100,9 +109,19 @@ def interpret_file(filepath):
 
         if QFTASM_RAM_AS_STDIN_BUFFER:
             python_stdin = sys.stdin.read()
+
             for i_str, c in enumerate(python_stdin):
-                ram[QFTASM_RAMSTDIN_BUF_STARTPOSITION - i_str][0] = ord(c)
-                ram[QFTASM_RAMSTDIN_BUF_STARTPOSITION - i_str][1] += 1
+                # ram[QFTASM_RAMSTDIN_BUF_STARTPOSITION - i_str][0] = ord(c)
+                # ram[QFTASM_RAMSTDIN_BUF_STARTPOSITION - i_str][1] += 1
+                if i_str % 2 == 0:
+                    stdin_int = ord(c)
+                else:
+                    stdin_int += ord(c) << 8
+
+                if i_str % 2 == 1 or i_str == len(python_stdin) - 1:
+                    ram[QFTASM_RAMSTDIN_BUF_STARTPOSITION - i_str//2][0] = stdin_int
+                    ram[QFTASM_RAMSTDIN_BUF_STARTPOSITION - i_str//2][1] += 1
+
         elif stdin_from_pipe:
             python_stdin = sys.stdin.read()
         else:
@@ -199,11 +218,13 @@ def interpret_file(filepath):
             stdin_buf = []
             i_stdin = QFTASM_RAMSTDIN_BUF_STARTPOSITION
             while ram[i_stdin][0]:
-                c = chr(ram[i_stdin][0] & ((1 << 8) - 1))
-                stdin_buf.append(c)
+                # c = chr(ram[i_stdin][0] & ((1 << 8) - 1))
+                stdin_buf.append(ram[i_stdin][0])
                 i_stdin -= 1
-            stdin_buf = "".join(stdin_buf)
-            print("stdin buffer: {}".format(stdin_buf))
+            # stdin_buf = "".join(stdin_buf)
+            # print("stdin buffer: {}".format(stdin_buf))
+            print("stdin buffer: {}".format(decode_stdin_buffer(stdin_buf)))
+
         print("ROM size: {}".format(len(rom_lines)))
         print("n_steps: {}".format(n_steps))
         print("Nonzero write count ram addresses: {}".format(n_nonzero_write_count_ram))
