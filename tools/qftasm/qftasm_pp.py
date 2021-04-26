@@ -1,16 +1,16 @@
 import sys
 import re
 
-
-
-
 filepath = sys.argv[1]
 
 with open(filepath, "rt") as f:
     text = f.read()
 
+text = re.sub(r";;; (\.L\d+.*)", r";; \1", text)
+
 pctable = {}
 vartable = {}
+pcredirecttable = {}
 
 for line in text.split("\n"):
     # pc table
@@ -25,12 +25,30 @@ for line in text.split("\n"):
         k, v = line.split(" : ")
         vartable[k] = v
         continue
+    # pc redirection table
+    elif line.startswith(";;;; "):
+        line = line[5:]
+        k, v = line.split(" : ")
+        pcvalue = k[2:]
+        label = v
+        label = label.replace("{","")
+        label = label.replace("}","")
+        pcredirecttable[pcvalue] = label
+        continue
     else:
         break
 
 # print(pctable)
 # print(vartable)
 
+for k_redirect_middle, v_redirect_dest in pcredirecttable.items():
+    for k_pctable_src, v_pctable_middle in pctable.items():
+        if v_pctable_middle == k_redirect_middle:
+            pctable[k_pctable_src] = pctable[v_redirect_dest]
+#             print(k_pctable_src, v_pctable_middle, v_redirect_dest, pctable[v_redirect_dest])
+    
+# print(pctable)
+# exit()
 for k, v in pctable.items():
     text = text.replace("{" + k + "}", "{____pc" + v + "}")
 
