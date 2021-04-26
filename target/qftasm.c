@@ -398,12 +398,15 @@ static void qftasm_emit_inst(Inst* inst) {
     case GETC:
   #ifdef QFTASM_RAM_AS_STDIN_BUFFER
       qftasm_emit_line("ANT A%d %d %d; GETC", QFTASM_STDIN, 0b1111111111111110, QFTASM_TEMP);
-      qftasm_emit_line("SRL A%d 1 %d;", QFTASM_STDIN, QFTASM_TEMP_2);
+      // qftasm_emit_line("SRL A%d 1 %d;", QFTASM_STDIN, QFTASM_TEMP_2);
+      qftasm_emit_line("SRU 0 A%d %d;", QFTASM_STDIN, QFTASM_TEMP_2);
+
       // If the stdin buffer pointer is odd, skip the following
       qftasm_emit_line("MNZ A%d 3 %d;", QFTASM_TEMP, QFTASM_TEMP);
       qftasm_emit_line("ADD A%d A%d %d;", QFTASM_TEMP, QFTASM_PC, QFTASM_PC);
 
-      qftasm_emit_line("SRL B%d 8 %d;", QFTASM_TEMP_2, qftasm_reg2addr(inst->dst.reg));
+      // qftasm_emit_line("SRL B%d 8 %d;", QFTASM_TEMP_2, qftasm_reg2addr(inst->dst.reg));
+      qftasm_emit_line("SRE 0 B%d %d;", QFTASM_TEMP_2, qftasm_reg2addr(inst->dst.reg));
 
       qftasm_emit_line("ADD A%d 1 %d;", QFTASM_PC, QFTASM_PC); // Local jump
 

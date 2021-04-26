@@ -16,7 +16,7 @@ QFTASM_RAM_AS_STDOUT_BUFFER = True
 QFTASM_RAMSTDIN_BUF_STARTPOSITION = 710 #4095-1024-512-390-25
 QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 1222 #4095-1024-(512-32)-390-25 #4095-1024
 
-QFTASM_NEGATIVE_BUFFER_SIZE = 220
+QFTASM_NEGATIVE_BUFFER_SIZE = 210
 
 # QFTASM_RAMSTDIN_BUF_STARTPOSITION = 125-64
 # QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 127-64
@@ -52,7 +52,9 @@ class Parser(object):
         SL = Literal("SL")
         SRL = Literal("SRL")
         SRA = Literal("SRA")
-        opcode = MNZ | MLZ | ADD | SUB | AND | OR | XOR | ANT | SL | SRL | SRA
+        SRU = Literal("SRU")
+        SRE = Literal("SRE")
+        opcode = MNZ | MLZ | ADD | SUB | AND | OR | XOR | ANT | SL | SRL | SRA | SRU | SRE
         lineno = (integer + Literal(".")).suppress()
         comment = (Literal(";") + restOfLine).suppress()
         inst = (lineno + opcode + operand + operand + operand + Optional(comment)).setParseAction(
@@ -74,16 +76,16 @@ def decode_stdin_buffer(stdin_buf):
 def interpret_file(filepath):
     def wrap(x):
         return x & ((1 << 16) - 1)
-    def sub(a,b,c):
-        if (wrap(a-b + (1 << 16)) == 0) ^ ((a^b) == 0):
-            print("sub:", wrap(a-b + (1 << 16)), "xor:", a^b)
-        return (True, wrap(a-b + (1 << 16)), c)
+    # def sub(a,b,c):
+    #     if (wrap(a-b + (1 << 16)) == 0) ^ ((a^b) == 0):
+    #         print("sub:", wrap(a-b + (1 << 16)), "xor:", a^b)
+    #     return (True, wrap(a-b + (1 << 16)), c)
     d_inst = {
         "MNZ": lambda a, b, c: (True, b, c) if a != 0 else (False, None, None),
         "MLZ": lambda a, b, c: (True, b, c) if (wrap(a) >> 15) == 1 else (False, None, None),
         "ADD": lambda a, b, c: (True, wrap(a+b), c),
-        # "SUB": lambda a, b, c: (True, wrap(a-b + (1 << 16)), c),
-        "SUB": sub,
+        "SUB": lambda a, b, c: (True, wrap(a-b + (1 << 16)), c),
+        # "SUB": sub,
         "AND": lambda a, b, c: (True, (a & b), c),
         "OR" : lambda a, b, c: (True, (a | b), c),
         "XOR": lambda a, b, c: (True, (a ^ b), c),
@@ -91,6 +93,8 @@ def interpret_file(filepath):
         "SL" : lambda a, b, c: (True, (a << b), c),
         "SRL": lambda a, b, c: (True, (a >> b), c),
         "SRA": lambda a, b, c: (True, (a & (1 << 7)) ^ (a & ((1 << 7) - 1) >> b), c),
+        "SRU": lambda a, b, c: (True, (b >> 1), c),
+        "SRE": lambda a, b, c: (True, (b >> 8), c),
     }
 
     parser = Parser()
