@@ -433,16 +433,16 @@ static void qftasm_emit_inst(Inst* inst) {
       if (inst->src.type == IMM && inst->src.imm == 0) {
         qftasm_emit_line("MNZ A%d 1 %d; EQ (with 0)", qftasm_reg2addr(inst->dst.reg), qftasm_reg2addr(inst->dst.reg));
       } else {
-        qftasm_emit_line("SUB %s A%d %d; EQ",
+        qftasm_emit_line("XOR %s A%d %d; EQ",
                         qftasm_src_str(inst),
                         qftasm_reg2addr(inst->dst.reg),
                         qftasm_reg2addr(inst->dst.reg));
         qftasm_emit_line("MNZ A%d 1 %d;", qftasm_reg2addr(inst->dst.reg), qftasm_reg2addr(inst->dst.reg));
       }
-      qftasm_emit_line("SUB 1 A%d %d;", qftasm_reg2addr(inst->dst.reg), qftasm_reg2addr(inst->dst.reg));
+      qftasm_emit_line("XOR 1 A%d %d;", qftasm_reg2addr(inst->dst.reg), qftasm_reg2addr(inst->dst.reg));
       break;
     case NE:
-      qftasm_emit_line("SUB %s A%d %d; NE",
+      qftasm_emit_line("XOR %s A%d %d; NE",
                       qftasm_src_str(inst), qftasm_reg2addr(inst->dst.reg), qftasm_reg2addr(inst->dst.reg));
       qftasm_emit_line("MNZ A%d 1 %d;", qftasm_reg2addr(inst->dst.reg), qftasm_reg2addr(inst->dst.reg));
       break;
@@ -488,10 +488,10 @@ static void qftasm_emit_inst(Inst* inst) {
         qftasm_emit_line("MNZ 32768 1 %d; JEQ (with 0)", QFTASM_TEMP);
         qftasm_emit_line("MNZ A%d 0 %d;", qftasm_reg2addr(inst->dst.reg), QFTASM_TEMP);
       } else {
-        qftasm_emit_line("SUB %s A%d %d; JEQ",
+        qftasm_emit_line("XOR %s A%d %d; JEQ",
                         qftasm_src_str(inst), qftasm_reg2addr(inst->dst.reg), QFTASM_TEMP);
         qftasm_emit_line("MNZ A%d 1 %d;", QFTASM_TEMP, QFTASM_TEMP);
-        qftasm_emit_line("SUB 1 A%d %d;", QFTASM_TEMP, QFTASM_TEMP);
+        qftasm_emit_line("XOR 1 A%d %d;", QFTASM_TEMP, QFTASM_TEMP);
       }
       qftasm_emit_conditional_jmp_inst(inst);
       break;
@@ -507,7 +507,7 @@ static void qftasm_emit_inst(Inst* inst) {
         //  error("Invalid value at conditional jump");
         }
       } else {
-        qftasm_emit_line("SUB %s A%d %d; JNE",
+        qftasm_emit_line("XOR %s A%d %d; JNE",
                         qftasm_src_str(inst), qftasm_reg2addr(inst->dst.reg), QFTASM_TEMP);
         qftasm_emit_conditional_jmp_inst(inst);
       }
