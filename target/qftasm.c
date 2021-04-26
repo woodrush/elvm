@@ -151,6 +151,14 @@ static const char* qftasm_value_str(Value* v) {
   }
 }
 
+static const char* qftasm_src_str(Inst* inst) {
+  return qftasm_value_str(&inst->src);
+}
+
+static const char* qftasm_dst_str(Inst* inst) {
+  return qftasm_value_str(&inst->dst);
+}
+
 static void qftasm_emit_conditional_jmp_inst(Inst* inst) {
   Value* v = &inst->jmp;
   if (v->type == REG) {
@@ -206,6 +214,24 @@ static void qftasm_emit_load_inst(Inst* inst) {
 #endif
 }
 
+static void qftasm_emit_jne(Inst* inst, Value* v) {
+  if (inst->src.type == IMM & inst->src.imm == 0) {
+    // Value* v = &inst->jmp;
+    if (v->type == REG) {
+      qftasm_emit_line("MNZ A%d A%d %d; JNE (with 0, reg)", qftasm_reg2addr(inst->dst.reg), qftasm_reg2addr(v->reg), QFTASM_PC);
+    } else if (v->type == IMM) {
+      qftasm_emit_line("MNZ A%d {pc%d} %d; JNE (with 0, imm)", qftasm_reg2addr(inst->dst.reg), v->imm, QFTASM_PC);
+    } else {
+      qftasm_emit_line("MNZ A%d {%s} %d; JNE (with 0, imm)", qftasm_reg2addr(inst->dst.reg), v->tmp, QFTASM_PC);
+    //  error("Invalid value at conditional jump");
+    }
+  } else {
+    qftasm_emit_line("XOR %s A%d %d; JNE",
+                    qftasm_src_str(inst), qftasm_reg2addr(inst->dst.reg), QFTASM_TEMP);
+    qftasm_emit_conditional_jmp_inst(inst);
+  }
+}
+
 static void qftasm_emit_store_inst(Inst* inst) {
 #ifdef QFTASM_ABSOLUTE_RAM_ADDRESS
   // Here, "src" and "dst" have opposite meanings from their names
@@ -243,14 +269,6 @@ static void qftasm_emit_store_inst(Inst* inst) {
 #endif
 }
 
-static const char* qftasm_src_str(Inst* inst) {
-  return qftasm_value_str(&inst->src);
-}
-
-static const char* qftasm_dst_str(Inst* inst) {
-  return qftasm_value_str(&inst->dst);
-}
-
 static void qftasm_emit_func_prologue(int func_id) {
   // Placeholder code that does nothing, to suppress compilation errors
   if (func_id) {
@@ -286,6 +304,7 @@ static void qftasm_emit_pc_change(int pc) {
   }
   printf(" pc == %d:", pc);
 }
+
 
 int qftasm_opt_skip_count = 0;
 static int qftasm_init_optimization (Inst* inst) {
@@ -496,21 +515,7 @@ static void qftasm_emit_inst(Inst* inst) {
       qftasm_emit_conditional_jmp_inst(inst);
       break;
     case JNE:
-      if (inst->src.type == IMM & inst->src.imm == 0) {
-        Value* v = &inst->jmp;
-        if (v->type == REG) {
-          qftasm_emit_line("MNZ A%d A%d %d; JNE (with 0, reg)", qftasm_reg2addr(inst->dst.reg), qftasm_reg2addr(v->reg), QFTASM_PC);
-        } else if (v->type == IMM) {
-          qftasm_emit_line("MNZ A%d {pc%d} %d; JNE (with 0, imm)", qftasm_reg2addr(inst->dst.reg), v->imm, QFTASM_PC);
-        } else {
-          qftasm_emit_line("MNZ A%d {%s} %d; JNE (with 0, imm)", qftasm_reg2addr(inst->dst.reg), v->tmp, QFTASM_PC);
-        //  error("Invalid value at conditional jump");
-        }
-      } else {
-        qftasm_emit_line("XOR %s A%d %d; JNE",
-                        qftasm_src_str(inst), qftasm_reg2addr(inst->dst.reg), QFTASM_TEMP);
-        qftasm_emit_conditional_jmp_inst(inst);
-      }
+      qftasm_emit_jne(inst, &inst->jmp);
       break;
     case JLT:
       if (inst->src.type == IMM && inst->src.imm == 0) {
