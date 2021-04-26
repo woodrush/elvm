@@ -15,14 +15,14 @@
 #ifdef QFTASM_RAM_AS_STDIN_BUFFER
 // static const int QFTASM_RAMSTDIN_BUF_STARTPOSITION = 7167;
 // static const int QFTASM_RAMSTDIN_BUF_STARTPOSITION = 3475;
-static const int QFTASM_RAMSTDIN_BUF_STARTPOSITION = 1242;
+static const int QFTASM_RAMSTDIN_BUF_STARTPOSITION = 710;
 // static const int QFTASM_RAMSTDIN_BUF_STARTPOSITION = 125-64;
 #endif
 
 #ifdef QFTASM_RAM_AS_STDOUT_BUFFER
 // static const int QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 8191;
 // static const int QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 3975;
-static const int QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 1242;
+static const int QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 1222;
 // static const int QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 127-64;
 #endif
 
@@ -110,7 +110,8 @@ static void init_state_qftasm(Data* data, Inst* init_inst) {
     // qftasm_emit_line("MNZ 0 0 0; pc == %d:", pc);
   // stdin, stdout
 #ifdef QFTASM_RAM_AS_STDIN_BUFFER
-  qftasm_emit_line("MNZ 32768 %d %d; Register initialization (stdin buffer pointer)", QFTASM_RAMSTDIN_BUF_STARTPOSITION*2+1, QFTASM_STDIN);
+  // qftasm_emit_line("MNZ 32768 %d %d; Register initialization (stdin buffer pointer)", QFTASM_RAMSTDIN_BUF_STARTPOSITION*2+1, QFTASM_STDIN);
+  qftasm_emit_line("MNZ 32768 %d %d; Register initialization (stdin buffer pointer)", QFTASM_RAMSTDIN_BUF_STARTPOSITION*2, QFTASM_STDIN);
 #else
   qftasm_emit_line("MNZ 32768 %d %d; Register initialization (stdin)", QFTASM_STDIO_CLOSED, QFTASM_STDIN);
 #endif
@@ -402,13 +403,13 @@ static void qftasm_emit_inst(Inst* inst) {
       qftasm_emit_line("MNZ A%d 3 %d;", QFTASM_TEMP, QFTASM_TEMP);
       qftasm_emit_line("ADD A%d A%d %d;", QFTASM_TEMP, QFTASM_PC, QFTASM_PC);
 
-      qftasm_emit_line("ANT B%d %d %d;", QFTASM_TEMP_2, 0b1111111100000000, qftasm_reg2addr(inst->dst.reg));
+      qftasm_emit_line("SRL B%d 8 %d;", QFTASM_TEMP_2, qftasm_reg2addr(inst->dst.reg));
 
       qftasm_emit_line("ADD A%d 1 %d;", QFTASM_PC, QFTASM_PC); // Local jump
 
-      qftasm_emit_line("SRL B%d 8 %d;", QFTASM_TEMP_2, qftasm_reg2addr(inst->dst.reg));
+      qftasm_emit_line("ANT B%d %d %d;", QFTASM_TEMP_2, 0b1111111100000000, qftasm_reg2addr(inst->dst.reg));
 
-      qftasm_emit_line("SUB A%d 1 %d;", QFTASM_STDIN, QFTASM_STDIN);
+      qftasm_emit_line("ADD A%d 1 %d;", QFTASM_STDIN, QFTASM_STDIN);
   #else
       qftasm_emit_line("MNZ 32768 %d %d; GETC", QFTASM_STDIO_OPEN, QFTASM_STDIN);
       qftasm_emit_line("MNZ 0 0 0;"); // Required due to the delay between memory writing and instruction execution

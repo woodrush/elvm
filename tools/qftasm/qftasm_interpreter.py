@@ -13,8 +13,10 @@ QFTASM_RAM_AS_STDOUT_BUFFER = True
 # QFTASM_RAMSTDIN_BUF_STARTPOSITION = (4499 - 1024)
 # QFTASM_RAMSTDOUT_BUF_STARTPOSITION = (4999 - 1024)
 
-QFTASM_RAMSTDIN_BUF_STARTPOSITION = 1242 #4095-1024-512-390-25
-QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 1242 #4095-1024-(512-32)-390-25 #4095-1024
+QFTASM_RAMSTDIN_BUF_STARTPOSITION = 710 #4095-1024-512-390-25
+QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 1222 #4095-1024-(512-32)-390-25 #4095-1024
+
+QFTASM_NEGATIVE_BUFFER_SIZE = 220
 
 # QFTASM_RAMSTDIN_BUF_STARTPOSITION = 125-64
 # QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 127-64
@@ -122,8 +124,8 @@ def interpret_file(filepath):
                     stdin_int += i << 8
 
                 if i_str % 2 == 1 or i_str == len(python_stdin_int) - 1:
-                    ram[QFTASM_RAMSTDIN_BUF_STARTPOSITION - i_str//2][0] = stdin_int
-                    ram[QFTASM_RAMSTDIN_BUF_STARTPOSITION - i_str//2][1] += 1
+                    ram[QFTASM_RAMSTDIN_BUF_STARTPOSITION + i_str//2][0] = stdin_int
+                    ram[QFTASM_RAMSTDIN_BUF_STARTPOSITION + i_str//2][1] += 1
 
         elif stdin_from_pipe:
             python_stdin = sys.stdin.read()
@@ -225,7 +227,7 @@ def interpret_file(filepath):
             while ram[i_stdin][0]:
                 # c = chr(ram[i_stdin][0] & ((1 << 8) - 1))
                 stdin_buf.append(ram[i_stdin][0])
-                i_stdin -= 1
+                i_stdin += 1
             # stdin_buf = "".join(stdin_buf)
             # print("stdin buffer: {}".format(stdin_buf))
             print("stdin buffer: {}".format(decode_stdin_buffer(stdin_buf)))
@@ -245,13 +247,13 @@ def interpret_file(filepath):
             import matplotlib.pyplot as plt
             a = np.array(ram[:n_nonzero_write_count_ram_maxindex+1])
             plt.figure()
-            x = range(-340,QFTASM_RAMSTDOUT_BUF_STARTPOSITION)
-            plt.plot(x, np.log(np.hstack((a[-340:,1], a[:QFTASM_RAMSTDOUT_BUF_STARTPOSITION,1]))+1), "o-")
+            x = range(-QFTASM_NEGATIVE_BUFFER_SIZE,QFTASM_RAMSTDOUT_BUF_STARTPOSITION)
+            plt.plot(x, np.log(np.hstack((a[-QFTASM_NEGATIVE_BUFFER_SIZE:,1], a[:QFTASM_RAMSTDOUT_BUF_STARTPOSITION,1]))+1), "o-")
             # plt.plot(np.log(np.hstack((a[-50:,1], a[:QFTASM_RAMSTDOUT_BUF_STARTPOSITION,1]))+1), "o-")
             plt.savefig("./memdist.png")
 
             plt.figure()
-            plt.plot(np.log(a[-340:,1]+1), "o-")
+            plt.plot(np.log(a[-QFTASM_NEGATIVE_BUFFER_SIZE:,1]+1), "o-")
             # plt.plot(np.log(np.hstack((a[-50:,1], a[:QFTASM_RAMSTDOUT_BUF_STARTPOSITION,1]))+1), "o-")
             plt.savefig("./stackdist.png")
 
