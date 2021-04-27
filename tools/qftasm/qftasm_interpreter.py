@@ -13,8 +13,8 @@ QFTASM_RAM_AS_STDOUT_BUFFER = True
 # QFTASM_RAMSTDIN_BUF_STARTPOSITION = (4499 - 1024)
 # QFTASM_RAMSTDOUT_BUF_STARTPOSITION = (4999 - 1024)
 
-QFTASM_RAMSTDIN_BUF_STARTPOSITION = 710 #4095-1024-512-390-25
-QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 1222 #4095-1024-(512-32)-390-25 #4095-1024
+QFTASM_RAMSTDIN_BUF_STARTPOSITION = 1310 #4095-1024-512-390-25
+QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 1822 #4095-1024-(512-32)-390-25 #4095-1024
 
 QFTASM_NEGATIVE_BUFFER_SIZE = 210
 
@@ -160,16 +160,27 @@ def interpret_file(filepath):
             ram[prev_result_dst][0] = prev_result_value
             ram[prev_result_dst][1] += 1
 
+        QFTASM_HEAP_MEM_MAX = QFTASM_RAMSTDOUT_BUF_STARTPOSITION + 1
+
         # 3. Read the data for the current instruction from the RAM
         for _ in range(mode_1):
+            if QFTASM_HEAP_MEM_MAX < d1 < 32768:
+                print("Address overflow at pc", pc, "with address", d1, "(d1), n_steps:", n_steps)
+                # exit()
+            ram[d1][1] += 1
             d1 = ram[d1][0]
-            # ram[d1][1] += 1
         for _ in range(mode_2):
+            if QFTASM_HEAP_MEM_MAX < d2 < 32768:
+                print("Address overflow at pc", pc, "with address", d2, "(d2), n_steps:", n_steps)
+                # exit()
+            ram[d2][1] += 1
             d2 = ram[d2][0]
-            # ram[d2][1] += 1
         for _ in range(mode_3):
+            if QFTASM_HEAP_MEM_MAX < d3 < 32768:
+                print("Address overflow at pc", pc, "with address", d3, "(d3), n_steps:", n_steps)
+                # exit()
+            ram[d3][1] += 1
             d3 = ram[d3][0]
-            # ram[d3][1] += 1
 
         # 4. Compute the result
         prev_result_write_flag, prev_result_value, prev_result_dst = d_inst[opcode](d1, d2, d3)
@@ -217,14 +228,14 @@ def interpret_file(filepath):
 
 
     if debug_ramdump:
+        n_nonzero_write_ram_indices = []
         n_nonzero_write_count_ram = 0
         n_nonzero_write_count_ram_maxindex = -1
         for i_index, (v, times) in enumerate(ram):
             if times > 0:
+                n_nonzero_write_ram_indices.append(i_index)
                 n_nonzero_write_count_ram += 1
                 n_nonzero_write_count_ram_maxindex = max(n_nonzero_write_count_ram_maxindex, i_index)
-        print()
-        print()
         if QFTASM_RAM_AS_STDIN_BUFFER:
             stdin_buf = []
             i_stdin = QFTASM_RAMSTDIN_BUF_STARTPOSITION
@@ -239,6 +250,7 @@ def interpret_file(filepath):
         print("ROM size: {}".format(len(rom_lines)))
         print("n_steps: {}".format(n_steps))
         print("Nonzero write count ram addresses: {}".format(n_nonzero_write_count_ram))
+        # print(n_nonzero_write_ram_indices)
         print("Nonzero write count ram max address: {}".format(n_nonzero_write_count_ram_maxindex))
 
         print(ram[:20])
@@ -250,11 +262,22 @@ def interpret_file(filepath):
             import numpy as np
             import matplotlib.pyplot as plt
             a = np.array(ram[:n_nonzero_write_count_ram_maxindex+1])
+
             plt.figure()
             x = range(-QFTASM_NEGATIVE_BUFFER_SIZE,QFTASM_RAMSTDOUT_BUF_STARTPOSITION)
             plt.plot(x, np.log(np.hstack((a[-QFTASM_NEGATIVE_BUFFER_SIZE:,1], a[:QFTASM_RAMSTDOUT_BUF_STARTPOSITION,1]))+1), "o-")
             # plt.plot(np.log(np.hstack((a[-50:,1], a[:QFTASM_RAMSTDOUT_BUF_STARTPOSITION,1]))+1), "o-")
             plt.savefig("./memdist.png")
+
+            plt.figure()
+            plt.plot(np.log(np.array(ram)[:,1]+1), "o-")
+            # plt.plot(np.log(np.hstack((a[-50:,1], a[:QFTASM_RAMSTDOUT_BUF_STARTPOSITION,1]))+1), "o-")
+            plt.savefig("./memdist2.png")
+
+            plt.figure()
+            plt.plot(np.log(np.array(ram)[:,0]+1), "o-")
+            # plt.plot(np.log(np.hstack((a[-50:,1], a[:QFTASM_RAMSTDOUT_BUF_STARTPOSITION,1]))+1), "o-")
+            plt.savefig("./memvaluedist.png")
 
             plt.figure()
             plt.plot(np.log(a[-QFTASM_NEGATIVE_BUFFER_SIZE:,1]+1), "o-")

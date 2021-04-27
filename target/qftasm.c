@@ -15,14 +15,14 @@
 #ifdef QFTASM_RAM_AS_STDIN_BUFFER
 // static const int QFTASM_RAMSTDIN_BUF_STARTPOSITION = 7167;
 // static const int QFTASM_RAMSTDIN_BUF_STARTPOSITION = 3475;
-static const int QFTASM_RAMSTDIN_BUF_STARTPOSITION = 710;
+static const int QFTASM_RAMSTDIN_BUF_STARTPOSITION = 1310;
 // static const int QFTASM_RAMSTDIN_BUF_STARTPOSITION = 125-64;
 #endif
 
 #ifdef QFTASM_RAM_AS_STDOUT_BUFFER
 // static const int QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 8191;
 // static const int QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 3975;
-static const int QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 1222;
+static const int QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 1822;
 // static const int QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 127-64;
 #endif
 
@@ -418,18 +418,26 @@ static void qftasm_emit_inst(Inst* inst) {
   #ifdef QFTASM_RAM_AS_STDIN_BUFFER
       qftasm_emit_line("ANT A%d %d %d; GETC", QFTASM_STDIN, 0b1111111111111110, QFTASM_TEMP);
       // qftasm_emit_line("SRL A%d 1 %d;", QFTASM_STDIN, QFTASM_TEMP_2);
-      qftasm_emit_line("SRU 0 A%d %d;", QFTASM_STDIN, QFTASM_TEMP_2);
+
+      qftasm_emit_line("ANT A%d 1 %d; GETC", QFTASM_STDIN, QFTASM_TEMP_2);
+      qftasm_emit_line("SRU 0 A%d %d;", QFTASM_TEMP_2, QFTASM_TEMP_2);
+      qftasm_emit_line("MNZ 0 0 0;");
 
       // If the stdin buffer pointer is odd, skip the following
-      qftasm_emit_line("MNZ A%d 3 %d;", QFTASM_TEMP, QFTASM_TEMP);
+      qftasm_emit_line("MNZ A%d 4 %d;", QFTASM_TEMP, QFTASM_TEMP);
       qftasm_emit_line("ADD A%d A%d %d;", QFTASM_TEMP, QFTASM_PC, QFTASM_PC);
+      qftasm_emit_line("MNZ 0 0 0;");
 
       // qftasm_emit_line("SRL B%d 8 %d;", QFTASM_TEMP_2, qftasm_reg2addr(inst->dst.reg));
-      qftasm_emit_line("SRE 0 B%d %d;", QFTASM_TEMP_2, qftasm_reg2addr(inst->dst.reg));
-
-      qftasm_emit_line("ADD A%d 1 %d;", QFTASM_PC, QFTASM_PC); // Local jump
-
       qftasm_emit_line("ANT B%d %d %d;", QFTASM_TEMP_2, 0b1111111100000000, qftasm_reg2addr(inst->dst.reg));
+
+      qftasm_emit_line("ADD A%d 4 %d;", QFTASM_PC, QFTASM_PC); // Local jump
+      qftasm_emit_line("MNZ 0 0 0;");
+
+      qftasm_emit_line("ANT B%d %d %d; GETC", QFTASM_TEMP_2, 0b11111111, QFTASM_TEMP_2);
+      qftasm_emit_line("SRE 0 A%d %d;", QFTASM_TEMP_2, qftasm_reg2addr(inst->dst.reg));
+      qftasm_emit_line("MNZ 0 0 0;");
+
 
       qftasm_emit_line("ADD A%d 1 %d;", QFTASM_STDIN, QFTASM_STDIN);
   #else
