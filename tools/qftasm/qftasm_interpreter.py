@@ -13,8 +13,8 @@ QFTASM_RAM_AS_STDOUT_BUFFER = True
 # QFTASM_RAMSTDIN_BUF_STARTPOSITION = (4499 - 1024)
 # QFTASM_RAMSTDOUT_BUF_STARTPOSITION = (4999 - 1024)
 
-QFTASM_RAMSTDIN_BUF_STARTPOSITION = 688 #4095-1024-512-390-25
-QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 1200 #4095-1024-(512-32)-390-25 #4095-1024
+QFTASM_RAMSTDIN_BUF_STARTPOSITION = 2688 #4095-1024-512-390-25
+QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 3200 #4095-1024-(512-32)-390-25 #4095-1024
 
 QFTASM_NEGATIVE_BUFFER_SIZE = 200
 
@@ -144,7 +144,7 @@ def interpret_file(filepath):
 
     # Main loop
     while ram[0][0] < len(rom):
-        # if n_steps > 300000:
+        # if n_steps > 100000:
         #     break
         # 1. Fetch instruction
         pc = ram[0][0]
@@ -286,7 +286,7 @@ def interpret_file(filepath):
             plt.savefig("./stackdist.png")
 
             plt.figure()
-            plt.plot(np.log(rom_reads), "og-")
+            plt.plot(np.log(np.array(rom_reads)+1), "og-")
             plt.savefig("./romdist.png")
 
 

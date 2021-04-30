@@ -15,14 +15,14 @@
 #ifdef QFTASM_RAM_AS_STDIN_BUFFER
 // static const int QFTASM_RAMSTDIN_BUF_STARTPOSITION = 7167;
 // static const int QFTASM_RAMSTDIN_BUF_STARTPOSITION = 3475;
-static const int QFTASM_RAMSTDIN_BUF_STARTPOSITION = 688;
+static const int QFTASM_RAMSTDIN_BUF_STARTPOSITION = 2688;
 // static const int QFTASM_RAMSTDIN_BUF_STARTPOSITION = 125-64;
 #endif
 
 #ifdef QFTASM_RAM_AS_STDOUT_BUFFER
 // static const int QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 8191;
 // static const int QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 3975;
-static const int QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 1200;
+static const int QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 3200;
 // static const int QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 127-64;
 #endif
 
@@ -215,7 +215,7 @@ static void qftasm_emit_load_inst(Inst* inst) {
 }
 
 static void qftasm_emit_jne(Inst* inst, Value* v) {
-  if (inst->src.type == IMM & inst->src.imm == 0) {
+  if (inst->src.type == IMM && inst->src.imm == 0) {
     // Value* v = &inst->jmp;
     if (v->type == REG) {
       qftasm_emit_line("MNZ A%d A%d %d; JNE (with 0, reg)", qftasm_reg2addr(inst->dst.reg), qftasm_reg2addr(v->reg), QFTASM_PC);
@@ -511,7 +511,7 @@ static void qftasm_emit_inst(Inst* inst) {
       break;
 
     case JEQ:
-      if (inst->src.type == IMM & inst->src.imm == 0) {
+      if (inst->src.type == IMM && inst->src.imm == 0) {
         qftasm_emit_line("MNZ 32768 1 %d; JEQ (with 0)", QFTASM_TEMP);
         qftasm_emit_line("MNZ A%d 0 %d;", qftasm_reg2addr(inst->dst.reg), QFTASM_TEMP);
       } else {
