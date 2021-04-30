@@ -25,7 +25,8 @@ typedef enum {
   MOV = 0, ADD, SUB, LOAD, STORE, PUTC, GETC, EXIT,
   JEQ = 8, JNE, JLT, JGT, JLE, JGE, JMP,
   // Optional operations follow.
-  EQ = 16, NE, LT, GT, LE, GE, DUMP,
+  MNZ = 16, MLZ, XOR, ANT, SRU, SRE,
+  EQ, NE, LT, GT, LE, GE, DUMP,
   LAST_OP
 } Op;
 
@@ -36,6 +37,7 @@ typedef struct {
     int imm;
     void* tmp;
   };
+  int addmode;
 } Value;
 
 typedef struct Inst_ {

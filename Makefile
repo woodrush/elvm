@@ -105,7 +105,6 @@ ELC_SRCS := \
 	bf.c \
 	c.c \
 	cl.c \
-	cmake.c \
 	cpp.c \
 	cpp_template.c \
 	cr.c \
@@ -529,10 +528,10 @@ RUNNER := tools/runrs.sh
 TOOL := rustc
 include target.mk
 
-TARGET := cmake
-RUNNER := tools/runcmake.sh
-TOOL := cmake
-include target.mk
+# TARGET := cmake
+# RUNNER := tools/runcmake.sh
+# TOOL := cmake
+# include target.mk
 
 TARGET := whirl
 RUNNER := out/whirl

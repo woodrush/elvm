@@ -9,6 +9,8 @@
 
 #include <ir/table.h>
 
+#define QFTASM_EXTENSION
+
 static bool g_split_basic_block_by_mem = false;
 
 static char g_current_magic_comment[64];
@@ -243,6 +245,21 @@ static Op get_op(Parser* p, const char* buf) {
     return LE;
   } else if (!strcmp(buf, "ge")) {
     return GE;
+
+  } else if (!strcmp(buf, "mnz")) {
+    return MNZ;
+  } else if (!strcmp(buf, "mlz")) {
+    return MLZ;
+  } else if (!strcmp(buf, "xor")) {
+    return XOR;
+  } else if (!strcmp(buf, "ant")) {
+    return ANT;
+  } else if (!strcmp(buf, "sru")) {
+    return SRU;
+  } else if (!strcmp(buf, "sre")) {
+    return SRE;
+
+
   } else if (!strcmp(buf, ".text")) {
     return TEXT;
   } else if (!strcmp(buf, ".data")) {
@@ -332,7 +349,9 @@ static void parse_line(Parser* p, int c) {
         value = p->pc;
         p->prev_boundary = true;
         p->symtab = table_add(p->symtab, strdup(buf), (void*)value);
+#ifdef QFTASM_EXTENSION
         printf(";; %s : %ld\n", buf, value);
+#endif
       } else {
         DataPrivate* d = add_data(p);
         d->val.type = LABEL;
@@ -455,8 +474,14 @@ static void parse_line(Parser* p, int c) {
     case NE:
     case LT:
     case GT:
-    case LE:
-    case GE:
+
+    case XOR:
+    case ANT:
+    case MNZ:
+    case MLZ:
+    case SRU:
+    case SRE:
+
       p->text->src = args[1];
       FALLTHROUGH;
     case GETC:
@@ -511,7 +536,9 @@ static void parse_eir(Parser* p) {
   p->text->jmp.tmp = "main";
   p->text->next = 0;
   p->symtab = table_add(p->symtab, "main", (void*)1);
+#ifdef QFTASM_EXTENSION
   printf(";; %s : %d\n", "main", 1);
+#endif
   for (;;) {
     skip_ws(p);
     c = ir_getc(p);
@@ -624,7 +651,8 @@ void dump_op(Op op, FILE* fp) {
   static const char* op_strs[] = {
     "mov", "add", "sub", "load", "store", "putc", "getc", "exit",
     "jeq", "jne", "jlt", "jgt", "jle", "jge", "jmp", "xxx",
-    "eq", "ne", "lt", "gt", "le", "ge", "dump"
+    "eq", "ne", "lt", "gt", "le", "ge", "dump",
+    "xor", "ant", "mnz", "mlz", "sru", "sre",
   };
   fprintf(fp, "%s", op_strs[op]);
 }
@@ -654,8 +682,15 @@ void dump_inst_fp(Inst* inst, FILE* fp) {
     case NE:
     case LT:
     case GT:
-    case LE:
-    case GE:
+
+    case XOR:
+    case ANT:
+    case MNZ:
+    case MLZ:
+    case SRU:
+    case SRE:
+
+
       fprintf(fp, " ");
       dump_val(&inst->dst, fp);
       fprintf(fp, " ");

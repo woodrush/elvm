@@ -395,6 +395,13 @@ static void qftasm_emit_inst(Inst* inst) {
       // qftasm_emit_line("ADD A%d A%d %d;", QFTASM_TEMP, qftasm_reg2addr(inst->dst.reg), qftasm_reg2addr(inst->dst.reg));
       break;
 
+    case XOR:
+      qftasm_emit_line("XOR A%d %s %d; XOR",
+                      qftasm_reg2addr(inst->dst.reg),
+                      qftasm_src_str(inst),
+                      qftasm_reg2addr(inst->dst.reg));
+      break;
+
     case LOAD:
       qftasm_emit_load_inst(inst);
       break;
