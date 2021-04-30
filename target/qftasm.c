@@ -411,10 +411,17 @@ static void qftasm_emit_inst(Inst* inst) {
       break;
 
     case XOR:
-      qftasm_emit_line("XOR A%d %s %d; XOR",
-                      qftasm_reg2addr(inst->dst.reg),
-                      qftasm_src_str(inst),
-                      qftasm_reg2addr(inst->dst.reg));
+      qftasm_emit_line("XOR %s %s %s; XOR",
+                      qftasm_value_str(&inst->jmp),
+                      qftasm_value_str(&inst->src),
+                      qftasm_value_str(&inst->dst));
+      break;
+
+    case ANT:
+      qftasm_emit_line("ANT %s %s %s; ANT",
+                      qftasm_value_str(&inst->jmp),
+                      qftasm_value_str(&inst->src),
+                      qftasm_value_str(&inst->dst));
       break;
 
     case MNZ:
