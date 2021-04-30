@@ -13,7 +13,7 @@
 #endif
 
 typedef enum {
-  A, B, C, D, BP, SP
+  A, B, C, D, BP, SP, TEMP, TEMP2
 } Reg;
 
 typedef enum {

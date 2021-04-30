@@ -403,8 +403,12 @@ static void parse_line(Parser* p, int c) {
 
     Value a;
     c = ir_getc(p);
-    if (c == 'a' || c == 'b' || c == 'c') {
+    if (c == '$') {
+      c = ir_getc(p);
       a.addmode = (c - 'a') + 1;
+      c = ir_getc(p);
+    } else if (c == '&') {
+      a.addmode = -1;
       c = ir_getc(p);
     } else {
       a.addmode = 0;
@@ -429,6 +433,10 @@ static void parse_line(Parser* p, int c) {
         a.reg = SP;
       } else if (!strcmp(buf, "BP")) {
         a.reg = BP;
+      } else if (!strcmp(buf, "TEMP")) {
+        a.reg = TEMP;
+      } else if (!strcmp(buf, "TEMP2")) {
+        a.reg = TEMP2;
       } else {
         a.type = (ValueType)REF;
         a.tmp = strdup(buf);
@@ -483,6 +491,8 @@ static void parse_line(Parser* p, int c) {
     case NE:
     case LT:
     case GT:
+    case LE:
+    case GE:
       p->text->src = args[1];
       FALLTHROUGH;
     case GETC:
@@ -663,14 +673,14 @@ void dump_op(Op op, FILE* fp) {
     "mov", "add", "sub", "load", "store", "putc", "getc", "exit",
     "jeq", "jne", "jlt", "jgt", "jle", "jge", "jmp", "xxx",
     "eq", "ne", "lt", "gt", "le", "ge", "dump",
-    "xor", "ant", "mnz", "mlz", "sru", "sre",
+    "mnz", "mlz", "xor", "ant", "sru", "sre",
   };
   fprintf(fp, "%s", op_strs[op]);
 }
 
 void dump_val(Value* val, FILE* fp) {
   static const char* reg_strs[] = {
-    "A", "B", "C", "D", "BP", "SP"
+    "A", "B", "C", "D", "BP", "SP", "TEMP", "TEMP2"
   };
   if (val->type == REG) {
     fprintf(fp, "%s", reg_strs[val->reg]);
@@ -693,11 +703,13 @@ void dump_inst_fp(Inst* inst, FILE* fp) {
     case NE:
     case LT:
     case GT:
+    case LE:
+    case GE:
 
-    case XOR:
-    case ANT:
     case MNZ:
     case MLZ:
+    case XOR:
+    case ANT:
     case SRU:
     case SRE:
 

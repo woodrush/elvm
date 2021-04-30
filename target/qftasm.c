@@ -59,6 +59,11 @@ static const int QFTASM_TEMP_2 = 10;
 #define QFTASM_STDIO_OPEN (1 << 8)
 #define QFTASM_STDIO_CLOSED (1 << 9)
 
+// static Value* qftasm_inc_addmode(Value* v, int n) {
+//   v->addmode += n;
+//   return v;
+// }
+
 static void qftasm_emit_line(const char* fmt, ...) {
   static int qftasm_lineno_counter_ = 0;
   if (qftasm_lineno_counter_ > 0) {
@@ -136,26 +141,29 @@ static int qftasm_reg2addr(Reg reg) {
     case D: return QFTASM_D;
     case BP: return QFTASM_BP;
     case SP: return QFTASM_SP;
+    case TEMP: return QFTASM_TEMP;
+    case TEMP2: return QFTASM_TEMP_2;
     default:
       error("Undefined register name in qftasm_reg2addr: %d", reg);
   }
 }
 
 static const char* qftasm_addmode2string(int addmode) {
+  if (addmode > 3) {
+    error(format("Error: Addressing mode is too high: %d", addmode));
+  }
   return addmode == 1 ? "A" : addmode == 2 ? "B" : addmode == 3 ? "C" : "";
 }
 
 static const char* qftasm_value_str(Value* v) {
-  char buf[8];
   if (v->type == REG) {
-    strcpy(buf, format("A%d", qftasm_reg2addr(v->reg)));
+    return format("%s%d", qftasm_addmode2string(v->addmode+1), qftasm_reg2addr(v->reg));
   } else if (v->type == IMM) {
-    strcpy(buf, format("%d", qftasm_int24_to_int16(v->imm)));
+    return format("%s%d", qftasm_addmode2string(v->addmode), qftasm_int24_to_int16(v->imm));
   } else {
-    strcpy(buf, format("{%s}", v->tmp));
+    return format("%s{%s}", qftasm_addmode2string(v->addmode), v->tmp);
     // error("invalid value");
   }
-  return format("%s%s", qftasm_addmode2string(v->addmode), buf);
 }
 
 static const char* qftasm_src_str(Inst* inst) {
@@ -410,8 +418,20 @@ static void qftasm_emit_inst(Inst* inst) {
       break;
 
     case MNZ:
-      qftasm_emit_line("MNZ %s %s %s; XOR",
+      qftasm_emit_line("MNZ %s %s %s; MNZ",
                       qftasm_value_str(&inst->jmp),
+                      qftasm_value_str(&inst->src),
+                      qftasm_value_str(&inst->dst));
+      break;
+
+    case SRU:
+      qftasm_emit_line("SRU 0 %s %s; SRU",
+                      qftasm_value_str(&inst->src),
+                      qftasm_value_str(&inst->dst));
+      break;
+
+    case SRE:
+      qftasm_emit_line("SRE 0 %s %s; SRE",
                       qftasm_value_str(&inst->src),
                       qftasm_value_str(&inst->dst));
       break;
@@ -591,7 +611,7 @@ static void qftasm_emit_inst(Inst* inst) {
       break;
 
     default:
-      error("oops");
+      error(format("oops pc:%d src:%s", inst->pc, qftasm_value_str(&inst->src)));
     }
   }
   qftasm_prev_inst = inst;
