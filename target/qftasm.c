@@ -2,6 +2,7 @@
 #include <target/util.h>
 
 #include <ir/table.h>
+#include <string.h>
 
 //=============================================================
 // Configurations
@@ -140,15 +141,21 @@ static int qftasm_reg2addr(Reg reg) {
   }
 }
 
+static const char* qftasm_addmode2string(int addmode) {
+  return addmode == 1 ? "A" : addmode == 2 ? "B" : addmode == 3 ? "C" : "";
+}
+
 static const char* qftasm_value_str(Value* v) {
+  char buf[8];
   if (v->type == REG) {
-    return format("A%d", qftasm_reg2addr(v->reg));
+    strcpy(buf, format("A%d", qftasm_reg2addr(v->reg)));
   } else if (v->type == IMM) {
-    return format("%d", qftasm_int24_to_int16(v->imm));
+    strcpy(buf, format("%d", qftasm_int24_to_int16(v->imm)));
   } else {
-    return format("{%s}", v->tmp);
+    strcpy(buf, format("{%s}", v->tmp));
     // error("invalid value");
   }
+  return format("%s%s", qftasm_addmode2string(v->addmode), buf);
 }
 
 static const char* qftasm_src_str(Inst* inst) {
@@ -400,6 +407,13 @@ static void qftasm_emit_inst(Inst* inst) {
                       qftasm_reg2addr(inst->dst.reg),
                       qftasm_src_str(inst),
                       qftasm_reg2addr(inst->dst.reg));
+      break;
+
+    case MNZ:
+      qftasm_emit_line("MNZ %s %s %s; XOR",
+                      qftasm_value_str(&inst->jmp),
+                      qftasm_value_str(&inst->src),
+                      qftasm_value_str(&inst->dst));
       break;
 
     case LOAD:

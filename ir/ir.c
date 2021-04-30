@@ -378,6 +378,8 @@ static void parse_line(Parser* p, int c) {
     argc = 1;
   else if (op <= GE)
     argc = 2;
+  else if (op <= SRE)
+    argc = 3;
   else if (op == DUMP)
     argc = 0;
   else if (op == (Op)LONG)
@@ -401,6 +403,13 @@ static void parse_line(Parser* p, int c) {
 
     Value a;
     c = ir_getc(p);
+    if (c == 'a' || c == 'b' || c == 'c') {
+      a.addmode = (c - 'a') + 1;
+      c = ir_getc(p);
+    } else {
+      a.addmode = 0;
+    }
+
     if (isdigit(c) || c == '-') {
       a.type = IMM;
       a.imm = MOD24(read_int(p, c));
@@ -474,14 +483,6 @@ static void parse_line(Parser* p, int c) {
     case NE:
     case LT:
     case GT:
-
-    case XOR:
-    case ANT:
-    case MNZ:
-    case MLZ:
-    case SRU:
-    case SRE:
-
       p->text->src = args[1];
       FALLTHROUGH;
     case GETC:
@@ -505,6 +506,16 @@ static void parse_line(Parser* p, int c) {
       p->text->jmp = args[0];
       p->pc++;
       p->prev_boundary = true;
+      break;
+    case XOR:
+    case ANT:
+    case MNZ:
+    case MLZ:
+    case SRU:
+    case SRE:
+      p->text->jmp = args[0];
+      p->text->src = args[1];
+      p->text->dst = args[2];
       break;
     default:
       ir_error(p, "oops");

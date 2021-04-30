@@ -25,8 +25,9 @@ typedef enum {
   MOV = 0, ADD, SUB, LOAD, STORE, PUTC, GETC, EXIT,
   JEQ = 8, JNE, JLT, JGT, JLE, JGE, JMP,
   // Optional operations follow.
-  MNZ = 16, MLZ, XOR, ANT, SRU, SRE,
-  EQ, NE, LT, GT, LE, GE, DUMP,
+  EQ = 16, NE, LT, GT, LE, GE,
+  MNZ, MLZ, XOR, ANT, SRU, SRE,
+  DUMP,
   LAST_OP
 } Op;
 
