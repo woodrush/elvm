@@ -52,7 +52,7 @@ all: build
 	@echo ''
 
 out/git_submodule.stamp: .git/index
-	git submodule update --init
+	# git submodule update --init
 	touch $@
 
 $(8CC_SRCS) lci/install.py Whitespace/whitespace.c tinycc/configure: out/git_submodule.stamp
@@ -98,62 +98,8 @@ $(COBJS): out/%.o: ir/%.c
 ELC_SRCS := \
 	elc.c \
 	util.c \
-	asmjs.c \
-	arm.c \
-	awk.c \
-	bef.c \
-	bf.c \
-	c.c \
-	cl.c \
-	cpp.c \
-	cpp_template.c \
-	cr.c \
-	cs.c \
-	el.c \
-	forth.c \
-	f90.c \
-	fs.c \
-	go.c \
-	hell.c \
-	hs.c \
-	i.c \
-	j.c \
-	java.c \
-	js.c \
-	kx.c \
-	lua.c \
-	ll.c \
-	lol.c \
 	mcfunction.c \
-	oct.c \
-	php.c \
-	piet.c \
-	pietasm.c \
-	pl.c \
-	py.c \
-	ps.c \
 	qftasm.c \
-	rb.c \
-	rs.c \
-	sed.c \
-	sh.c \
-	sqlite3.c \
-	scala.c \
-	scm_sr.c \
-	scratch3.c \
-	swift.c \
-	tcl.c \
-	tex.c \
-	tf.c \
-	tm.c \
-	unl.c \
-	vim.c \
-	wasi.c \
-	wasm.c \
-	whirl.c \
-	wm.c \
-	ws.c \
-	x86.c \
 
 ELC_SRCS := $(addprefix target/,$(ELC_SRCS))
 COBJS := $(addprefix out/,$(notdir $(ELC_SRCS:.c=.o)))
@@ -567,10 +513,10 @@ TARGET := tcl
 RUNNER := tclsh
 include target.mk
 
-TARGET := j
-RUNNER := jconsole
-CAN_BUILD := $(shell DISPLAY=fail jconsole -js "echo i.4" -js "exit 0" 2>&1 | perl -ne 'print /^0 1 2 3/ ? 1 : 0')
-include target.mk
+# TARGET := j
+# RUNNER := jconsole
+# CAN_BUILD := $(shell DISPLAY=fail jconsole -js "echo i.4" -js "exit 0" 2>&1 | perl -ne 'print /^0 1 2 3/ ? 1 : 0')
+# include target.mk
 
 TARGET := qftasm
 RUNNER := tools/runqftasm.sh

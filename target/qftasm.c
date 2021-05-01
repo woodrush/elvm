@@ -102,9 +102,15 @@ static void qftasm_emit_memory_initialization(Data* data) {
         error("Memory pointer overflow occured at memory initialization: Address %d", mp + QFTASM_MEM_OFFSET);
       }
 #endif
-      qftasm_emit_line("MNZ 32768 %d %d;%s",
-                       qftasm_int24_to_int16(data->v), mp + QFTASM_MEM_OFFSET,
-                       !written_memory_table ? " Memory table" : "");
+      if (data->val.type == PPREF) {
+        qftasm_emit_line("MNZ 32768 {%s} %d;%s",
+                        data->val.tmp, mp + QFTASM_MEM_OFFSET,
+                        !written_memory_table ? " Memory table" : "");
+      } else {
+        qftasm_emit_line("MNZ 32768 %d %d;%s",
+                        qftasm_int24_to_int16(data->v), mp + QFTASM_MEM_OFFSET,
+                        !written_memory_table ? " Memory table" : "");
+      }
       written_memory_table = 1;
     }
   }
@@ -408,6 +414,20 @@ static void qftasm_emit_inst(Inst* inst) {
       // qftasm_emit_line("XOR %s 65535 %d; SUB", qftasm_src_str(inst), QFTASM_TEMP);
       // qftasm_emit_line("ADD 1 A%d %d;", QFTASM_TEMP, QFTASM_TEMP);
       // qftasm_emit_line("ADD A%d A%d %d;", QFTASM_TEMP, qftasm_reg2addr(inst->dst.reg), qftasm_reg2addr(inst->dst.reg));
+      break;
+
+    case ADDN:
+      qftasm_emit_line("ADD %s %s %s; ADDN",
+                      qftasm_value_str(&inst->jmp),
+                      qftasm_value_str(&inst->src),
+                      qftasm_value_str(&inst->dst));
+      break;
+
+    case SUBN:
+      qftasm_emit_line("SUB %s %s %s; SUBN",
+                      qftasm_value_str(&inst->jmp),
+                      qftasm_value_str(&inst->src),
+                      qftasm_value_str(&inst->dst));
       break;
 
     case XOR:

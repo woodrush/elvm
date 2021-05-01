@@ -17,7 +17,8 @@ typedef enum {
 } Reg;
 
 typedef enum {
-  REG, IMM
+  REG, IMM,
+  REF = IMM + 1, LABEL, PPREF
 } ValueType;
 
 typedef enum {
@@ -26,7 +27,7 @@ typedef enum {
   JEQ = 8, JNE, JLT, JGT, JLE, JGE, JMP,
   // Optional operations follow.
   EQ = 16, NE, LT, GT, LE, GE,
-  MNZ, MLZ, XOR, ANT, SRU, SRE,
+  ADDN, SUBN, MNZ, MLZ, XOR, ANT, SRU, SRE,
   DUMP,
   LAST_OP
 } Op;
@@ -52,14 +53,23 @@ typedef struct Inst_ {
   struct Inst_* next;
 } Inst;
 
-typedef struct Data_ {
+typedef struct DataPrivate_ {
   int v;
-  struct Data_* next;
-} Data;
+  struct DataPrivate_* next;
+  Value val;
+  int lineno;
+} DataPrivate;
+
+typedef DataPrivate Data;
+// typedef struct Data_ {
+//   int v;
+//   struct Data_* next;
+// } Data;
 
 typedef struct {
   Inst* text;
-  Data* data;
+  // Data* data;
+  struct DataPrivate_* data;
   struct Table_* table;
 } Module;
 

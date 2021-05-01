@@ -15,12 +15,12 @@ static bool g_split_basic_block_by_mem = false;
 
 static char g_current_magic_comment[64];
 
-typedef struct DataPrivate_ {
-  int v;
-  struct DataPrivate_* next;
-  Value val;
-  int lineno;
-} DataPrivate;
+// typedef struct DataPrivate_ {
+//   int v;
+//   struct DataPrivate_* next;
+//   Value val;
+//   int lineno;
+// } DataPrivate;
 
 typedef struct {
   const char* filename;
@@ -40,9 +40,9 @@ enum {
   DATA = LAST_OP + 1, TEXT, LONG, STRING, FILENAME, LOC
 };
 
-enum {
-  REF = IMM + 1, LABEL
-};
+// enum {
+//   REF = IMM + 1, LABEL, PPREF
+// };
 
 #ifdef __GNUC__
 __attribute__((noreturn))
@@ -246,6 +246,10 @@ static Op get_op(Parser* p, const char* buf) {
   } else if (!strcmp(buf, "ge")) {
     return GE;
 
+  } else if (!strcmp(buf, "addn")) {
+    return ADDN;
+  } else if (!strcmp(buf, "subn")) {
+    return SUBN;
   } else if (!strcmp(buf, "mnz")) {
     return MNZ;
   } else if (!strcmp(buf, "mlz")) {
@@ -450,8 +454,20 @@ static void parse_line(Parser* p, int c) {
       add_imm_data(p, args[0].imm);
     } else if (args[0].type == (ValueType)REF) {
       DataPrivate* d = add_data(p);
-      d->val.type = REF;
+      // d->val.type = REF;
+      // d->val.tmp = args[0].tmp;
+
+      // d->val.type = IMM;
+      // d->val.imm = 765;
+
+      // char* s = (char*)malloc(16);
+      // sprintf(s, "{%s}", args[0].tmp);
+      // d->val.tmp = s;
+
+      d->val.type = PPREF;
       d->val.tmp = args[0].tmp;
+      // printf("\n\n%s\n\n", args[0].tmp);
+
     } else {
       ir_error(p, "number expected");
     }
@@ -517,6 +533,8 @@ static void parse_line(Parser* p, int c) {
       p->pc++;
       p->prev_boundary = true;
       break;
+    case ADDN:
+    case SUBN:
     case XOR:
     case ANT:
     case MNZ:
@@ -574,7 +592,7 @@ static void parse_eir(Parser* p) {
         ir_ungetc(p, c);
       }
       skip_until_ret(p);
-    } else if (c == '_' || c == '.' || isalpha(c)) {
+    } else if (c == '_' || c == '.' || isalpha(c) || c == '@') {
       parse_line(p, c);
     } else {
       ir_error(p, "unexpected char");
@@ -601,6 +619,12 @@ static void resolve_dry(Value* v, Table* symtab) {
   if (v->type != (ValueType)REF)
     return;
   const char* name = (const char*)v->tmp;
+
+  // if (name[0] == '@') {
+  //   Value* a = (Value*)malloc(sizeof(Value));
+  //   a->type = (ValueType)REF;
+  //   a->tmp = (void*)name;
+  // } else
   if (!table_get_dry(symtab, name, (void*)&v->imm)) {
     fprintf(stderr, "undefined sym: %s\n", name);
     exit(1);
@@ -621,7 +645,14 @@ static void resolve_jmp(Value* v, Table* symtab) {
 
 static void resolve_syms(Parser* p) {
   for (DataPrivate* data = p->data; data; data = data->next) {
-    if (data->val.type == (ValueType)REF) {
+    // const char* name = (const char*)(data->val.tmp);
+    if (data->val.type == (ValueType)PPREF) {
+      // Value* v = (Value*)malloc(sizeof(Value));
+      // v->type = (ValueType)IMM;
+      // v->imm = 987;
+      // v->tmp = (void*)name;
+    }
+    else if (data->val.type == (ValueType)REF) {
       resolve_dry(&data->val, p->symtab);
     }
     data->v = MOD24(data->val.imm);
@@ -644,7 +675,8 @@ Module* load_eir_impl(const char* filename, FILE* fp) {
 
   Module* m = malloc(sizeof(Module));
   m->text = parser.text;
-  m->data = (Data*)parser.data;
+  // m->data = (Data*)parser.data;
+  m->data = parser.data;
   m->table = parser.symtab;
   return m;
 }
@@ -673,7 +705,7 @@ void dump_op(Op op, FILE* fp) {
     "mov", "add", "sub", "load", "store", "putc", "getc", "exit",
     "jeq", "jne", "jlt", "jgt", "jle", "jge", "jmp", "xxx",
     "eq", "ne", "lt", "gt", "le", "ge", "dump",
-    "mnz", "mlz", "xor", "ant", "sru", "sre",
+    "mnz", "mlz", "addn", "subn", "xor", "ant", "sru", "sre",
   };
   fprintf(fp, "%s", op_strs[op]);
 }
@@ -706,6 +738,8 @@ void dump_inst_fp(Inst* inst, FILE* fp) {
     case LE:
     case GE:
 
+    case ADDN:
+    case SUBN:
     case MNZ:
     case MLZ:
     case XOR:
