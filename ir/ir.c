@@ -663,6 +663,12 @@ static void resolve_syms(Parser* p) {
     resolve_dry(&inst->src, p->symtab);
     resolve_jmp(&inst->jmp, p->symtab);
   }
+
+  // Resolve all the symbols in the table
+  Table* tbl = p->symtab;
+  for (; tbl; tbl = tbl->next) {
+    printf(";;; %s : %ld\n", tbl->key, (long)tbl->value);
+  }
 }
 
 Module* load_eir_impl(const char* filename, FILE* fp) {
