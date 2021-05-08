@@ -1,5 +1,6 @@
 from pyparsing import *
 import sys
+from prewritten_ram import prewritten_values
 
 #==================================================================================
 # Configurations
@@ -13,8 +14,8 @@ QFTASM_RAM_AS_STDOUT_BUFFER = True
 # QFTASM_RAMSTDIN_BUF_STARTPOSITION = (4499 - 1024)
 # QFTASM_RAMSTDOUT_BUF_STARTPOSITION = (4999 - 1024)
 
-QFTASM_RAMSTDIN_BUF_STARTPOSITION = 700 #4095-1024-512-390-25
-QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 1200 #4095-1024-(512-32)-390-25 #4095-1024
+QFTASM_RAMSTDIN_BUF_STARTPOSITION = 350 #4095-1024-512-390-25
+QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 823 #4095-1024-(512-32)-390-25 #4095-1024
 
 QFTASM_NEGATIVE_BUFFER_SIZE = 200
 
@@ -23,9 +24,11 @@ QFTASM_NEGATIVE_BUFFER_SIZE = 200
 
 debug_ramdump = True
 debug_ramdump_verbose = False
-debug_plot_memdist = True   # Requires numpy and matplotlib when set to True
+debug_plot_memdist = False   # Requires numpy and matplotlib when set to True
 use_stdio = True
 stdin_from_pipe = True
+
+QFTASM_MEMORY_WRAP = 1024
 
 #==================================================================================
 QFTASM_STDIO_OPEN = 1 << 8
@@ -109,6 +112,9 @@ def interpret_file(filepath):
     for _ in range(1 << 16):
         ram.append([0,0])
 
+    for addr, value in prewritten_values:
+        ram[addr%QFTASM_MEMORY_WRAP][0] = value
+
     if use_stdio:
         stdin_counter = 0
         read_stdin_flag = False
@@ -145,7 +151,7 @@ def interpret_file(filepath):
 
     # Main loop
     while ram[0][0] < len(rom):
-        # if n_steps > 100000:
+        # if n_steps > 300000:
         #     break
         # 1. Fetch instruction
         pc = ram[0][0]
@@ -158,8 +164,8 @@ def interpret_file(filepath):
 
         # 2. Write the result of the previous instruction to the RAM
         if prev_result_write_flag:
-            ram[prev_result_dst][0] = prev_result_value
-            ram[prev_result_dst][1] += 1
+            ram[prev_result_dst % QFTASM_MEMORY_WRAP][0] = prev_result_value
+            ram[prev_result_dst % QFTASM_MEMORY_WRAP][1] += 1
 
         QFTASM_HEAP_MEM_MAX = QFTASM_RAMSTDOUT_BUF_STARTPOSITION + 1
 
@@ -168,20 +174,20 @@ def interpret_file(filepath):
             if QFTASM_HEAP_MEM_MAX < d1 < 32768 or 32768 <= d1 < 65536 - QFTASM_NEGATIVE_BUFFER_SIZE:
                 print("Address overflow at pc", pc, "with address", d1, "(d1), n_steps:", n_steps)
                 # exit()
-            ram[d1][1] += 1
-            d1 = ram[d1][0]
+            ram[d1%QFTASM_MEMORY_WRAP][1] += 1
+            d1 = ram[d1%QFTASM_MEMORY_WRAP][0]
         for _ in range(mode_2):
             if QFTASM_HEAP_MEM_MAX < d2 < 32768 or 32768 <= d2 < 65536 - QFTASM_NEGATIVE_BUFFER_SIZE:
                 print("Address overflow at pc", pc, "with address", d2, "(d2), n_steps:", n_steps)
                 # exit()
-            ram[d2][1] += 1
-            d2 = ram[d2][0]
+            ram[d2%QFTASM_MEMORY_WRAP][1] += 1
+            d2 = ram[d2%QFTASM_MEMORY_WRAP][0]
         for _ in range(mode_3):
             if QFTASM_HEAP_MEM_MAX < d3 < 32768 or 32768 <= d3 < 65536 - QFTASM_NEGATIVE_BUFFER_SIZE:
                 print("Address overflow at pc", pc, "with address", d3, "(d3), n_steps:", n_steps)
                 # exit()
-            ram[d3][1] += 1
-            d3 = ram[d3][0]
+            ram[d3%QFTASM_MEMORY_WRAP][1] += 1
+            d3 = ram[d3%QFTASM_MEMORY_WRAP][0]
 
         # 4. Compute the result
         prev_result_write_flag, prev_result_value, prev_result_dst = d_inst[opcode](d1, d2, d3)
@@ -261,23 +267,30 @@ def interpret_file(filepath):
 
         # Requires numpy and matplotlib
         x = range(-QFTASM_NEGATIVE_BUFFER_SIZE,QFTASM_RAMSTDOUT_BUF_STARTPOSITION)
+        import numpy as np
+        import matplotlib.pyplot as plt
+        a = np.array(ram[:n_nonzero_write_count_ram_maxindex+1])
+        ramarray = np.array(ram)
         if debug_plot_memdist:
-            import numpy as np
-            import matplotlib.pyplot as plt
-            a = np.array(ram[:n_nonzero_write_count_ram_maxindex+1])
 
             plt.figure()
-            plt.plot(x, np.log(np.hstack((a[-QFTASM_NEGATIVE_BUFFER_SIZE:,1], a[:QFTASM_RAMSTDOUT_BUF_STARTPOSITION,1]))+1), "o-")
+            # plt.plot(x, np.log(np.hstack((a[-QFTASM_NEGATIVE_BUFFER_SIZE:,1], a[:QFTASM_RAMSTDOUT_BUF_STARTPOSITION,1]))+1), "o-")
+            plt.plot(np.log(ramarray[:QFTASM_MEMORY_WRAP,1]+1), "o-")
             # plt.plot(np.log(np.hstack((a[-50:,1], a[:QFTASM_RAMSTDOUT_BUF_STARTPOSITION,1]))+1), "o-")
             plt.savefig("./memdist.png")
 
             plt.figure()
-            plt.plot(np.log(np.array(ram)[:,1]+1), "o-")
+            plt.plot(x, np.log(np.hstack((a[-QFTASM_NEGATIVE_BUFFER_SIZE:,1], a[:QFTASM_RAMSTDOUT_BUF_STARTPOSITION,1]))+1), "o-")
+            # plt.plot(np.log(np.hstack((a[-50:,1], a[:QFTASM_RAMSTDOUT_BUF_STARTPOSITION,1]))+1), "o-")
+            plt.savefig("./memdist_negative.png")
+
+            plt.figure()
+            plt.plot(np.log(ramarray[:,1]+1), "o-")
             # plt.plot(np.log(np.hstack((a[-50:,1], a[:QFTASM_RAMSTDOUT_BUF_STARTPOSITION,1]))+1), "o-")
             plt.savefig("./memdist2.png")
 
             plt.figure()
-            plt.plot(np.log(np.array(ram)[:,0]+1), "o-")
+            plt.plot(np.log(ramarray[:,0]+1), "o-")
             # plt.plot(np.log(np.hstack((a[-50:,1], a[:QFTASM_RAMSTDOUT_BUF_STARTPOSITION,1]))+1), "o-")
             plt.savefig("./memvaluedist.png")
 
@@ -291,10 +304,9 @@ def interpret_file(filepath):
             plt.savefig("./romdist.png")
 
         if debug_ramdump_verbose:
-            ramvalues = np.hstack((a[-QFTASM_NEGATIVE_BUFFER_SIZE:,0], a[:QFTASM_RAMSTDOUT_BUF_STARTPOSITION,0]))
-            # skiplist = [11, 12, 13, 14, 15, 16, 18, 19, 20, 21, 22, 24, 25, 26, 27, 28, 29, 31, 32, 33, 34, 35, 37, 38, 39, 40, 42, 43, 45, 46, 47, 49, 50, 51, 52, 53, 55, 56, 57, 58, 59, 61, 62, 63, 64, 65, 67, 68, 69, 70, 71, 72, 73, 75, 76, 78, 79, 80, 81, 83, 85, 87, 88, 89, 91, 92, 93, 94, 96, 97, 98, 100, 102, 104, 106, 108, 110, 111, 112, 113, 115, 119, 122, 125, 128, 131, 132, 134, 136, 137, 138, 140, 142, 143, 145, 146, 147, 148, 149, 151, 152, 153, 154, 155, 156, 157, 158, 160, 161, 162, 163, 164, 165, 244, 245, 246, 247, 248, 249, 250, 251, 252, 254, 255, 256, 257, 258, 259, 260, 261, 263, 264, 265, 266, 267, 268, 269, 270, 271, 272, 275]
-            for i, v in zip(x, ramvalues):
-                if i > 165: #i > 10 and i not in skiplist and v != 0:
+            ramvalues = ramarray[:QFTASM_MEMORY_WRAP,0]
+            for i, v in enumerate(ramvalues):
+                if i > QFTASM_MEMORY_WRAP-QFTASM_NEGATIVE_BUFFER_SIZE-1: #i > 10 and i not in skiplist and v != 0:
                     print("{} : {}".format(i, v))
 
 

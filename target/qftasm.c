@@ -13,17 +13,20 @@
 
 #define QFTASM_ABSOLUTE_RAM_ADDRESS
 
+static const int QFTASM_OMIT_MEMORY = 0;
+static const int QFTASM_MEMORY_AT_FOOTER = 0;
+
 #ifdef QFTASM_RAM_AS_STDIN_BUFFER
 // static const int QFTASM_RAMSTDIN_BUF_STARTPOSITION = 7167;
 // static const int QFTASM_RAMSTDIN_BUF_STARTPOSITION = 3475;
-static const int QFTASM_RAMSTDIN_BUF_STARTPOSITION = 700;
+static const int QFTASM_RAMSTDIN_BUF_STARTPOSITION = 350;
 // static const int QFTASM_RAMSTDIN_BUF_STARTPOSITION = 125-64;
 #endif
 
 #ifdef QFTASM_RAM_AS_STDOUT_BUFFER
 // static const int QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 8191;
 // static const int QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 3975;
-static const int QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 1200;
+static const int QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 823;
 // static const int QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 127-64;
 #endif
 
@@ -102,14 +105,15 @@ static void qftasm_emit_memory_initialization(Data* data) {
         error("Memory pointer overflow occured at memory initialization: Address %d", mp + QFTASM_MEM_OFFSET);
       }
 #endif
+
       if (data->val.type == PPREF) {
         qftasm_emit_line("MNZ 32768 {%s} %d;%s",
-                        data->val.tmp, mp + QFTASM_MEM_OFFSET,
-                        !written_memory_table ? " Memory table" : "");
+                          data->val.tmp, mp + QFTASM_MEM_OFFSET,
+                          !written_memory_table ? " Memory table" : "");
       } else {
         qftasm_emit_line("MNZ 32768 %d %d;%s",
-                        qftasm_int24_to_int16(data->v), mp + QFTASM_MEM_OFFSET,
-                        !written_memory_table ? " Memory table" : "");
+                          qftasm_int24_to_int16(data->v), mp + QFTASM_MEM_OFFSET,
+                          !written_memory_table ? " Memory table" : "");
       }
       written_memory_table = 1;
     }
@@ -117,27 +121,24 @@ static void qftasm_emit_memory_initialization(Data* data) {
 
 }
 
-Data* initdata;
-static void init_state_qftasm(Data* data, Inst* init_inst) {
-  initdata = data;
+// Data* initdata;
+static void init_state_qftasm(Data* data) {
+  // initdata = data;
     // qftasm_emit_line("MNZ 0 0 0; pc == %d:", pc);
   // stdin, stdout
-#ifdef QFTASM_RAM_AS_STDIN_BUFFER
-  // qftasm_emit_line("MNZ 32768 %d %d; Register initialization (stdin buffer pointer)", QFTASM_RAMSTDIN_BUF_STARTPOSITION*2+1, QFTASM_STDIN);
-  qftasm_emit_line("MNZ 32768 %d %d; Register initialization (stdin buffer pointer)", QFTASM_RAMSTDIN_BUF_STARTPOSITION*2, QFTASM_STDIN);
-#else
-  qftasm_emit_line("MNZ 32768 %d %d; Register initialization (stdin)", QFTASM_STDIO_CLOSED, QFTASM_STDIN);
-#endif
-#ifdef QFTASM_RAM_AS_STDOUT_BUFFER
-  qftasm_emit_line("MNZ 32768 %d %d; Register initialization (stdout buffer pointer)", QFTASM_RAMSTDOUT_BUF_STARTPOSITION, QFTASM_STDOUT);
-#else
-  qftasm_emit_line("MNZ 32768 %d %d; Register initialization (stdout)", QFTASM_STDIO_CLOSED, QFTASM_STDOUT);
-#endif
-  qftasm_emit_memory_initialization(initdata);
+  #ifdef QFTASM_RAM_AS_STDIN_BUFFER
+    // qftasm_emit_line("MNZ 32768 %d %d; Register initialization (stdin buffer pointer)", QFTASM_RAMSTDIN_BUF_STARTPOSITION*2+1, QFTASM_STDIN);
+    qftasm_emit_line("MNZ 32768 %d %d; Register initialization (stdin buffer pointer)", QFTASM_RAMSTDIN_BUF_STARTPOSITION*2, QFTASM_STDIN);
+  #else
+    qftasm_emit_line("MNZ 32768 %d %d; Register initialization (stdin)", QFTASM_STDIO_CLOSED, QFTASM_STDIN);
+  #endif
 
-  if (init_inst) {
-    return;
-  }
+  #ifdef QFTASM_RAM_AS_STDOUT_BUFFER
+    qftasm_emit_line("MNZ 32768 %d %d; Register initialization (stdout buffer pointer)", QFTASM_RAMSTDOUT_BUF_STARTPOSITION, QFTASM_STDOUT);
+  #else
+    qftasm_emit_line("MNZ 32768 %d %d; Register initialization (stdout)", QFTASM_STDIO_CLOSED, QFTASM_STDOUT);
+  #endif
+  qftasm_emit_memory_initialization(data);
 }
 
 static int qftasm_reg2addr(Reg reg) {
@@ -324,7 +325,9 @@ static void qftasm_emit_pc_change(int pc) {
         break;
     }
   }
-  printf(" pc == %d:", pc);
+  if (pc > 0) {
+    printf(" pc == %d:", pc);
+  }
 }
 
 
@@ -649,11 +652,18 @@ void target_qftasm(Module* module) {
   // for (Table* table = module->table; table; table = table->next) {
   //   printf("%s : %ld\n", table->key, (long)table->value);
   // }
-  init_state_qftasm(module->data, module->text);
+  if (!QFTASM_OMIT_MEMORY && !QFTASM_MEMORY_AT_FOOTER) {
+    init_state_qftasm(module->data);
+  }
 
   emit_chunked_main_loop(module->text,
                          qftasm_emit_func_prologue,
                          qftasm_emit_func_epilogue,
                          qftasm_emit_pc_change,
                          qftasm_emit_inst);
+
+  if (!QFTASM_OMIT_MEMORY && QFTASM_MEMORY_AT_FOOTER) {
+    init_state_qftasm(module->data);
+  }
+
 }
