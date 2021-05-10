@@ -1,6 +1,19 @@
 from pyparsing import *
 import sys
 from prewritten_ram import prewritten_values
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--stdin-pos", type=int, default=350)
+parser.add_argument("--stdout-pos", type=int, default=823)
+parser.add_argument("--stack-size", type=int, default=200)
+parser.add_argument('--debug-ramdump', action="store_true")
+parser.add_argument('--debug-ramdump-verbose', action="store_true")
+parser.add_argument('--debug-plot-memdist', action="store_true")
+parser.add_argument("-i", type=str)
+
+
+args = parser.parse_args()
 
 #==================================================================================
 # Configurations
@@ -14,17 +27,17 @@ QFTASM_RAM_AS_STDOUT_BUFFER = True
 # QFTASM_RAMSTDIN_BUF_STARTPOSITION = (4499 - 1024)
 # QFTASM_RAMSTDOUT_BUF_STARTPOSITION = (4999 - 1024)
 
-QFTASM_RAMSTDIN_BUF_STARTPOSITION = 350 #4095-1024-512-390-25
-QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 823 #4095-1024-(512-32)-390-25 #4095-1024
+QFTASM_RAMSTDIN_BUF_STARTPOSITION = args.stdin_pos #4095-1024-512-390-25
+QFTASM_RAMSTDOUT_BUF_STARTPOSITION = args.stdout_pos #4095-1024-(512-32)-390-25 #4095-1024
 
-QFTASM_NEGATIVE_BUFFER_SIZE = 200
+QFTASM_NEGATIVE_BUFFER_SIZE = args.stack_size
 
 # QFTASM_RAMSTDIN_BUF_STARTPOSITION = 125-64
 # QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 127-64
 
-debug_ramdump = True
-debug_ramdump_verbose = False
-debug_plot_memdist = False   # Requires numpy and matplotlib when set to True
+debug_ramdump = args.debug_ramdump
+debug_ramdump_verbose = args.debug_ramdump_verbose
+debug_plot_memdist = args.debug_plot_memdist   # Requires numpy and matplotlib when set to True
 use_stdio = True
 stdin_from_pipe = True
 
@@ -112,8 +125,8 @@ def interpret_file(filepath):
     for _ in range(1 << 16):
         ram.append([0,0])
 
-    for addr, value in prewritten_values:
-        ram[addr%QFTASM_MEMORY_WRAP][0] = value
+    # for addr, value in prewritten_values:
+    #     ram[addr%QFTASM_MEMORY_WRAP][0] = value
 
     if use_stdio:
         stdin_counter = 0
@@ -311,5 +324,6 @@ def interpret_file(filepath):
 
 
 if __name__ == "__main__":
-    filepath = sys.argv[1]
+    # filepath = sys.argv[1]
+    filepath = args.i
     interpret_file(filepath)
