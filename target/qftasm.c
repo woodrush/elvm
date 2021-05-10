@@ -16,19 +16,19 @@
 static const int QFTASM_OMIT_MEMORY = 0;
 static const int QFTASM_MEMORY_AT_FOOTER = 0;
 
-#ifdef QFTASM_RAM_AS_STDIN_BUFFER
-// static const int QFTASM_RAMSTDIN_BUF_STARTPOSITION = 7167;
-// static const int QFTASM_RAMSTDIN_BUF_STARTPOSITION = 3475;
-static const int QFTASM_RAMSTDIN_BUF_STARTPOSITION = 350;
-// static const int QFTASM_RAMSTDIN_BUF_STARTPOSITION = 125-64;
-#endif
+// #ifdef QFTASM_RAM_AS_STDIN_BUFFER
+// // static const int QFTASM_RAMSTDIN_BUF_STARTPOSITION = 7167;
+// // static const int QFTASM_RAMSTDIN_BUF_STARTPOSITION = 3475;
+extern int QFTASM_RAMSTDIN_BUF_STARTPOSITION;// = 350;
+// // static const int QFTASM_RAMSTDIN_BUF_STARTPOSITION = 125-64;
+// #endif
 
-#ifdef QFTASM_RAM_AS_STDOUT_BUFFER
-// static const int QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 8191;
-// static const int QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 3975;
-static const int QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 823;
-// static const int QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 127-64;
-#endif
+// #ifdef QFTASM_RAM_AS_STDOUT_BUFFER
+// // static const int QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 8191;
+// // static const int QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 3975;
+extern int QFTASM_RAMSTDOUT_BUF_STARTPOSITION;// = 823;
+// // static const int QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 127-64;
+// #endif
 
 // RAM pointer offset to prevent negative-value RAM addresses
 // from underflowing into the register regions

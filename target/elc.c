@@ -5,6 +5,10 @@
 #include <ir/ir.h>
 #include <target/util.h>
 
+int QFTASM_RAMSTDIN_BUF_STARTPOSITION = 350;
+int QFTASM_RAMSTDOUT_BUF_STARTPOSITION = 823;
+
+
 // void target_arm(Module* module);
 // void target_asmjs(Module* module);
 // void target_awk(Module* module);
@@ -162,7 +166,16 @@ int main(int argc, char* argv[]) {
   for (int i = 1; i < argc; i++) {
     const char* arg = argv[i];
     if (arg[0] == '-') {
-      if (target_func) {
+      if (arg[1] == '-') {
+        ext = arg + 2;
+        if (!strcmp(ext, "qftasm-stdin-pos")) {
+          QFTASM_RAMSTDIN_BUF_STARTPOSITION = atoi(argv[i+1]);
+          fprintf(stderr, "[elc] QFTASM_RAMSTDIN_BUF_STARTPOSITION: %d\n", QFTASM_RAMSTDIN_BUF_STARTPOSITION);
+        } else if (!strcmp(ext, "qftasm-stdout-pos")) {
+          QFTASM_RAMSTDOUT_BUF_STARTPOSITION = atoi(argv[i+1]);
+          fprintf(stderr, "[elc] QFTASM_RAMSTDOUT_BUF_STARTPOSITION: %d\n", QFTASM_RAMSTDOUT_BUF_STARTPOSITION);
+        }
+      } else if (target_func) {
         handle_args_func_t handle_args = get_handle_args_func(ext);
         if (!handle_args || !handle_args(arg + 1, argv[++i])) {
           error("unknown flag");
