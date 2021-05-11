@@ -13,8 +13,8 @@
 
 #define QFTASM_ABSOLUTE_RAM_ADDRESS
 
-static const int QFTASM_OMIT_MEMORY = 0;
-static const int QFTASM_MEMORY_AT_FOOTER = 0;
+extern int QFTASM_OMIT_MEMORY;
+extern int QFTASM_MEMORY_AT_FOOTER;
 
 // #ifdef QFTASM_RAM_AS_STDIN_BUFFER
 // // static const int QFTASM_RAMSTDIN_BUF_STARTPOSITION = 7167;

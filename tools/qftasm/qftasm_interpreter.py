@@ -1,15 +1,21 @@
 from pyparsing import *
 import sys
-from prewritten_ram import prewritten_values
 import argparse
+import numpy as np
+import matplotlib.pyplot as plt
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--stdin-pos", type=int, default=350)
-parser.add_argument("--stdout-pos", type=int, default=823)
-parser.add_argument("--stack-size", type=int, default=200)
+parser.add_argument("--stdout-pos", type=int, default=799)
+parser.add_argument("--stack-size", type=int, default=223)
+parser.add_argument("--memory-wrap", type=int, default=1024)
+parser.add_argument("--max-steps", type=int, default=0)
+parser.add_argument("--initial-ramvalues", type=str, default=None)
 parser.add_argument('--debug-ramdump', action="store_true")
 parser.add_argument('--debug-ramdump-verbose', action="store_true")
 parser.add_argument('--debug-plot-memdist', action="store_true")
+parser.add_argument('--suppress-stdout', action="store_true")
+parser.add_argument('--suppress-address-overflow-warning', action="store_true")
 parser.add_argument("-i", type=str)
 
 
@@ -41,7 +47,7 @@ debug_plot_memdist = args.debug_plot_memdist   # Requires numpy and matplotlib w
 use_stdio = True
 stdin_from_pipe = True
 
-QFTASM_MEMORY_WRAP = 1024
+QFTASM_MEMORY_WRAP = args.memory_wrap
 
 #==================================================================================
 QFTASM_STDIO_OPEN = 1 << 8
@@ -125,8 +131,12 @@ def interpret_file(filepath):
     for _ in range(1 << 16):
         ram.append([0,0])
 
-    # for addr, value in prewritten_values:
-    #     ram[addr%QFTASM_MEMORY_WRAP][0] = value
+    if args.initial_ramvalues:
+        initial_ramvalues = np.loadtxt(args.initial_ramvalues, delimiter=",", dtype=np.uint64)
+        print(initial_ramvalues)
+        for addr, value in initial_ramvalues:
+            addr, value = map(int, (addr, value))
+            ram[addr%QFTASM_MEMORY_WRAP][0] = value
 
     if use_stdio:
         stdin_counter = 0
@@ -164,8 +174,8 @@ def interpret_file(filepath):
 
     # Main loop
     while ram[0][0] < len(rom):
-        # if n_steps > 300000:
-        #     break
+        if args.max_steps > 0 and n_steps > args.max_steps:
+            break
         # 1. Fetch instruction
         pc = ram[0][0]
         inst = rom[pc]
@@ -184,19 +194,19 @@ def interpret_file(filepath):
 
         # 3. Read the data for the current instruction from the RAM
         for _ in range(mode_1):
-            if QFTASM_HEAP_MEM_MAX < d1 < 32768 or 32768 <= d1 < 65536 - QFTASM_NEGATIVE_BUFFER_SIZE:
+            if not args.suppress_address_overflow_warning and QFTASM_HEAP_MEM_MAX < d1 < 32768 or 32768 <= d1 < 65536 - QFTASM_NEGATIVE_BUFFER_SIZE:
                 print("Address overflow at pc", pc, "with address", d1, "(d1), n_steps:", n_steps)
                 # exit()
             ram[d1%QFTASM_MEMORY_WRAP][1] += 1
             d1 = ram[d1%QFTASM_MEMORY_WRAP][0]
         for _ in range(mode_2):
-            if QFTASM_HEAP_MEM_MAX < d2 < 32768 or 32768 <= d2 < 65536 - QFTASM_NEGATIVE_BUFFER_SIZE:
+            if not args.suppress_address_overflow_warning and QFTASM_HEAP_MEM_MAX < d2 < 32768 or 32768 <= d2 < 65536 - QFTASM_NEGATIVE_BUFFER_SIZE:
                 print("Address overflow at pc", pc, "with address", d2, "(d2), n_steps:", n_steps)
                 # exit()
             ram[d2%QFTASM_MEMORY_WRAP][1] += 1
             d2 = ram[d2%QFTASM_MEMORY_WRAP][0]
         for _ in range(mode_3):
-            if QFTASM_HEAP_MEM_MAX < d3 < 32768 or 32768 <= d3 < 65536 - QFTASM_NEGATIVE_BUFFER_SIZE:
+            if not args.suppress_address_overflow_warning and QFTASM_HEAP_MEM_MAX < d3 < 32768 or 32768 <= d3 < 65536 - QFTASM_NEGATIVE_BUFFER_SIZE:
                 print("Address overflow at pc", pc, "with address", d3, "(d3), n_steps:", n_steps)
                 # exit()
             ram[d3%QFTASM_MEMORY_WRAP][1] += 1
@@ -242,7 +252,7 @@ def interpret_file(filepath):
 
         n_steps += 1
 
-    if QFTASM_RAM_AS_STDOUT_BUFFER:
+    if not args.suppress_stdout and QFTASM_RAM_AS_STDOUT_BUFFER:
         stdout_buf = "".join([chr(ram[i_stdout][0] & ((1 << 8) - 1)) for i_stdout in reversed(range(ram[2][0]+1,QFTASM_RAMSTDOUT_BUF_STARTPOSITION+1))])
         print("".join(stdout_buf), end="")
 
@@ -280,8 +290,6 @@ def interpret_file(filepath):
 
         # Requires numpy and matplotlib
         x = range(-QFTASM_NEGATIVE_BUFFER_SIZE,QFTASM_RAMSTDOUT_BUF_STARTPOSITION)
-        import numpy as np
-        import matplotlib.pyplot as plt
         a = np.array(ram[:n_nonzero_write_count_ram_maxindex+1])
         ramarray = np.array(ram)
         if debug_plot_memdist:
@@ -316,11 +324,12 @@ def interpret_file(filepath):
             plt.plot(np.log(np.array(rom_reads)+1), "og-")
             plt.savefig("./romdist.png")
 
-        if debug_ramdump_verbose:
-            ramvalues = ramarray[:QFTASM_MEMORY_WRAP,0]
-            for i, v in enumerate(ramvalues):
-                if i > QFTASM_MEMORY_WRAP-QFTASM_NEGATIVE_BUFFER_SIZE-1: #i > 10 and i not in skiplist and v != 0:
-                    print("{} : {}".format(i, v))
+    if debug_ramdump_verbose:
+        ramarray = np.array(ram)
+        ramvalues = ramarray[:QFTASM_MEMORY_WRAP,0]
+        for i, v in enumerate(ramvalues):
+            if i > QFTASM_MEMORY_WRAP-QFTASM_NEGATIVE_BUFFER_SIZE-1: #i > 10 and i not in skiplist and v != 0:
+                print("{},{}".format(i, v))
 
 
 if __name__ == "__main__":
