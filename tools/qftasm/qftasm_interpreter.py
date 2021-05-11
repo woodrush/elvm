@@ -11,6 +11,7 @@ parser.add_argument("--stack-size", type=int, default=223)
 parser.add_argument("--memory-wrap", type=int, default=1024)
 parser.add_argument("--max-steps", type=int, default=0)
 parser.add_argument("--initial-ramvalues", type=str, default=None)
+parser.add_argument('--print-initial-ramvalues', action="store_true")
 parser.add_argument('--debug-ramdump', action="store_true")
 parser.add_argument('--debug-ramdump-verbose', action="store_true")
 parser.add_argument('--debug-plot-memdist', action="store_true")
@@ -133,7 +134,8 @@ def interpret_file(filepath):
 
     if args.initial_ramvalues:
         initial_ramvalues = np.loadtxt(args.initial_ramvalues, delimiter=",", dtype=np.uint64)
-        print(initial_ramvalues)
+        if args.print_initial_ramvalues:
+            print(initial_ramvalues)
         for addr, value in initial_ramvalues:
             addr, value = map(int, (addr, value))
             ram[addr%QFTASM_MEMORY_WRAP][0] = value
