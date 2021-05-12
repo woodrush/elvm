@@ -5,9 +5,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--stdin-pos", type=int, default=350)
-parser.add_argument("--stdout-pos", type=int, default=799)
-parser.add_argument("--stack-size", type=int, default=223)
+parser.add_argument("--stdin-pos", type=int, default=340)
+parser.add_argument("--stdout-pos", type=int, default=790)
+parser.add_argument("--stack-size", type=int, default=233)
 parser.add_argument("--memory-wrap", type=int, default=1024)
 parser.add_argument("--max-steps", type=int, default=0)
 parser.add_argument("--initial-ramvalues", type=str, default=None)
