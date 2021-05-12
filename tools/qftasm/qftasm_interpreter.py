@@ -196,19 +196,19 @@ def interpret_file(filepath):
 
         # 3. Read the data for the current instruction from the RAM
         for _ in range(mode_1):
-            if not args.suppress_address_overflow_warning and QFTASM_HEAP_MEM_MAX < d1 < 32768 or 32768 <= d1 < 65536 - QFTASM_NEGATIVE_BUFFER_SIZE:
+            if not args.suppress_address_overflow_warning and QFTASM_MEMORY_WRAP <= d1 < 65536 - QFTASM_NEGATIVE_BUFFER_SIZE:
                 print("Address overflow at pc", pc, "with address", d1, "(d1), n_steps:", n_steps)
                 # exit()
             ram[d1%QFTASM_MEMORY_WRAP][1] += 1
             d1 = ram[d1%QFTASM_MEMORY_WRAP][0]
         for _ in range(mode_2):
-            if not args.suppress_address_overflow_warning and QFTASM_HEAP_MEM_MAX < d2 < 32768 or 32768 <= d2 < 65536 - QFTASM_NEGATIVE_BUFFER_SIZE:
+            if not args.suppress_address_overflow_warning and QFTASM_MEMORY_WRAP <= d2 < 65536 - QFTASM_NEGATIVE_BUFFER_SIZE:
                 print("Address overflow at pc", pc, "with address", d2, "(d2), n_steps:", n_steps)
                 # exit()
             ram[d2%QFTASM_MEMORY_WRAP][1] += 1
             d2 = ram[d2%QFTASM_MEMORY_WRAP][0]
         for _ in range(mode_3):
-            if not args.suppress_address_overflow_warning and QFTASM_HEAP_MEM_MAX < d3 < 32768 or 32768 <= d3 < 65536 - QFTASM_NEGATIVE_BUFFER_SIZE:
+            if not args.suppress_address_overflow_warning and QFTASM_MEMORY_WRAP <= d3 < 65536 - QFTASM_NEGATIVE_BUFFER_SIZE:
                 print("Address overflow at pc", pc, "with address", d3, "(d3), n_steps:", n_steps)
                 # exit()
             ram[d3%QFTASM_MEMORY_WRAP][1] += 1
