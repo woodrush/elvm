@@ -170,7 +170,7 @@ OUT.c.exe := $(SRCS:%=%.$(EXT))
 include build.mk
 
 include clear_vars.mk
-SRCS := $(filter-out out/8cc.c.exe,$(OUT.c.exe))
+SRCS := $(filter-out out/8cc.c.exe out/elc.c.exe out/eli.c.exe,$(OUT.c.exe))
 EXT := out
 DEPS := $(TEST_INS) runtest.sh
 CMD = ./runtest.sh $1 $2
@@ -186,27 +186,27 @@ CMD = $2 -S -o $1.S.tmp - < test/8cc.in.c && sed 's/ *$(sharp) .*//' $1.S.tmp > 
 include build.mk
 
 include clear_vars.mk
-SRCS := $(OUT.c)
+SRCS := $(filter-out out/8cc.c out/eli.c out/elc.c out/dump_ir.c,$(OUT.c))
 EXT := eir
 CMD = $(8CC) -S -I. -Ilibc -Iout -o $1.tmp $2 && mv $1.tmp $1
 DEPS := $(wildcard libc/*.h)
 OUT.eir += $(SRCS:%=%.$(EXT))
 include build.mk
 
-include clear_vars.mk
-SRCS := $(OUT.eir)
-EXT := out
-DEPS := $(TEST_INS) runtest.sh
-CMD = ./runtest.sh $1 $(ELI) $2
-OUT.eir.out := $(SRCS:%=%.$(EXT))
-include build.mk
+# include clear_vars.mk
+# SRCS := $(OUT.eir)
+# EXT := out
+# DEPS := $(TEST_INS) runtest.sh
+# CMD = ./runtest.sh $1 $(ELI) $2
+# OUT.eir.out := $(SRCS:%=%.$(EXT))
+# include build.mk
 
-include clear_vars.mk
-OUT.c.exe.out := $(OUT.c.exe:%=%.out)
-OUT.c.eir.out := $(OUT.c.exe.out:%.c.exe.out=%.c.eir.out)
-EXPECT := c.exe.out
-ACTUAL := c.eir.out
-include diff.mk
+# include clear_vars.mk
+# OUT.c.exe.out := $(OUT.c.exe:%=%.out)
+# OUT.c.eir.out := $(OUT.c.exe.out:%.c.exe.out=%.c.eir.out)
+# EXPECT := c.exe.out
+# ACTUAL := c.eir.out
+# include diff.mk
 
 build: $(TEST_RESULTS)
 
