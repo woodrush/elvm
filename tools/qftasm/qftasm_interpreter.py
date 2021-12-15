@@ -2,7 +2,6 @@ from pyparsing import *
 import sys
 import argparse
 import numpy as np
-import matplotlib.pyplot as plt
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--stdin-pos", type=int, default=290)
@@ -295,6 +294,7 @@ def interpret_file(filepath):
         a = np.array(ram[:n_nonzero_write_count_ram_maxindex+1])
         ramarray = np.array(ram)
         if debug_plot_memdist:
+            import matplotlib.pyplot as plt
 
             plt.figure()
             # plt.plot(x, np.log(np.hstack((a[-QFTASM_NEGATIVE_BUFFER_SIZE:,1], a[:QFTASM_RAMSTDOUT_BUF_STARTPOSITION,1]))+1), "o-")
