@@ -16,12 +16,12 @@ static const char CONS4_HEAD[] = "``s``s``s``si`k";
 
 static const char T[] = "k";
 static const char NIL[] = "`ki";
-static const char REG_A[] = "``s`kk``s`kk``s`kk``s`kkk";
-static const char REG_B[] = "`k``s`kk``s`kk``s`kkk";
-static const char REG_C[] = "`k`k``s`kk``s`kkk";
-static const char REG_D[] = "`k`k`k``s`kkk";
-static const char REG_SP[] = "`k`k`k`kk";
-static const char REG_BP[] = "`k`k`k`k`ki";
+static const char LAZY_REG_A[] = "``s`kk``s`kk``s`kk``s`kkk";
+static const char LAZY_REG_B[] = "`k``s`kk``s`kk``s`kkk";
+static const char LAZY_REG_C[] = "`k`k``s`kk``s`kkk";
+static const char LAZY_REG_D[] = "`k`k`k``s`kkk";
+static const char LAZY_REG_SP[] = "`k`k`k`kk";
+static const char LAZY_REG_BP[] = "`k`k`k`k`ki";
 static const char INST_IO_INT[] = "``s`kk``s`kk``s`kk``s`kk``s`kk``s`kk``s`kkk";
 static const char INST_SUB[] = "`k``s`kk``s`kk``s`kk``s`kk``s`kk``s`kkk";
 static const char INST_CMP[] = "`k`k``s`kk``s`kk``s`kk``s`kk``s`kkk";
@@ -42,6 +42,7 @@ static const char IO_INT_GETC[] = "`kk";
 static const char IO_INT_PUTC[] = "`k`ki";
 
 static void lazy_debug(const char* fmt, ...) {
+  printf("\n");
   if (fmt[0]) {
     #ifndef DEBUG
       return;
@@ -55,12 +56,12 @@ static void lazy_debug(const char* fmt, ...) {
 
 static const char* lazy_reg(Reg r) {
   switch (r) {
-  case A: return REG_A;
-  case B: return REG_B;
-  case C: return REG_C;
-  case D: return REG_D;
-  case BP: return REG_BP;
-  case SP: return REG_SP;
+  case A: return LAZY_REG_A;
+  case B: return LAZY_REG_B;
+  case C: return LAZY_REG_C;
+  case D: return LAZY_REG_D;
+  case BP: return LAZY_REG_BP;
+  case SP: return LAZY_REG_SP;
   default:
     error("unknown register: %d", r);
   }
@@ -69,6 +70,9 @@ static const char* lazy_reg(Reg r) {
 static void lazy_emit_int(int n) {
   lazy_debug("\n# int %d (%0d)\n", n, n);
   for (int i = 0; i < 24; i++) {
+#ifndef __eir__
+    n &= ((1 << 24) - 1);
+#endif
     fputs(CONS_HEAD, stdout);
     lazy_debug("    ");
     fputs((n & 1) ? T : NIL, stdout);
@@ -116,7 +120,7 @@ static void lazy_emit_data(Data* data) {
 
 static void lazy_emit_func_prologue(int func_id) {
   lazy_debug("\n# Func_prologue\n");
-  fputs(CONS_HEAD, stdout);
+  // fputs(CONS_HEAD, stdout);
 
   // Placeholder code that does nothing, to suppress compilation errors
   if (func_id) {
@@ -135,9 +139,9 @@ static void lazy_emit_pc_change(int pc) {
 
 static void lazy_emit_func_epilogue(void) {
   lazy_debug("\n# Func_epilogue\n");
-  fputs(NIL, stdout);
-  fputs(CONS_COMMA, stdout);
-  fputs(NIL, stdout);
+  // fputs(NIL, stdout);
+  // fputs(CONS_COMMA, stdout);
+  // fputs(NIL, stdout);
 }
 
 static void lazy_emit_basic_inst(Inst* inst, const char* inst_tag) {
@@ -245,9 +249,9 @@ static void lazy_emit_inst(Inst* inst) {
     fputs(CONS_COMMA, stdout);
     fputs(NIL, stdout);
     fputs(CONS_COMMA, stdout);
-    fputs(REG_A, stdout);
+    fputs(LAZY_REG_A, stdout);
     fputs(CONS_COMMA, stdout);
-    fputs(REG_A, stdout);
+    fputs(LAZY_REG_A, stdout);
     break;
 
   // (cons4 inst-cmp [src-isimm] [src] (cons [emum-cmp] [dst]))
@@ -314,9 +318,13 @@ void target_lazy(Module* module) {
   #endif
 
   lazy_emit_data(module->data);
+  fputs(CONS_HEAD, stdout);
   emit_chunked_main_loop(module->text,
                         lazy_emit_func_prologue,
                         lazy_emit_func_epilogue,
                         lazy_emit_pc_change,
                         lazy_emit_inst);
+  fputs(NIL, stdout);
+  fputs(CONS_COMMA, stdout);
+  fputs(NIL, stdout);
 }
