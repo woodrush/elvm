@@ -23,14 +23,14 @@ static const char REG_D[] = "`k`k`k``s`kkk";
 static const char REG_SP[] = "`k`k`k`kk";
 static const char REG_BP[] = "`k`k`k`k`ki";
 static const char INST_IO_INT[] = "``s`kk``s`kk``s`kk``s`kk``s`kk``s`kk``s`kkk";
-// static const char INST_SUB[] = "`k``s`kk``s`kk``s`kk``s`kk``s`kk``s`kkk";
+static const char INST_SUB[] = "`k``s`kk``s`kk``s`kk``s`kk``s`kk``s`kkk";
 // static const char INST_CMP[] = "`k`k``s`kk``s`kk``s`kk``s`kk``s`kkk";
-// static const char INST_LOAD[] = "`k`k`k``s`kk``s`kk``s`kk``s`kkk";
+static const char INST_LOAD[] = "`k`k`k``s`kk``s`kk``s`kk``s`kkk";
 // static const char INST_JUMPCMP[] = "`k`k`k`k``s`kk``s`kk``s`kkk";
 static const char INST_JMP[] = "`k`k`k`k`k``s`kk``s`kkk";
 static const char INST_MOV[] = "`k`k`k`k`k`k``s`kkk";
-// static const char INST_STORE[] = "`k`k`k`k`k`k`kk";
-// static const char INST_ADD[] = "`k`k`k`k`k`k`k`ki";
+static const char INST_STORE[] = "`k`k`k`k`k`k`kk";
+static const char INST_ADD[] = "`k`k`k`k`k`k`k`ki";
 // static const char CMP_EQ[] = "``s`kk``s`kk``s`kk``s`kkk";
 // static const char CMP_NE[] = "`k``s`kk``s`kk``s`kkk";
 // static const char CMP_LT[] = "`k`k``s`kk``s`kkk";
@@ -165,19 +165,47 @@ static void lazy_emit_inst(Inst* inst) {
     break;
 
   case ADD:
-    fputs(STRING_TERM, stdout);
+    fputs(CONS4_HEAD, stdout);
+    fputs(INST_ADD, stdout);
+    fputs(CONS_COMMA, stdout);
+    emit_lazy_isimm(&inst->src);
+    fputs(CONS_COMMA, stdout);
+    emit_lazy_value_str(&inst->src);
+    fputs(CONS_COMMA, stdout);
+    emit_lazy_value_str(&inst->dst);
     break;
 
   case SUB:
-    fputs(STRING_TERM, stdout);
+    fputs(CONS4_HEAD, stdout);
+    fputs(INST_SUB, stdout);
+    fputs(CONS_COMMA, stdout);
+    emit_lazy_isimm(&inst->src);
+    fputs(CONS_COMMA, stdout);
+    emit_lazy_value_str(&inst->src);
+    fputs(CONS_COMMA, stdout);
+    emit_lazy_value_str(&inst->dst);
     break;
 
   case LOAD:
-    fputs(STRING_TERM, stdout);
+    fputs(CONS4_HEAD, stdout);
+    fputs(INST_LOAD, stdout);
+    fputs(CONS_COMMA, stdout);
+    emit_lazy_isimm(&inst->src);
+    fputs(CONS_COMMA, stdout);
+    emit_lazy_value_str(&inst->src);
+    fputs(CONS_COMMA, stdout);
+    emit_lazy_value_str(&inst->dst);
     break;
 
   case STORE:
-    fputs(STRING_TERM, stdout);
+    fputs(CONS4_HEAD, stdout);
+    fputs(INST_STORE, stdout);
+    fputs(CONS_COMMA, stdout);
+    emit_lazy_isimm(&inst->src);
+    fputs(CONS_COMMA, stdout);
+    emit_lazy_value_str(&inst->src);
+    fputs(CONS_COMMA, stdout);
+    emit_lazy_value_str(&inst->dst);
     break;
 
   case PUTC: //5
@@ -193,18 +221,6 @@ static void lazy_emit_inst(Inst* inst) {
     break;
 
   case GETC:
-    // fputs(CONS4_HEAD, stdout);
-    // fputs(INST_IO_INT, stdout);
-    // fputs(CONS_COMMA, stdout);
-    // fputs(T, stdout);
-    // fputs(CONS_COMMA, stdout);
-    // lazy_emit_int(43);
-    // fputs(CONS_COMMA, stdout);
-    // fputs(IO_INT_PUTC, stdout);
-
-    // fputs(CONS_COMMA, stdout);
-    // fputs(CONS_HEAD, stdout);
-
     fputs(CONS4_HEAD, stdout);
     fputs(INST_IO_INT, stdout);
     fputs(CONS_COMMA, stdout);
