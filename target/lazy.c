@@ -243,7 +243,14 @@ static void lazy_emit_inst(Inst* inst) {
     break;
 
   case DUMP:
-    fputs(STRING_TERM, stdout);
+    fputs(CONS4_HEAD, stdout);
+    fputs(INST_MOV, stdout);
+    fputs(CONS_COMMA, stdout);
+    fputs(NIL, stdout);
+    fputs(CONS_COMMA, stdout);
+    fputs(REG_A, stdout);
+    fputs(CONS_COMMA, stdout);
+    fputs(REG_A, stdout);
     break;
 
   // (cons4 inst-cmp [src-isimm] [src] (cons [emum-cmp] [dst]))
