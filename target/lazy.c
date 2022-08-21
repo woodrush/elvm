@@ -41,8 +41,6 @@ static const char IO_INT_EXIT[] = "``s`kkk";
 static const char IO_INT_GETC[] = "`kk";
 static const char IO_INT_PUTC[] = "`k`ki";
 
-// static const char STRING_TERM[] = "```s`k``sii``s``s`ks``s`kk``s`ks``s`k`sik`k``s`kk``sii```sii```sii``s``s`ksk``s``s`ksk`ki";
-
 static void lazy_debug(const char* fmt, ...) {
   if (fmt[0]) {
     #ifndef DEBUG
@@ -315,56 +313,10 @@ void target_lazy(Module* module) {
     fputs(lazy_core, stdout);
   #endif
 
-  // fputs(CONS_HEAD, stdout);
-  // fputs(NIL, stdout);
-  // fputs(CONS_COMMA, stdout);
-  // fputs(NIL, stdout);
-
-  // fputs(CONS_HEAD, stdout);
-  // fputs(NIL, stdout);
-  // fputs(CONS_COMMA, stdout);
-  // fputs(NIL, stdout);
-
   lazy_emit_data(module->data);
-  // if (!module){
   emit_chunked_main_loop(module->text,
                         lazy_emit_func_prologue,
                         lazy_emit_func_epilogue,
                         lazy_emit_pc_change,
                         lazy_emit_inst);
-  // fputs(CONS_HEAD, stdout);
-
-  //   // jmp
-  //   fputs(CONS_HEAD, stdout);
-  //     fputs(CONS4_HEAD, stdout);
-  //       fputs(INST_JMP, stdout);
-  //       fputs(CONS_COMMA, stdout);
-  //       fputs(T, stdout);
-  //       // emit_lazy_isimm(&inst->jmp);
-  //       fputs(CONS_COMMA, stdout);
-  //       lazy_emit_int(1);
-  //       fputs(CONS_COMMA, stdout);
-  //       fputs(NIL, stdout);
-  //     // emit_lazy_value_str(&inst->jmp);
-  //   fputs(CONS_COMMA, stdout);
-  //     fputs(NIL, stdout);
-  // fputs(CONS_COMMA, stdout);
-
-  // fputs(CONS_HEAD, stdout);
-  //   // putc
-  //   fputs(CONS_HEAD, stdout);
-  //     fputs(CONS4_HEAD, stdout);
-  //       fputs(INST_IO_INT, stdout);
-  //       fputs(CONS_COMMA, stdout);
-  //       fputs(T, stdout);
-  //       fputs(CONS_COMMA, stdout);
-  //       lazy_emit_int(41);
-  //       fputs(CONS_COMMA, stdout);
-  //       fputs(IO_INT_PUTC, stdout);
-  //   fputs(CONS_COMMA, stdout);
-  //     fputs(NIL, stdout);
-  // fputs(CONS_COMMA, stdout);
-
-  // fputs(NIL, stdout);
-
 }
