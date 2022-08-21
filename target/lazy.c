@@ -28,7 +28,7 @@ static const char INST_IO_INT[] = "``s`kk``s`kk``s`kk``s`kk``s`kk``s`kk``s`kkk";
 // static const char INST_LOAD[] = "`k`k`k``s`kk``s`kk``s`kk``s`kkk";
 // static const char INST_JUMPCMP[] = "`k`k`k`k``s`kk``s`kk``s`kkk";
 static const char INST_JMP[] = "`k`k`k`k`k``s`kk``s`kkk";
-// static const char INST_MOV[] = "`k`k`k`k`k`k``s`kkk";
+static const char INST_MOV[] = "`k`k`k`k`k`k``s`kkk";
 // static const char INST_STORE[] = "`k`k`k`k`k`k`kk";
 // static const char INST_ADD[] = "`k`k`k`k`k`k`k`ki";
 // static const char CMP_EQ[] = "``s`kk``s`kk``s`kk``s`kkk";
@@ -154,7 +154,14 @@ static void lazy_emit_inst(Inst* inst) {
   lazy_debug("\n# Inst-body (%d)\n", inst->op);
   switch (inst->op) {
   case MOV:
-    fputs(STRING_TERM, stdout);
+    fputs(CONS4_HEAD, stdout);
+    fputs(INST_MOV, stdout);
+    fputs(CONS_COMMA, stdout);
+    emit_lazy_isimm(&inst->src);
+    fputs(CONS_COMMA, stdout);
+    emit_lazy_value_str(&inst->src);
+    fputs(CONS_COMMA, stdout);
+    emit_lazy_value_str(&inst->dst);
     break;
 
   case ADD:
