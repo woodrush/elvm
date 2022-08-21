@@ -5,6 +5,7 @@
 // #define DEBUG
 
 
+
 // (cons x y) = (lambda (f) (f x y))
 // = ``s``si`k[x]`k[y]
 static const char CONS_HEAD[] = "``s``si`k";
@@ -107,12 +108,10 @@ static void emit_lazy_value_str(Value* v) {
 static void lazy_emit_data(Data* data) {
   lazy_debug("# Data\n");
   for (Data* d = data; d; d = d->next) {
-    if (d->v) {
-      lazy_debug("\n# data\n");
-      fputs(CONS_HEAD, stdout);
-      lazy_emit_int(d->v);
-      fputs(CONS_COMMA, stdout);
-    }
+    lazy_debug("\n# data\n");
+    fputs(CONS_HEAD, stdout);
+    lazy_emit_int(d->v);
+    fputs(CONS_COMMA, stdout);
   }
   lazy_debug("\n# Data end\n");
   fputs(NIL, stdout);
