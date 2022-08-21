@@ -24,7 +24,7 @@ static const char REG_SP[] = "`k`k`k`kk";
 static const char REG_BP[] = "`k`k`k`k`ki";
 static const char INST_IO_INT[] = "``s`kk``s`kk``s`kk``s`kk``s`kk``s`kk``s`kkk";
 static const char INST_SUB[] = "`k``s`kk``s`kk``s`kk``s`kk``s`kk``s`kkk";
-// static const char INST_CMP[] = "`k`k``s`kk``s`kk``s`kk``s`kk``s`kkk";
+static const char INST_CMP[] = "`k`k``s`kk``s`kk``s`kk``s`kk``s`kkk";
 static const char INST_LOAD[] = "`k`k`k``s`kk``s`kk``s`kk``s`kkk";
 static const char INST_JUMPCMP[] = "`k`k`k`k``s`kk``s`kk``s`kkk";
 static const char INST_JMP[] = "`k`k`k`k`k``s`kk``s`kkk";
@@ -41,7 +41,7 @@ static const char IO_INT_EXIT[] = "``s`kkk";
 static const char IO_INT_GETC[] = "`kk";
 static const char IO_INT_PUTC[] = "`k`ki";
 
-static const char STRING_TERM[] = "```s`k``sii``s``s`ks``s`kk``s`ks``s`k`sik`k``s`kk``sii```sii```sii``s``s`ksk``s``s`ksk`ki";
+// static const char STRING_TERM[] = "```s`k``sii``s``s`ks``s`kk``s`ks``s`k`sik`k``s`kk``sii```sii```sii``s``s`ksk``s``s`ksk`ki";
 
 static void lazy_debug(const char* fmt, ...) {
   if (fmt[0]) {
@@ -133,11 +133,6 @@ static void lazy_emit_pc_change(int pc) {
     fputs(CONS_COMMA, stdout);
     fputs(CONS_HEAD, stdout);
   }
-
-  // Placeholder code that does nothing, to suppress compilation errors
-  if (pc) {
-    return;
-  }
 }
 
 static void lazy_emit_func_epilogue(void) {
@@ -174,6 +169,20 @@ static void lazy_emit_jumpcmp_inst(Inst* inst, const char* cmp_tag) {
     emit_lazy_isimm(&inst->jmp);
     fputs(CONS_COMMA, stdout);
     emit_lazy_value_str(&inst->jmp);
+}
+
+static void lazy_emit_cmp_inst(Inst* inst, const char* cmp_tag) {
+    fputs(CONS4_HEAD, stdout);
+    fputs(INST_CMP, stdout);
+    fputs(CONS_COMMA, stdout);
+    emit_lazy_isimm(&inst->src);
+    fputs(CONS_COMMA, stdout);
+    emit_lazy_value_str(&inst->src);
+    fputs(CONS_COMMA, stdout);
+    fputs(CONS_HEAD, stdout);
+    fputs(cmp_tag, stdout);
+    fputs(CONS_COMMA, stdout);
+    emit_lazy_value_str(&inst->dst);
 }
 
 
@@ -245,32 +254,22 @@ static void lazy_emit_inst(Inst* inst) {
 
   // (cons4 inst-cmp [src-isimm] [src] (cons [emum-cmp] [dst]))
   case EQ:
-    fputs(STRING_TERM, stdout);
+    lazy_emit_cmp_inst(inst, CMP_EQ);
     break;
   case NE: //10
-    fputs(STRING_TERM, stdout);
+    lazy_emit_cmp_inst(inst, CMP_NE);
     break;
   case LT:
-    fputs(STRING_TERM, stdout);
+    lazy_emit_cmp_inst(inst, CMP_LT);
     break;
   case GT:
-    fputs(STRING_TERM, stdout);
+    lazy_emit_cmp_inst(inst, CMP_GT);
     break;
   case LE:
-    fputs(STRING_TERM, stdout);
+    lazy_emit_cmp_inst(inst, CMP_LE);
     break;
   case GE: //14
-    fputs(CONS4_HEAD, stdout);
-    fputs(INST_IO_INT, stdout);
-    fputs(CONS_COMMA, stdout);
-    emit_lazy_isimm(&inst->src);
-    fputs(CONS_COMMA, stdout);
-    emit_lazy_value_str(&inst->src);
-    fputs(CONS_COMMA, stdout);
-    fputs(CONS_HEAD, stdout);
-    fputs(CMP_GE, stdout);
-    fputs(CONS_COMMA, stdout);
-    emit_lazy_value_str(&inst->dst);
+    lazy_emit_cmp_inst(inst, CMP_GE);
     break;
 
   case JEQ:
