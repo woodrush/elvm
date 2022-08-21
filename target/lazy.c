@@ -38,7 +38,7 @@ static const char INST_MOV[] = "`k`k`k`k`k`k``s`kkk";
 // static const char CMP_LE[] = "`k`k`k`kk";
 static const char CMP_GE[] = "`k`k`k`k`ki";
 static const char IO_INT_EXIT[] = "``s`kkk";
-// static const char IO_INT_GETC[] = "`kk";
+static const char IO_INT_GETC[] = "`kk";
 static const char IO_INT_PUTC[] = "`k`ki";
 
 static const char STRING_TERM[] = "```s`k``sii``s``s`ks``s`kk``s`ks``s`k`sik`k``s`kk``sii```sii```sii``s``s`ksk``s``s`ksk`ki";
@@ -193,7 +193,26 @@ static void lazy_emit_inst(Inst* inst) {
     break;
 
   case GETC:
-    fputs(STRING_TERM, stdout);
+    // fputs(CONS4_HEAD, stdout);
+    // fputs(INST_IO_INT, stdout);
+    // fputs(CONS_COMMA, stdout);
+    // fputs(T, stdout);
+    // fputs(CONS_COMMA, stdout);
+    // lazy_emit_int(43);
+    // fputs(CONS_COMMA, stdout);
+    // fputs(IO_INT_PUTC, stdout);
+
+    // fputs(CONS_COMMA, stdout);
+    // fputs(CONS_HEAD, stdout);
+
+    fputs(CONS4_HEAD, stdout);
+    fputs(INST_IO_INT, stdout);
+    fputs(CONS_COMMA, stdout);
+    fputs(NIL, stdout);
+    fputs(CONS_COMMA, stdout);
+    emit_lazy_value_str(&inst->dst);
+    fputs(CONS_COMMA, stdout);
+    fputs(IO_INT_GETC, stdout);
     break;
 
   case EXIT:
