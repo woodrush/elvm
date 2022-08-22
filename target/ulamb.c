@@ -8,7 +8,6 @@
 // (cons x y) = (lambda (f) (f x y))
 // = 00010110[x][y]
 static const char CONS_HEAD[] = "00010110";
-static const char CONS_COMMA[] = "";
 
 // (cons4 x1 x2 x3 x4) = (lambda (f) (f x1 x2 x3 x4))
 // = 000101010110[x1][x2][x3][x4]
@@ -76,7 +75,6 @@ static void ulamb_emit_int(int n) {
     ulamb_debug("    ");
     fputs((n & 1) ? T : NIL, stdout);
     ulamb_debug("    ");
-    fputs(CONS_COMMA, stdout);
     ulamb_debug("\n");
     n = n >> 1;
   }
@@ -109,7 +107,6 @@ static void ulamb_emit_data(Data* data) {
     ulamb_debug("\n# data\n");
     fputs(CONS_HEAD, stdout);
     ulamb_emit_int(d->v);
-    fputs(CONS_COMMA, stdout);
   }
   ulamb_debug("\n# Data end\n");
   fputs(NIL, stdout);
@@ -117,7 +114,6 @@ static void ulamb_emit_data(Data* data) {
 
 static void ulamb_emit_func_prologue(int func_id) {
   ulamb_debug("\n# Func_prologue\n");
-  // fputs(CONS_HEAD, stdout);
 
   // Placeholder code that does nothing, to suppress compilation errors
   if (func_id) {
@@ -129,58 +125,41 @@ static void ulamb_emit_pc_change(int pc) {
   if (pc) {
     ulamb_debug("\n# PC change\n");
     fputs(NIL, stdout);
-    fputs(CONS_COMMA, stdout);
     fputs(CONS_HEAD, stdout);
   }
 }
 
 static void ulamb_emit_func_epilogue(void) {
   ulamb_debug("\n# Func_epilogue\n");
-  // fputs(NIL, stdout);
-  // fputs(CONS_COMMA, stdout);
-  // fputs(NIL, stdout);
 }
 
 static void ulamb_emit_basic_inst(Inst* inst, const char* inst_tag) {
     fputs(CONS4_HEAD, stdout);
     fputs(inst_tag, stdout);
-    fputs(CONS_COMMA, stdout);
     emit_ulamb_isimm(&inst->src);
-    fputs(CONS_COMMA, stdout);
     emit_ulamb_value_str(&inst->src);
-    fputs(CONS_COMMA, stdout);
     emit_ulamb_value_str(&inst->dst);
 }
 
 static void ulamb_emit_jumpcmp_inst(Inst* inst, const char* cmp_tag) {
     fputs(CONS4_HEAD, stdout);
     fputs(INST_JUMPCMP, stdout);
-    fputs(CONS_COMMA, stdout);
     emit_ulamb_isimm(&inst->src);
-    fputs(CONS_COMMA, stdout);
     emit_ulamb_value_str(&inst->src);
-    fputs(CONS_COMMA, stdout);
     fputs(CONS4_HEAD, stdout);
     fputs(cmp_tag, stdout);
-    fputs(CONS_COMMA, stdout);
     emit_ulamb_value_str(&inst->dst);
-    fputs(CONS_COMMA, stdout);
     emit_ulamb_isimm(&inst->jmp);
-    fputs(CONS_COMMA, stdout);
     emit_ulamb_value_str(&inst->jmp);
 }
 
 static void ulamb_emit_cmp_inst(Inst* inst, const char* cmp_tag) {
     fputs(CONS4_HEAD, stdout);
     fputs(INST_CMP, stdout);
-    fputs(CONS_COMMA, stdout);
     emit_ulamb_isimm(&inst->src);
-    fputs(CONS_COMMA, stdout);
     emit_ulamb_value_str(&inst->src);
-    fputs(CONS_COMMA, stdout);
     fputs(CONS_HEAD, stdout);
     fputs(cmp_tag, stdout);
-    fputs(CONS_COMMA, stdout);
     emit_ulamb_value_str(&inst->dst);
 }
 
@@ -206,56 +185,42 @@ static void ulamb_emit_inst(Inst* inst) {
     ulamb_emit_basic_inst(inst, INST_STORE);
     break;
 
-  case PUTC: //5
-    // (cons4 inst-io-int _ [src] io-int-putc)
+  case PUTC:
     fputs(CONS4_HEAD, stdout);
     fputs(INST_IO_INT, stdout);
-    fputs(CONS_COMMA, stdout);
     emit_ulamb_isimm(&inst->src);
-    fputs(CONS_COMMA, stdout);
     emit_ulamb_value_str(&inst->src);
-    fputs(CONS_COMMA, stdout);
     fputs(IO_INT_PUTC, stdout);
     break;
 
   case GETC:
     fputs(CONS4_HEAD, stdout);
     fputs(INST_IO_INT, stdout);
-    fputs(CONS_COMMA, stdout);
     fputs(NIL, stdout);
-    fputs(CONS_COMMA, stdout);
     emit_ulamb_value_str(&inst->dst);
-    fputs(CONS_COMMA, stdout);
     fputs(IO_INT_GETC, stdout);
     break;
 
   case EXIT:
     fputs(CONS4_HEAD, stdout);
     fputs(INST_IO_INT, stdout);
-    fputs(CONS_COMMA, stdout);
     fputs(T, stdout);
-    fputs(CONS_COMMA, stdout);
     fputs(T, stdout);
-    fputs(CONS_COMMA, stdout);
     fputs(IO_INT_EXIT, stdout);
     break;
 
   case DUMP:
     fputs(CONS4_HEAD, stdout);
     fputs(INST_MOV, stdout);
-    fputs(CONS_COMMA, stdout);
     fputs(NIL, stdout);
-    fputs(CONS_COMMA, stdout);
     fputs(ULAMB_REG_A, stdout);
-    fputs(CONS_COMMA, stdout);
     fputs(ULAMB_REG_A, stdout);
     break;
 
-  // (cons4 inst-cmp [src-isimm] [src] (cons [emum-cmp] [dst]))
   case EQ:
     ulamb_emit_cmp_inst(inst, CMP_EQ);
     break;
-  case NE: //10
+  case NE:
     ulamb_emit_cmp_inst(inst, CMP_NE);
     break;
   case LT:
@@ -267,7 +232,7 @@ static void ulamb_emit_inst(Inst* inst) {
   case LE:
     ulamb_emit_cmp_inst(inst, CMP_LE);
     break;
-  case GE: //14
+  case GE:
     ulamb_emit_cmp_inst(inst, CMP_GE);
     break;
 
@@ -293,11 +258,8 @@ static void ulamb_emit_inst(Inst* inst) {
   case JMP:
     fputs(CONS4_HEAD, stdout);
     fputs(INST_JMP, stdout);
-    fputs(CONS_COMMA, stdout);
     emit_ulamb_isimm(&inst->jmp);
-    fputs(CONS_COMMA, stdout);
     emit_ulamb_value_str(&inst->jmp);
-    fputs(CONS_COMMA, stdout);
     fputs(NIL, stdout);
     break;
 
@@ -305,7 +267,6 @@ static void ulamb_emit_inst(Inst* inst) {
     error("oops");
   }
   ulamb_debug("\n# Inst-end\n");
-  fputs(CONS_COMMA, stdout);
 }
 
 void target_ulamb(Module* module) {
@@ -322,6 +283,5 @@ void target_ulamb(Module* module) {
                         ulamb_emit_pc_change,
                         ulamb_emit_inst);
   fputs(NIL, stdout);
-  fputs(CONS_COMMA, stdout);
   fputs(NIL, stdout);
 }
