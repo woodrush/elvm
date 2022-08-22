@@ -589,6 +589,14 @@ TOOL := python
 TEST_FILTER := $(addsuffix .qftasm,$(filter out/24_%.c.eir,$(OUT.eir))) out/eof.c.eir.qftasm out/neg.c.eir.qftasm out/8cc.c.eir.qftasm out/elc.c.eir.qftasm out/dump_ir.c.eir.qftasm out/eli.c.eir.qftasm
 include target.mk
 
+TARGET := ulamb
+RUNNER := tools/runulamb.sh
+ifndef FULL
+TEST_FILTER := out/eli.c.eir.ulamb out/dump_ir.c.eir.ulamb
+endif
+include target.mk
+$(OUT.eir.ulamb.out): tools/runulamb.sh
+
 test: $(TEST_RESULTS)
 
 .SUFFIXES:
