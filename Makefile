@@ -454,7 +454,7 @@ endif
 TARGET := unl
 RUNNER := tools/rununl.sh
 ifndef FULL
-TEST_FILTER := out/eli.c.eir.unl out/dump_ir.c.eir.unl
+TEST_FILTER := out/8cc.c.eir.unl out/elc.c.eir.unl out/eli.c.eir.unl out/dump_ir.c.eir.unl
 endif
 include target.mk
 $(OUT.eir.unl.out): tools/rununl.sh
@@ -578,10 +578,10 @@ TARGET := tcl
 RUNNER := tclsh
 include target.mk
 
-TARGET := j
-RUNNER := jconsole
-CAN_BUILD := $(shell DISPLAY=fail jconsole -js "echo i.4" -js "exit 0" 2>&1 | perl -ne 'print /^0 1 2 3/ ? 1 : 0')
-include target.mk
+# TARGET := j
+# RUNNER := jconsole
+# CAN_BUILD := $(shell DISPLAY=fail jconsole -js "echo i.4" -js "exit 0" 2>&1 | perl -ne 'print /^0 1 2 3/ ? 1 : 0')
+# include target.mk
 
 TARGET := qftasm
 RUNNER := tools/runqftasm.sh
@@ -593,7 +593,32 @@ include target.mk
 TARGET := lazy
 RUNNER := tools/runlazy.sh
 ifndef FULL
-TEST_FILTER := out/eli.c.eir.lazy out/dump_ir.c.eir.lazy
+TEST_FILTER := out/8cc.c.eir.lazy out/elc.c.eir.lazy out/eli.c.eir.lazy out/dump_ir.c.eir.lazy \
+out/fizzbuzz.c.eir.lazy out/fizzbuzz_fast.c.eir.lazy
+
+# out/eof.c.eir.lazy out/24_muldiv.c.eir.lazy \
+
+# slow:
+# qsort
+
+# out/24_cmp.c.eir.lazy out/24_cmp2.c.eir.lazy out/24_muldiv.c.eir.lazy out/array.c.eir.lazy 
+# out/func_ptr.c.eir.lazy \
+# out/global.c.eir.lazy \
+# out/global_struct_ref.c.eir.lazy \
+# out/hello.c.eir.lazy \
+# out/printf.c.eir.lazy \
+# out/puts.c.eir.lazy \
+# out/qsort.c.eir.lazy \
+
+# ?
+# fgets? 
+# fizzbuzz?
+# fizzbuzz_fast?
+# lisp?
+# printf?
+# qsort?
+
+
 endif
 include target.mk
 $(OUT.eir.lazy.out): tools/runlazy.sh
