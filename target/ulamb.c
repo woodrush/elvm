@@ -1,6 +1,6 @@
 #include <ir/ir.h>
 #include <target/util.h>
-#include <target/ulambcore.h>
+// #include <target/ulambcore.h>
 
 // #define DEBUG
 
@@ -310,10 +310,10 @@ static void lazy_emit_inst(Inst* inst) {
   fputs(CONS_COMMA, stdout);
 }
 
-void target_lazy(Module* module) {
+void target_ulamb(Module* module) {
   #ifndef DEBUG
     printf("``");
-    fputs(lazy_core, stdout);
+    // fputs(lazy_core, stdout);
   #endif
 
   lazy_emit_data(module->data);
