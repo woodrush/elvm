@@ -106,6 +106,7 @@ ELC_SRCS := \
 	awk.c \
 	bef.c \
 	bf.c \
+	blc.c \
 	c.c \
 	cl.c \
 	cmake.c \
@@ -597,6 +598,14 @@ TEST_FILTER := out/eli.c.eir.lazy out/dump_ir.c.eir.lazy
 endif
 include target.mk
 $(OUT.eir.lazy.out): tools/runlazy.sh
+
+TARGET := blc
+RUNNER := tools/runblc.sh
+ifndef FULL
+TEST_FILTER := out/eli.c.eir.blc out/dump_ir.c.eir.blc
+endif
+include target.mk
+$(OUT.eir.blc.out): tools/runblc.sh
 
 test: $(TEST_RESULTS)
 
