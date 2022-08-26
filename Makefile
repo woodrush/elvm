@@ -616,7 +616,14 @@ out/field_addr.c.eir.blc \
 out/fizzbuzz.c.eir.blc \
 out/fizzbuzz_fast.c.eir.blc \
 out/global_struct_ref.c.eir.blc \
+out/lisp.c.eir.blc \
+out/muldiv.c.eir.blc \
+out/print_int.c.eir.blc \
+out/printf.c.eir.blc \
+out/qsort.c.eir.blc \
 \
+out/elc.c.eir.blc \
+out/8cc.c.eir.blc \
 out/fgets.c.eir.blc \
 out/eli.c.eir.blc out/dump_ir.c.eir.blc
 endif
