@@ -14,6 +14,16 @@ static const char CONS_HEAD[] = "00010110";
 // = 000101010110[x1][x2][x3][x4]
 static const char CONS4_HEAD[] = "000101010110";
 
+// (cons nil return-tree)
+// = (cons (lambda (x) x)
+//     (lambda (x cont)
+//       (if x
+//         (cont A)
+//         (cont B))))
+// = 000101100010000001011100110[A]0110[B]
+static const char PROG_BINTREE_HEAD[] = "000101100010000001011100110";
+static const char PROG_BINTREE_COMMA[] = "0110";
+
 static const char T[] = "0000110";
 static const char NIL[] = "000010";
 static const char BLC_REG_A[] = "000101100000100001011000001000010110000010000010";
@@ -271,8 +281,10 @@ static Inst* blc_emit_text_tree(int depth, Inst* inst) {
     fputs(NIL, stdout);
     return inst;
   } else if (depth > 0) {
-    fputs(CONS_HEAD, stdout);
+    // fputs(CONS_HEAD, stdout);
+    fputs(PROG_BINTREE_HEAD, stdout);
     Inst* next = blc_emit_text_tree(depth-1, inst);
+    fputs(PROG_BINTREE_COMMA, stdout);
     next = blc_emit_text_tree(depth-1, next);
     return next;
   } else {
