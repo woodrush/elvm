@@ -120,9 +120,8 @@ static Data* blc_emit_data_tree(int depth, Data* data) {
     fputs(NIL, stdout);
     return data;
   } else if (depth > 0) {
-    fputs(CONT_BINTREE_HEAD, stdout);
+    fputs(CONS_HEAD, stdout);
     Data* next = blc_emit_data_tree(depth-1, data);
-    fputs(CONT_BINTREE_COMMA, stdout);
     next = blc_emit_data_tree(depth-1, next);
     return next;
   } else {
