@@ -68,16 +68,17 @@ static const char* blc_reg(Reg r) {
 
 static void blc_emit_int(int n) {
   blc_debug("\n# int %d (%0d)\n", n, n);
+  int bitcheck = 1 << (BLC_N_BITS - 1);
   for (int i = 0; i < BLC_N_BITS; i++) {
 #ifndef __eir__
     n &= ((1 << BLC_N_BITS) - 1);
 #endif
     fputs(CONS_HEAD, stdout);
     blc_debug("    ");
-    fputs((n & 1) ? NIL : T, stdout);
+    fputs((n & bitcheck) ? NIL : T, stdout);
     blc_debug("    ");
     blc_debug("\n");
-    n = n >> 1;
+    n = n << 1;
   }
   fputs(NIL, stdout);
 }
