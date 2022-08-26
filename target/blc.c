@@ -21,8 +21,8 @@ static const char CONS4_HEAD[] = "000101010110";
 //         (cont A)
 //         (cont B))))
 // = 000101100010000001011100110[A]0110[B]
-static const char PROG_BINTREE_HEAD[] = "000101100010000001011100110";
-static const char PROG_BINTREE_COMMA[] = "0110";
+static const char CONT_BINTREE_HEAD[] = "000101100010000001011100110";
+static const char CONT_BINTREE_COMMA[] = "0110";
 
 static const char T[] = "0000110";
 static const char NIL[] = "000010";
@@ -118,8 +118,9 @@ static Data* blc_emit_data_tree(int depth, Data* data) {
     fputs(NIL, stdout);
     return data;
   } else if (depth > 0) {
-    fputs(CONS_HEAD, stdout);
+    fputs(CONT_BINTREE_HEAD, stdout);
     Data* next = blc_emit_data_tree(depth-1, data);
+    fputs(CONT_BINTREE_COMMA, stdout);
     next = blc_emit_data_tree(depth-1, next);
     return next;
   } else {
@@ -281,10 +282,9 @@ static Inst* blc_emit_text_tree(int depth, Inst* inst) {
     fputs(NIL, stdout);
     return inst;
   } else if (depth > 0) {
-    // fputs(CONS_HEAD, stdout);
-    fputs(PROG_BINTREE_HEAD, stdout);
+    fputs(CONT_BINTREE_HEAD, stdout);
     Inst* next = blc_emit_text_tree(depth-1, inst);
-    fputs(PROG_BINTREE_COMMA, stdout);
+    fputs(CONT_BINTREE_COMMA, stdout);
     next = blc_emit_text_tree(depth-1, next);
     return next;
   } else {
