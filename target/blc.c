@@ -7,6 +7,7 @@
 
 // (cons x y) = (lambda (f) (f x y))
 // = 00010110[x][y]
+static const int BLC_N_BITS = 24;
 static const char CONS_HEAD[] = "00010110";
 
 // (cons4 x1 x2 x3 x4) = (lambda (f) (f x1 x2 x3 x4))
@@ -67,13 +68,13 @@ static const char* blc_reg(Reg r) {
 
 static void blc_emit_int(int n) {
   blc_debug("\n# int %d (%0d)\n", n, n);
-  for (int i = 0; i < 24; i++) {
+  for (int i = 0; i < BLC_N_BITS; i++) {
 #ifndef __eir__
-    n &= ((1 << 24) - 1);
+    n &= ((1 << BLC_N_BITS) - 1);
 #endif
     fputs(CONS_HEAD, stdout);
     blc_debug("    ");
-    fputs((n & 1) ? T : NIL, stdout);
+    fputs((n & 1) ? NIL : T, stdout);
     blc_debug("    ");
     blc_debug("\n");
     n = n >> 1;
@@ -101,36 +102,25 @@ static void emit_blc_value_str(Value* v) {
   }
 }
 
+static Data* blc_emit_data_tree(int depth, Data* data) {
+  if (depth > 0) {
+    fputs(CONS_HEAD, stdout);
+    Data* next = blc_emit_data_tree(depth-1, data);
+    next = blc_emit_data_tree(depth-1, next);
+    return next;
+  } else {
+    if (data) {
+      blc_emit_int(data->v);
+      return data->next;
+    } else {
+      fputs(NIL, stdout);
+      return data;
+    }
+  }
+}
+
 static void blc_emit_data(Data* data) {
-  blc_debug("# Data\n");
-  for (Data* d = data; d; d = d->next) {
-    blc_debug("\n# data\n");
-    fputs(CONS_HEAD, stdout);
-    blc_emit_int(d->v);
-  }
-  blc_debug("\n# Data end\n");
-  fputs(NIL, stdout);
-}
-
-static void blc_emit_func_prologue(int func_id) {
-  blc_debug("\n# Func_prologue\n");
-
-  // Placeholder code that does nothing, to suppress compilation errors
-  if (func_id) {
-    return;
-  }
-}
-
-static void blc_emit_pc_change(int pc) {
-  if (pc) {
-    blc_debug("\n# PC change\n");
-    fputs(NIL, stdout);
-    fputs(CONS_HEAD, stdout);
-  }
-}
-
-static void blc_emit_func_epilogue(void) {
-  blc_debug("\n# Func_epilogue\n");
+  blc_emit_data_tree(BLC_N_BITS, data);
 }
 
 static void blc_emit_basic_inst(Inst* inst, const char* inst_tag) {
@@ -163,10 +153,7 @@ static void blc_emit_cmp_inst(Inst* inst, const char* cmp_tag) {
     emit_blc_value_str(&inst->dst);
 }
 
-
 static void blc_emit_inst(Inst* inst) {
-  blc_debug("\n# Inst\n");
-  fputs(CONS_HEAD, stdout);
   blc_debug("\n# Inst-body (%d)\n", inst->op);
   switch (inst->op) {
   case MOV:
@@ -269,6 +256,38 @@ static void blc_emit_inst(Inst* inst) {
   blc_debug("\n# Inst-end\n");
 }
 
+static Inst* blc_emit_chunk(Inst* inst_) {
+  int pc = inst_->pc;
+  Inst* inst;
+  for (inst = inst_; inst && inst->pc == pc; inst = inst->next) {
+    fputs(CONS_HEAD, stdout);
+    blc_emit_inst(inst);
+  }
+  fputs(NIL, stdout);
+  return inst;
+}
+
+static Inst* blc_emit_text_tree(int depth, Inst* inst) {
+  if (depth > 0) {
+    fputs(CONS_HEAD, stdout);
+    Inst* next = blc_emit_text_tree(depth-1, inst);
+    next = blc_emit_text_tree(depth-1, next);
+    return next;
+  } else {
+    if (inst) {
+      inst = blc_emit_chunk(inst);
+      return inst;
+    } else {
+      fputs(NIL, stdout);
+      return inst;
+    }
+  }
+}
+
+static void blc_emit_text(Inst* inst) {
+  blc_emit_text_tree(BLC_N_BITS, inst);
+}
+
 void target_blc(Module* module) {
   #ifndef DEBUG
     printf("0101");
@@ -276,12 +295,5 @@ void target_blc(Module* module) {
   #endif
 
   blc_emit_data(module->data);
-  fputs(CONS_HEAD, stdout);
-  emit_chunked_main_loop(module->text,
-                        blc_emit_func_prologue,
-                        blc_emit_func_epilogue,
-                        blc_emit_pc_change,
-                        blc_emit_inst);
-  fputs(NIL, stdout);
-  fputs(NIL, stdout);
+  blc_emit_text(module->text);
 }
