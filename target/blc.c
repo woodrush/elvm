@@ -33,13 +33,13 @@ static const char BLC_REG_C[] = "00010101100000100000110000010";
 static const char BLC_REG_D[] = "000101011000001100000110000010";
 static const char BLC_REG_SP[] = "00010101100000100000100000110";
 static const char BLC_REG_BP[] = "000101011000001100000100000110";
-static const char INST_ADD[] = "00000000000000000010";
-static const char INST_STORE[] = "000000000000000000110";
-static const char INST_MOV[] = "0000000000000000001110";
-static const char INST_JMP[] = "00000000000000000011110";
-static const char INST_JUMPCMP[] = "000000000000000000111110";
-static const char INST_LOAD[] = "0000000000000000001111110";
-static const char INST_CMP[] = "00000000000000000011111110";
+static const char INST_ADD[] = "000000000000000000110";
+static const char INST_STORE[] = "0000000000000000001110";
+static const char INST_MOV[] = "00000000000000000010";
+static const char INST_JMP[] = "000000000000000000111110";
+static const char INST_JUMPCMP[] = "00000000000000000011111110";
+static const char INST_LOAD[] = "00000000000000000011110";
+static const char INST_CMP[] = "0000000000000000001111110";
 static const char INST_SUB[] = "000000000000000000111111110";
 static const char INST_IO_INT[] = "0000000000000000001111111110";
 static const char CMP_GT[] = "00000000000010";
@@ -238,9 +238,8 @@ static Inst* blc_emit_chunk(Inst* inst_) {
   int pc = inst_->pc;
   Inst* inst;
   for (inst = inst_; inst && (inst->pc == pc); inst = inst->next) {
-    fputs(CONT_BINTREE_HEAD, stdout);
+    fputs(CONS_HEAD, stdout);
     blc_emit_inst(inst);
-    fputs(CONT_BINTREE_COMMA, stdout);
   }
   fputs(NIL, stdout);
   return inst;
