@@ -104,27 +104,22 @@ static void emit_blc_value_str(Value* v) {
 }
 
 static Data* blc_emit_data_tree(int depth, Data* data) {
-  if (depth > 0) {
+  if (!data) {
+    fputs(NIL, stdout);
+    return data;
+  } else if (depth > 0) {
     fputs(CONS_HEAD, stdout);
     Data* next = blc_emit_data_tree(depth-1, data);
     next = blc_emit_data_tree(depth-1, next);
     return next;
   } else {
-    if (data) {
-      blc_emit_int(data->v);
-      return data->next;
-    } else {
-      fputs(NIL, stdout);
-      return data;
-    }
+    blc_emit_int(data->v);
+    return data->next;
   }
 }
 
 static void blc_emit_data(Data* data) {
-  fputs(NIL, stdout);
-  if (!data) {
-    blc_emit_data_tree(BLC_N_BITS, data);
-  }
+  blc_emit_data_tree(BLC_N_BITS, data);
 }
 
 static void blc_emit_basic_inst(Inst* inst, const char* inst_tag) {
@@ -287,10 +282,7 @@ static Inst* blc_emit_text_tree(int depth, Inst* inst) {
 }
 
 static void blc_emit_text(Inst* inst) {
-  // fputs(NIL, stdout);
-  // if (!inst) {
-    blc_emit_text_tree(BLC_N_BITS, inst);
-  // }
+  blc_emit_text_tree(BLC_N_BITS, inst);
 }
 
 void target_blc(Module* module) {
