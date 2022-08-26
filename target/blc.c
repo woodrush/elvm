@@ -250,9 +250,8 @@ static Inst* blc_emit_text_tree(int depth, Inst* inst) {
     fputs(NIL, stdout);
     return inst;
   } else if (depth > 0) {
-    fputs(CONT_BINTREE_HEAD, stdout);
+    fputs(CONS_HEAD, stdout);
     Inst* next = blc_emit_text_tree(depth-1, inst);
-    fputs(CONT_BINTREE_COMMA, stdout);
     next = blc_emit_text_tree(depth-1, next);
     return next;
   } else {
