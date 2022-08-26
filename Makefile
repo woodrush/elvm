@@ -604,12 +604,7 @@ RUNNER := tools/runblc.sh
 ifndef FULL
 TEST_FILTER := \
 out/0000mod.c.eir.blc \
-out/24_cmp.c.eir.blc \
-out/24_cmp2.c.eir.blc \
 out/24_muldiv.c.eir.blc \
-out/bitops.c.eir.blc \
-out/bool.c.eir.blc \
-out/computed_goto.c.eir.blc \
 out/copy_struct.c.eir.blc \
 out/eof.c.eir.blc \
 out/field_addr.c.eir.blc \
@@ -626,6 +621,13 @@ out/elc.c.eir.blc \
 out/8cc.c.eir.blc \
 out/fgets.c.eir.blc \
 out/eli.c.eir.blc out/dump_ir.c.eir.blc
+
+# out/24_cmp2.c.eir.blc
+# out/24_cmp.c.eir.blc
+# out/bitops.c.eir.blc
+# out/bool.c.eir.blc
+# out/computed_goto.c.eir.blc
+
 endif
 include target.mk
 $(OUT.eir.blc.out): tools/runblc.sh
