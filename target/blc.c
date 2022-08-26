@@ -14,17 +14,6 @@ static const char CONS_HEAD[] = "00010110";
 // = 000101010110[x1][x2][x3][x4]
 static const char CONS4_HEAD[] = "000101010110";
 
-// // (cons-cdr-only (x)) = (lambda (f x) (f f x))
-// // (cons-cdr-only return-tree)
-// // = (cons-cdr-only
-// //     (lambda (x cont)
-// //       (if x
-// //         (cont A)
-// //         (cont B))))
-// // = 0001011010000001011100110[A]0110[B]
-// static const char CONT_BINTREE_HEAD[] = "0001011010000001011100110";
-// static const char CONT_BINTREE_COMMA[] = "0110";
-
 static const char T[] = "0000110";
 static const char NIL[] = "000010";
 static const char BLC_REG_A[] = "0001010110000010000010000010";
