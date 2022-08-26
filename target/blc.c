@@ -168,21 +168,11 @@ static void blc_emit_cmp_inst(Inst* inst, const char* cmp_tag) {
 static void blc_emit_inst(Inst* inst) {
   blc_debug("\n# Inst-body (%d)\n", inst->op);
   switch (inst->op) {
-  case MOV:
-    blc_emit_basic_inst(inst, INST_MOV);
-    break;
-  case ADD:
-    blc_emit_basic_inst(inst, INST_ADD);
-    break;
-  case SUB:
-    blc_emit_basic_inst(inst, INST_SUB);
-    break;
-  case LOAD:
-    blc_emit_basic_inst(inst, INST_LOAD);
-    break;
-  case STORE:
-    blc_emit_basic_inst(inst, INST_STORE);
-    break;
+  case MOV: blc_emit_basic_inst(inst, INST_MOV); break;
+  case ADD: blc_emit_basic_inst(inst, INST_ADD); break;
+  case SUB: blc_emit_basic_inst(inst, INST_SUB); break;
+  case LOAD: blc_emit_basic_inst(inst, INST_LOAD); break;
+  case STORE: blc_emit_basic_inst(inst, INST_STORE); break;
 
   case PUTC:
     fputs(CONS4_HEAD, stdout);
@@ -216,43 +206,19 @@ static void blc_emit_inst(Inst* inst) {
     fputs(BLC_REG_A, stdout);
     break;
 
-  case EQ:
-    blc_emit_cmp_inst(inst, CMP_EQ);
-    break;
-  case NE:
-    blc_emit_cmp_inst(inst, CMP_NE);
-    break;
-  case LT:
-    blc_emit_cmp_inst(inst, CMP_LT);
-    break;
-  case GT:
-    blc_emit_cmp_inst(inst, CMP_GT);
-    break;
-  case LE:
-    blc_emit_cmp_inst(inst, CMP_LE);
-    break;
-  case GE:
-    blc_emit_cmp_inst(inst, CMP_GE);
-    break;
+  case EQ: blc_emit_cmp_inst(inst, CMP_EQ); break;
+  case NE: blc_emit_cmp_inst(inst, CMP_NE); break;
+  case LT: blc_emit_cmp_inst(inst, CMP_LT); break;
+  case GT: blc_emit_cmp_inst(inst, CMP_GT); break;
+  case LE: blc_emit_cmp_inst(inst, CMP_LE); break;
+  case GE: blc_emit_cmp_inst(inst, CMP_GE); break;
 
-  case JEQ:
-    blc_emit_jumpcmp_inst(inst, CMP_EQ);
-    break;
-  case JNE:
-    blc_emit_jumpcmp_inst(inst, CMP_NE);
-    break;
-  case JLT:
-    blc_emit_jumpcmp_inst(inst, CMP_LT);
-    break;
-  case JGT:
-    blc_emit_jumpcmp_inst(inst, CMP_GT);
-    break;
-  case JLE:
-    blc_emit_jumpcmp_inst(inst, CMP_LE);
-    break;
-  case JGE:
-    blc_emit_jumpcmp_inst(inst, CMP_GE);
-    break;
+  case JEQ: blc_emit_jumpcmp_inst(inst, CMP_EQ); break;
+  case JNE: blc_emit_jumpcmp_inst(inst, CMP_NE); break;
+  case JLT: blc_emit_jumpcmp_inst(inst, CMP_LT); break;
+  case JGT: blc_emit_jumpcmp_inst(inst, CMP_GT); break;
+  case JLE: blc_emit_jumpcmp_inst(inst, CMP_LE); break;
+  case JGE: blc_emit_jumpcmp_inst(inst, CMP_GE); break;
 
   case JMP:
     fputs(CONS4_HEAD, stdout);
