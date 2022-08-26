@@ -120,7 +120,10 @@ static Data* blc_emit_data_tree(int depth, Data* data) {
 }
 
 static void blc_emit_data(Data* data) {
-  blc_emit_data_tree(BLC_N_BITS, data);
+  fputs(NIL, stdout);
+  if (!data) {
+    blc_emit_data_tree(BLC_N_BITS, data);
+  }
 }
 
 static void blc_emit_basic_inst(Inst* inst, const char* inst_tag) {
@@ -259,7 +262,7 @@ static void blc_emit_inst(Inst* inst) {
 static Inst* blc_emit_chunk(Inst* inst_) {
   int pc = inst_->pc;
   Inst* inst;
-  for (inst = inst_; inst && inst->pc == pc; inst = inst->next) {
+  for (inst = inst_; inst && (inst->pc == pc); inst = inst->next) {
     fputs(CONS_HEAD, stdout);
     blc_emit_inst(inst);
   }
@@ -268,24 +271,25 @@ static Inst* blc_emit_chunk(Inst* inst_) {
 }
 
 static Inst* blc_emit_text_tree(int depth, Inst* inst) {
-  if (depth > 0) {
+  if (!inst) {
+    fputs(NIL, stdout);
+    return inst;
+  } else if (depth > 0) {
     fputs(CONS_HEAD, stdout);
     Inst* next = blc_emit_text_tree(depth-1, inst);
     next = blc_emit_text_tree(depth-1, next);
     return next;
   } else {
-    if (inst) {
-      inst = blc_emit_chunk(inst);
-      return inst;
-    } else {
-      fputs(NIL, stdout);
-      return inst;
-    }
+    inst = blc_emit_chunk(inst);
+    return inst;
   }
 }
 
 static void blc_emit_text(Inst* inst) {
-  blc_emit_text_tree(BLC_N_BITS, inst);
+  // fputs(NIL, stdout);
+  // if (!inst) {
+    blc_emit_text_tree(BLC_N_BITS, inst);
+  // }
 }
 
 void target_blc(Module* module) {
