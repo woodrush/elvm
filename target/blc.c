@@ -271,8 +271,9 @@ static Inst* blc_emit_chunk(Inst* inst_) {
   int pc = inst_->pc;
   Inst* inst;
   for (inst = inst_; inst && (inst->pc == pc); inst = inst->next) {
-    fputs(CONS_HEAD, stdout);
+    fputs(CONT_BINTREE_HEAD, stdout);
     blc_emit_inst(inst);
+    fputs(CONT_BINTREE_COMMA, stdout);
   }
   fputs(NIL, stdout);
   return inst;
