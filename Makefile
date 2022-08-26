@@ -612,8 +612,13 @@ out/bool.c.eir.blc \
 out/computed_goto.c.eir.blc \
 out/copy_struct.c.eir.blc \
 out/eof.c.eir.blc \
+out/field_addr.c.eir.blc \
+out/fizzbuzz.c.eir.blc \
+out/fizzbuzz_fast.c.eir.blc \
+out/global_struct_ref.c.eir.blc \
 \
 out/000lisp.c.eir.blc \
+out/fgets.c.eir.blc \
 out/eli.c.eir.blc out/dump_ir.c.eir.blc
 endif
 include target.mk
