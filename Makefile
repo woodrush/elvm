@@ -603,18 +603,15 @@ TARGET := blc
 RUNNER := tools/runblc.sh
 ifndef FULL
 TEST_FILTER := \
-out/0000mod.c.eir.blc \
 out/24_muldiv.c.eir.blc \
 out/copy_struct.c.eir.blc \
 out/eof.c.eir.blc \
-out/field_addr.c.eir.blc \
 out/fizzbuzz.c.eir.blc \
 out/fizzbuzz_fast.c.eir.blc \
 out/global_struct_ref.c.eir.blc \
 out/lisp.c.eir.blc \
 out/muldiv.c.eir.blc \
 out/print_int.c.eir.blc \
-out/printf.c.eir.blc \
 out/qsort.c.eir.blc \
 \
 out/elc.c.eir.blc \
