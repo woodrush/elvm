@@ -14,16 +14,16 @@ static const char CONS_HEAD[] = "00010110";
 // = 000101010110[x1][x2][x3][x4]
 static const char CONS4_HEAD[] = "000101010110";
 
-// (cons-cdr-only (x)) = (lambda (f x) (f f x))
-// (cons-cdr-only return-tree)
-// = (cons-cdr-only
-//     (lambda (x cont)
-//       (if x
-//         (cont A)
-//         (cont B))))
-// = 0001011010000001011100110[A]0110[B]
-static const char CONT_BINTREE_HEAD[] = "0001011010000001011100110";
-static const char CONT_BINTREE_COMMA[] = "0110";
+// // (cons-cdr-only (x)) = (lambda (f x) (f f x))
+// // (cons-cdr-only return-tree)
+// // = (cons-cdr-only
+// //     (lambda (x cont)
+// //       (if x
+// //         (cont A)
+// //         (cont B))))
+// // = 0001011010000001011100110[A]0110[B]
+// static const char CONT_BINTREE_HEAD[] = "0001011010000001011100110";
+// static const char CONT_BINTREE_COMMA[] = "0110";
 
 static const char T[] = "0000110";
 static const char NIL[] = "000010";
@@ -84,10 +84,10 @@ static void blc_emit_int(int n) {
 #ifndef __eir__
     n &= ((1 << BLC_N_BITS) - 1);
 #endif
-    fputs(CONT_BINTREE_HEAD, stdout);
+    fputs(CONS_HEAD, stdout);
     blc_debug("    ");
     fputs((n & bitcheck) ? NIL : T, stdout);
-    fputs(CONT_BINTREE_COMMA, stdout);
+    // fputs(CONT_BINTREE_COMMA, stdout);
     blc_debug("    ");
     blc_debug("\n");
     n = n << 1;
