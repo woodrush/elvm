@@ -123,9 +123,9 @@ static void blc_emit_jumpcmp_inst(Inst* inst, const char* cmp_tag) {
   blc_emit_inst_header(inst, INST_JUMPCMP);
   fputs(CONS4_HEAD, stdout);
   fputs(cmp_tag, stdout);
-  emit_blc_value_str(&inst->dst);
   emit_blc_isimm(&inst->jmp);
   emit_blc_value_str(&inst->jmp);
+  emit_blc_value_str(&inst->dst);
 }
 
 static void blc_emit_cmp_inst(Inst* inst, const char* cmp_tag) {
