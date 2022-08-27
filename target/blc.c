@@ -121,10 +121,7 @@ static void blc_emit_addsub_inst(Inst* inst, bool is_add) {
 
 static void blc_emit_jumpcmp_inst(Inst* inst, const char* cmp_tag) {
   blc_emit_inst_header(INST_JUMPCMP, &inst->src);
-  fputs(CONS4_HEAD, stdout);
-  fputs(cmp_tag, stdout);
-  emit_blc_isimm(&inst->jmp);
-  emit_blc_value_str(&inst->jmp);
+  blc_emit_inst_header(cmp_tag, &inst->jmp);
   emit_blc_value_str(&inst->dst);
 }
 
@@ -150,10 +147,7 @@ static void blc_emit_inst(Inst* inst) {
     break;
 
   case GETC:
-    fputs(CONS4_HEAD, stdout);
-    fputs(INST_IO, stdout);
-    fputs(NIL, stdout);
-    emit_blc_value_str(&inst->dst);
+    blc_emit_inst_header(INST_IO, &inst->dst);
     fputs(IO_GETC, stdout);
     break;
 
@@ -184,10 +178,7 @@ static void blc_emit_inst(Inst* inst) {
   case JGE: blc_emit_jumpcmp_inst(inst, CMP_GE); break;
 
   case JMP:
-    fputs(CONS4_HEAD, stdout);
-    fputs(INST_JMP, stdout);
-    emit_blc_isimm(&inst->jmp);
-    emit_blc_value_str(&inst->jmp);
+    blc_emit_inst_header(INST_JMP, &inst->jmp);
     fputs(PLACEHOLDER, stdout);
     break;
 
