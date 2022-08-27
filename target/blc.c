@@ -100,27 +100,27 @@ static Data* blc_emit_data_tree(int depth, Data* data) {
   }
 }
 
-static void blc_emit_inst_header(Inst* inst, const char* inst_tag) {
+static void blc_emit_inst_header(const char* inst_tag, Value* v) {
   fputs(CONS4_HEAD, stdout);
   fputs(inst_tag, stdout);
-  emit_blc_isimm(&inst->src);
-  emit_blc_value_str(&inst->src);
+  emit_blc_isimm(v);
+  emit_blc_value_str(v);
 }
 
 static void blc_emit_basic_inst(Inst* inst, const char* inst_tag) {
-  blc_emit_inst_header(inst, inst_tag);
+  blc_emit_inst_header(inst_tag, &inst->src);
   emit_blc_value_str(&inst->dst);
 }
 
 static void blc_emit_addsub_inst(Inst* inst, bool is_add) {
-  blc_emit_inst_header(inst, INST_ADDSUB);
+  blc_emit_inst_header(INST_ADDSUB, &inst->src);
   fputs(CONS_HEAD, stdout);
   emit_blc_value_str(&inst->dst);
   fputs(is_add ? T : NIL, stdout);
 }
 
 static void blc_emit_jumpcmp_inst(Inst* inst, const char* cmp_tag) {
-  blc_emit_inst_header(inst, INST_JUMPCMP);
+  blc_emit_inst_header(INST_JUMPCMP, &inst->src);
   fputs(CONS4_HEAD, stdout);
   fputs(cmp_tag, stdout);
   emit_blc_isimm(&inst->jmp);
@@ -129,7 +129,7 @@ static void blc_emit_jumpcmp_inst(Inst* inst, const char* cmp_tag) {
 }
 
 static void blc_emit_cmp_inst(Inst* inst, const char* cmp_tag) {
-  blc_emit_inst_header(inst, INST_CMP);
+  blc_emit_inst_header(INST_CMP, &inst->src);
   fputs(CONS_HEAD, stdout);
   fputs(cmp_tag, stdout);
   emit_blc_value_str(&inst->dst);
@@ -145,7 +145,7 @@ static void blc_emit_inst(Inst* inst) {
   case SUB: blc_emit_addsub_inst(inst, false); break;
 
   case PUTC:
-    blc_emit_inst_header(inst, INST_IO);
+    blc_emit_inst_header(INST_IO, &inst->src);
     fputs(IO_PUTC, stdout);
     break;
 
