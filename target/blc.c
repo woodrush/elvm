@@ -116,11 +116,7 @@ static void blc_emit_addsub_inst(Inst* inst, bool is_add) {
   blc_emit_inst_header(inst, INST_ADDSUB);
   fputs(CONS_HEAD, stdout);
   emit_blc_value_str(&inst->dst);
-  if (is_add) {
-    fputs(T, stdout);
-  } else {
-    fputs(NIL, stdout);
-  }
+  fputs(is_add ? T : NIL, stdout);
 }
 
 static void blc_emit_jumpcmp_inst(Inst* inst, const char* cmp_tag) {
