@@ -39,6 +39,7 @@ static const char CMP_GE[] = "000101011000001100000100000110";
 static const char CMP_NE[] = "000101011000001000001100000110";
 static const char IO_PUTC[] = "000010";
 static const char IO_GETC[] = "0000110";
+static const char PLACEHOLDER[] = "10";
 
 
 static void blc_debug(const char* fmt, ...) {
@@ -68,17 +69,17 @@ static const char* blc_reg(Reg r) {
 
 static void blc_emit_int(int n) {
   blc_debug("\n# int %d (%0d)\n", n, n);
-  int bitcheck = 1 << (BLC_N_BITS - 1);
+  int checkbit = 1 << (BLC_N_BITS - 1);
   for (int i = 0; i < BLC_N_BITS; i++) {
 #ifndef __eir__
     n &= ((1 << BLC_N_BITS) - 1);
 #endif
     fputs(CONS_HEAD, stdout);
     blc_debug("    ");
-    fputs((n & bitcheck) ? NIL : T, stdout);
+    fputs((n & checkbit) ? NIL : T, stdout);
     blc_debug("    ");
     blc_debug("\n");
-    n = n << 1;
+    checkbit = checkbit >> 1;
   }
   fputs(NIL, stdout);
 }
@@ -223,7 +224,7 @@ static void blc_emit_inst(Inst* inst) {
     fputs(INST_JMP, stdout);
     emit_blc_isimm(&inst->jmp);
     emit_blc_value_str(&inst->jmp);
-    fputs(NIL, stdout);
+    fputs(PLACEHOLDER, stdout);
     break;
 
   default:
