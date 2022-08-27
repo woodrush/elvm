@@ -12,14 +12,36 @@ static const char CONS_HEAD[] = "00010110";
 // = 000101010110[x1][x2][x3][x4]
 static const char CONS4_HEAD[] = "000101010110";
 
+
 static const char T[] = "0000110";
 static const char NIL[] = "000010";
-static const char BLC_REG_A[] = "0001010110000010000010000010";
-static const char BLC_REG_B[] = "00010101100000110000010000010";
-static const char BLC_REG_C[] = "00010101100000100000110000010";
-static const char BLC_REG_D[] = "000101011000001100000110000010";
-static const char BLC_REG_SP[] = "00010101100000100000100000110";
-static const char BLC_REG_BP[] = "000101011000001100000100000110";
+
+static const char INT_HEADER[] = "01000100";
+static const char INT_FOOTER[] = "000010000001011000001011000000101100000110110";
+
+// static const char BLC_REG_A[] =  "0001010110000010000010000010";
+// static const char BLC_REG_B[] =  "00010101100000110000010000010";
+// static const char BLC_REG_C[] =  "000101011000001100000110000010";
+// static const char BLC_REG_D[] =  "00010101100000100000110000010";
+// static const char BLC_REG_SP[] = "00010101100000100000100000110";
+// static const char BLC_REG_BP[] = "000101011000001100000100000110";
+
+static const char BLC_REG_A[]  = "000101100000110000101100000110000010";
+static const char BLC_REG_B[]  = "0001011000001000010110000011000010110000010000010";
+static const char BLC_REG_C[]  = "000101100000100001011000001000010110000010000101100000110000010";
+static const char BLC_REG_D[]  = "00010110000011000010110000010000010";
+static const char BLC_REG_SP[] = "00010110000010000101100000110000101100000110000010";
+static const char BLC_REG_BP[] = "0001011000001000010110000010000101100000110000010";
+
+// REG-A:  
+// REG-B:  
+// REG-C:  
+// REG-D:  
+// REG-SP: 
+// REG-BP: 
+// REG-PC: 0101010001101000000111001110100000010111000001010000010
+
+
 static const char INST_EXIT[] = "000010";
 static const char INST_MOV[] = "000000000000000010";
 static const char INST_ADDSUB[] = "0000000000000000110";
@@ -54,16 +76,17 @@ static const char* blc_reg(Reg r) {
 }
 
 static void blc_emit_int(int n) {
+  fputs(INT_HEADER, stdout);
   int checkbit = 1 << (BLC_N_BITS - 1);
   for (int i = 0; i < BLC_N_BITS; i++) {
 #ifndef __eir__
     n &= ((1 << BLC_N_BITS) - 1);
 #endif
-    fputs(CONS_HEAD, stdout);
-    fputs((n & checkbit) ? NIL : T, stdout);
+    fputs("01", stdout);
+    fputs((n & checkbit) ? "10" : "110", stdout);
     checkbit = checkbit >> 1;
   }
-  fputs(NIL, stdout);
+  fputs(INT_FOOTER, stdout);
 }
 
 static void emit_blc_isimm(Value* v) {
