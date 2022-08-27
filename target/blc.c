@@ -22,23 +22,24 @@ static const char BLC_REG_C[] = "00010101100000100000110000010";
 static const char BLC_REG_D[] = "000101011000001100000110000010";
 static const char BLC_REG_SP[] = "00010101100000100000100000110";
 static const char BLC_REG_BP[] = "000101011000001100000100000110";
+static const char INST_EXIT[] = "000010";
+static const char INST_MOV[] = "000000000000000010";
 static const char INST_ADDSUB[] = "0000000000000000110";
 static const char INST_STORE[] = "00000000000000001110";
-static const char INST_MOV[] = "000000000000000010";
-static const char INST_JMP[] = "0000000000000000111110";
-static const char INST_JUMPCMP[] = "000000000000000011111110";
 static const char INST_LOAD[] = "000000000000000011110";
+static const char INST_JMP[] = "0000000000000000111110";
 static const char INST_CMP[] = "00000000000000001111110";
-static const char INST_IO_INT[] = "0000000000000000111111110";
+static const char INST_JUMPCMP[] = "000000000000000011111110";
+static const char INST_IO[] = "0000000000000000111111110";
 static const char CMP_GT[] = "00010101100000100000100000110";
 static const char CMP_LT[] = "00010101100000100000110000010";
 static const char CMP_EQ[] = "00010101100000110000010000010";
 static const char CMP_LE[] = "000101011000001100000110000010";
 static const char CMP_GE[] = "000101011000001100000100000110";
 static const char CMP_NE[] = "000101011000001000001100000110";
-static const char IO_INT_PUTC[] = "00000010";
-static const char IO_INT_GETC[] = "000000110";
-static const char IO_INT_EXIT[] = "0000001110";
+static const char IO_PUTC[] = "000010";
+static const char IO_GETC[] = "0000110";
+
 
 static void blc_debug(const char* fmt, ...) {
   if (fmt[0]) {
@@ -177,26 +178,22 @@ static void blc_emit_inst(Inst* inst) {
 
   case PUTC:
     fputs(CONS4_HEAD, stdout);
-    fputs(INST_IO_INT, stdout);
+    fputs(INST_IO, stdout);
     emit_blc_isimm(&inst->src);
     emit_blc_value_str(&inst->src);
-    fputs(IO_INT_PUTC, stdout);
+    fputs(IO_PUTC, stdout);
     break;
 
   case GETC:
     fputs(CONS4_HEAD, stdout);
-    fputs(INST_IO_INT, stdout);
+    fputs(INST_IO, stdout);
     fputs(NIL, stdout);
     emit_blc_value_str(&inst->dst);
-    fputs(IO_INT_GETC, stdout);
+    fputs(IO_GETC, stdout);
     break;
 
   case EXIT:
-    fputs(CONS4_HEAD, stdout);
-    fputs(INST_IO_INT, stdout);
-    fputs(T, stdout);
-    fputs(T, stdout);
-    fputs(IO_INT_EXIT, stdout);
+    fputs(INST_EXIT, stdout);
     break;
 
   case DUMP:
