@@ -2,8 +2,6 @@
 #include <target/util.h>
 #include <target/blccore.h>
 
-// #define DEBUG
-
 
 // (cons x y) = (lambda (f) (f x y))
 // = 00010110[x][y]
@@ -42,18 +40,6 @@ static const char IO_GETC[] = "0000110";
 static const char PLACEHOLDER[] = "10";
 
 
-static void blc_debug(const char* fmt, ...) {
-  if (fmt[0]) {
-    #ifndef DEBUG
-      return;
-    #endif
-    va_list ap;
-    va_start(ap, fmt);
-    vprintf(fmt, ap);
-    va_end(ap);
-  }
-}
-
 static const char* blc_reg(Reg r) {
   switch (r) {
   case A: return BLC_REG_A;
@@ -68,17 +54,13 @@ static const char* blc_reg(Reg r) {
 }
 
 static void blc_emit_int(int n) {
-  blc_debug("\n# int %d (%0d)\n", n, n);
   int checkbit = 1 << (BLC_N_BITS - 1);
   for (int i = 0; i < BLC_N_BITS; i++) {
 #ifndef __eir__
     n &= ((1 << BLC_N_BITS) - 1);
 #endif
     fputs(CONS_HEAD, stdout);
-    blc_debug("    ");
     fputs((n & checkbit) ? NIL : T, stdout);
-    blc_debug("    ");
-    blc_debug("\n");
     checkbit = checkbit >> 1;
   }
   fputs(NIL, stdout);
@@ -110,65 +92,54 @@ static Data* blc_emit_data_tree(int depth, Data* data) {
     return data;
   } else if (depth > 0) {
     fputs(CONS_HEAD, stdout);
-    Data* next = blc_emit_data_tree(depth-1, data);
-    next = blc_emit_data_tree(depth-1, next);
-    return next;
+    data = blc_emit_data_tree(depth-1, data);
+    return blc_emit_data_tree(depth-1, data);
   } else {
     blc_emit_int(data->v);
     return data->next;
   }
 }
 
-static void blc_emit_data(Data* data) {
-  blc_emit_data_tree(BLC_N_BITS, data);
+static void blc_emit_inst_header(Inst* inst, const char* inst_tag) {
+  fputs(CONS4_HEAD, stdout);
+  fputs(inst_tag, stdout);
+  emit_blc_isimm(&inst->src);
+  emit_blc_value_str(&inst->src);
 }
 
 static void blc_emit_basic_inst(Inst* inst, const char* inst_tag) {
-    fputs(CONS4_HEAD, stdout);
-    fputs(inst_tag, stdout);
-    emit_blc_isimm(&inst->src);
-    emit_blc_value_str(&inst->src);
-    emit_blc_value_str(&inst->dst);
+  blc_emit_inst_header(inst, inst_tag);
+  emit_blc_value_str(&inst->dst);
 }
 
 static void blc_emit_addsub_inst(Inst* inst, bool is_add) {
-    fputs(CONS4_HEAD, stdout);
-    fputs(INST_ADDSUB, stdout);
-    emit_blc_isimm(&inst->src);
-    emit_blc_value_str(&inst->src);
-    fputs(CONS_HEAD, stdout);
-    emit_blc_value_str(&inst->dst);
-    if (is_add) {
-      fputs(T, stdout);
-    } else {
-      fputs(NIL, stdout);
-    }
+  blc_emit_inst_header(inst, INST_ADDSUB);
+  fputs(CONS_HEAD, stdout);
+  emit_blc_value_str(&inst->dst);
+  if (is_add) {
+    fputs(T, stdout);
+  } else {
+    fputs(NIL, stdout);
+  }
 }
 
 static void blc_emit_jumpcmp_inst(Inst* inst, const char* cmp_tag) {
-    fputs(CONS4_HEAD, stdout);
-    fputs(INST_JUMPCMP, stdout);
-    emit_blc_isimm(&inst->src);
-    emit_blc_value_str(&inst->src);
-    fputs(CONS4_HEAD, stdout);
-    fputs(cmp_tag, stdout);
-    emit_blc_value_str(&inst->dst);
-    emit_blc_isimm(&inst->jmp);
-    emit_blc_value_str(&inst->jmp);
+  blc_emit_inst_header(inst, INST_JUMPCMP);
+  fputs(CONS4_HEAD, stdout);
+  fputs(cmp_tag, stdout);
+  emit_blc_value_str(&inst->dst);
+  emit_blc_isimm(&inst->jmp);
+  emit_blc_value_str(&inst->jmp);
 }
 
 static void blc_emit_cmp_inst(Inst* inst, const char* cmp_tag) {
-    fputs(CONS4_HEAD, stdout);
-    fputs(INST_CMP, stdout);
-    emit_blc_isimm(&inst->src);
-    emit_blc_value_str(&inst->src);
-    fputs(CONS_HEAD, stdout);
-    fputs(cmp_tag, stdout);
-    emit_blc_value_str(&inst->dst);
+  blc_emit_inst_header(inst, INST_CMP);
+  fputs(CONS_HEAD, stdout);
+  fputs(cmp_tag, stdout);
+  emit_blc_value_str(&inst->dst);
 }
 
 static void blc_emit_inst(Inst* inst) {
-  blc_debug("\n# Inst-body (%d)\n", inst->op);
   switch (inst->op) {
   case MOV: blc_emit_basic_inst(inst, INST_MOV); break;
   case LOAD: blc_emit_basic_inst(inst, INST_LOAD); break;
@@ -178,10 +149,7 @@ static void blc_emit_inst(Inst* inst) {
   case SUB: blc_emit_addsub_inst(inst, false); break;
 
   case PUTC:
-    fputs(CONS4_HEAD, stdout);
-    fputs(INST_IO, stdout);
-    emit_blc_isimm(&inst->src);
-    emit_blc_value_str(&inst->src);
+    blc_emit_inst_header(inst, INST_IO);
     fputs(IO_PUTC, stdout);
     break;
 
@@ -230,7 +198,6 @@ static void blc_emit_inst(Inst* inst) {
   default:
     error("oops");
   }
-  blc_debug("\n# Inst-end\n");
 }
 
 static Inst* blc_emit_chunk(Inst* inst_) {
@@ -250,25 +217,17 @@ static Inst* blc_emit_text_tree(int depth, Inst* inst) {
     return inst;
   } else if (depth > 0) {
     fputs(CONS_HEAD, stdout);
-    Inst* next = blc_emit_text_tree(depth-1, inst);
-    next = blc_emit_text_tree(depth-1, next);
-    return next;
+    inst = blc_emit_text_tree(depth-1, inst);
+    return blc_emit_text_tree(depth-1, inst);
   } else {
     inst = blc_emit_chunk(inst);
     return inst;
   }
 }
 
-static void blc_emit_text(Inst* inst) {
-  blc_emit_text_tree(BLC_N_BITS, inst);
-}
-
 void target_blc(Module* module) {
-  #ifndef DEBUG
-    printf("0101");
-    fputs(blc_core, stdout);
-  #endif
-
-  blc_emit_data(module->data);
-  blc_emit_text(module->text);
+  printf("0101");
+  fputs(blc_core, stdout);
+  blc_emit_data_tree(BLC_N_BITS, module->data);
+  blc_emit_text_tree(BLC_N_BITS, module->text);
 }
