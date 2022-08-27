@@ -22,15 +22,14 @@ static const char BLC_REG_C[] = "00010101100000100000110000010";
 static const char BLC_REG_D[] = "000101011000001100000110000010";
 static const char BLC_REG_SP[] = "00010101100000100000100000110";
 static const char BLC_REG_BP[] = "000101011000001100000100000110";
-static const char INST_ADD[] = "000000000000000000110";
-static const char INST_STORE[] = "0000000000000000001110";
-static const char INST_MOV[] = "00000000000000000010";
-static const char INST_JMP[] = "000000000000000000111110";
-static const char INST_JUMPCMP[] = "00000000000000000011111110";
-static const char INST_LOAD[] = "00000000000000000011110";
-static const char INST_CMP[] = "0000000000000000001111110";
-static const char INST_SUB[] = "000000000000000000111111110";
-static const char INST_IO_INT[] = "0000000000000000001111111110";
+static const char INST_ADDSUB[] = "0000000000000000110";
+static const char INST_STORE[] = "00000000000000001110";
+static const char INST_MOV[] = "000000000000000010";
+static const char INST_JMP[] = "0000000000000000111110";
+static const char INST_JUMPCMP[] = "000000000000000011111110";
+static const char INST_LOAD[] = "000000000000000011110";
+static const char INST_CMP[] = "00000000000000001111110";
+static const char INST_IO_INT[] = "0000000000000000111111110";
 static const char CMP_GT[] = "00010101100000100000100000110";
 static const char CMP_LT[] = "00010101100000100000110000010";
 static const char CMP_EQ[] = "00010101100000110000010000010";
@@ -130,6 +129,20 @@ static void blc_emit_basic_inst(Inst* inst, const char* inst_tag) {
     emit_blc_value_str(&inst->dst);
 }
 
+static void blc_emit_addsub_inst(Inst* inst, bool is_add) {
+    fputs(CONS4_HEAD, stdout);
+    fputs(INST_ADDSUB, stdout);
+    emit_blc_isimm(&inst->src);
+    emit_blc_value_str(&inst->src);
+    fputs(CONS_HEAD, stdout);
+    emit_blc_value_str(&inst->dst);
+    if (is_add) {
+      fputs(T, stdout);
+    } else {
+      fputs(NIL, stdout);
+    }
+}
+
 static void blc_emit_jumpcmp_inst(Inst* inst, const char* cmp_tag) {
     fputs(CONS4_HEAD, stdout);
     fputs(INST_JUMPCMP, stdout);
@@ -156,10 +169,11 @@ static void blc_emit_inst(Inst* inst) {
   blc_debug("\n# Inst-body (%d)\n", inst->op);
   switch (inst->op) {
   case MOV: blc_emit_basic_inst(inst, INST_MOV); break;
-  case ADD: blc_emit_basic_inst(inst, INST_ADD); break;
-  case SUB: blc_emit_basic_inst(inst, INST_SUB); break;
   case LOAD: blc_emit_basic_inst(inst, INST_LOAD); break;
   case STORE: blc_emit_basic_inst(inst, INST_STORE); break;
+
+  case ADD: blc_emit_addsub_inst(inst, true); break;
+  case SUB: blc_emit_addsub_inst(inst, false); break;
 
   case PUTC:
     fputs(CONS4_HEAD, stdout);
