@@ -3,28 +3,33 @@
 #include <target/blccore.h>
 
 
-// (cons x y) = (lambda (f) (f x y))
-// = 00010110[x][y]
 static const int BLC_N_BITS = 24;
+
+static const char BLC_APPLY[] = "01";
+
+// (cons x y) = (lambda (f) (f x y))
+//   = 00010110[x][y]
 static const char CONS_HEAD[] = "00010110";
 
 // (cons4 x1 x2 x3 x4) = (lambda (f) (f x1 x2 x3 x4))
-// = 000101010110[x1][x2][x3][x4]
+//   = 000101010110[x1][x2][x3][x4]
 static const char CONS4_HEAD[] = "000101010110";
 
+// (let ((cons-t   (lambda (x f) (f t x)))
+//       (cons-nil (lambda (x f) (f nil x))))
+//   [A])
+//   = ((lambda (cons-t) (lambda (cons-nil) A)) (lambda (x f) (f t x)) (lambda (x f) (f nil x)))
+//   = 01000100[A]000001011000001011000000101100000110110
+// (F3 (F2 (F1 NIL)))
+//   = 01[F3]01[F2]01[F1]000010
+// F1, F2, ... is in { 10, 110 }
+static const char INT_HEADER[] = "01000100";
+static const char INT_BIT1[] = "10";
+static const char INT_BIT0[] = "110";
+static const char INT_FOOTER[] = "000010000001011000001011000000101100000110110";
 
 static const char T[] = "0000110";
 static const char NIL[] = "000010";
-
-static const char INT_HEADER[] = "01000100";
-static const char INT_FOOTER[] = "000010000001011000001011000000101100000110110";
-
-// static const char BLC_REG_A[] =  "0001010110000010000010000010";
-// static const char BLC_REG_B[] =  "00010101100000110000010000010";
-// static const char BLC_REG_C[] =  "000101011000001100000110000010";
-// static const char BLC_REG_D[] =  "00010101100000100000110000010";
-// static const char BLC_REG_SP[] = "00010101100000100000100000110";
-// static const char BLC_REG_BP[] = "000101011000001100000100000110";
 
 static const char BLC_REG_A[]  = "000101100000110000101100000110000010";
 static const char BLC_REG_B[]  = "0001011000001000010110000011000010110000010000010";
@@ -32,15 +37,6 @@ static const char BLC_REG_C[]  = "0001011000001000010110000010000101100000100001
 static const char BLC_REG_D[]  = "00010110000011000010110000010000010";
 static const char BLC_REG_SP[] = "00010110000010000101100000110000101100000110000010";
 static const char BLC_REG_BP[] = "0001011000001000010110000010000101100000110000010";
-
-// REG-A:  
-// REG-B:  
-// REG-C:  
-// REG-D:  
-// REG-SP: 
-// REG-BP: 
-// REG-PC: 0101010001101000000111001110100000010111000001010000010
-
 
 static const char INST_EXIT[] = "000010";
 static const char INST_MOV[] = "000000000000000010";
@@ -82,8 +78,8 @@ static void blc_emit_int(int n) {
 #ifndef __eir__
     n &= ((1 << BLC_N_BITS) - 1);
 #endif
-    fputs("01", stdout);
-    fputs((n & checkbit) ? "10" : "110", stdout);
+    fputs(BLC_APPLY, stdout);
+    fputs((n & checkbit) ? INT_BIT1 : INT_BIT0, stdout);
     checkbit = checkbit >> 1;
   }
   fputs(INT_FOOTER, stdout);
@@ -173,7 +169,6 @@ static void blc_emit_dump_inst(void) {
   fputs(BLC_REG_A, stdout);
 }
 
-
 static void blc_emit_inst(Inst* inst) {
   switch (inst->op) {
   case MOV: blc_emit_basic_inst(inst, INST_MOV); break;
@@ -235,7 +230,8 @@ static Inst* blc_emit_text_tree(int depth, Inst* inst) {
 }
 
 void target_blc(Module* module) {
-  printf("0101");
+  fputs(BLC_APPLY, stdout);
+  fputs(BLC_APPLY, stdout);
   fputs(blc_core, stdout);
   blc_emit_data_tree(BLC_N_BITS, module->data);
   blc_emit_text_tree(BLC_N_BITS, module->text);
