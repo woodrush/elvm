@@ -112,11 +112,11 @@ static void blc_emit_basic_inst(Inst* inst, const char* inst_tag) {
   emit_blc_value_str(&inst->dst);
 }
 
-static void blc_emit_addsub_inst(Inst* inst, bool is_add) {
+static void blc_emit_addsub_inst(Inst* inst, const char* is_add) {
   blc_emit_inst_header(INST_ADDSUB, &inst->src);
   fputs(CONS_HEAD, stdout);
   emit_blc_value_str(&inst->dst);
-  fputs(is_add ? T : NIL, stdout);
+  fputs(is_add, stdout);
 }
 
 static void blc_emit_jumpcmp_inst(Inst* inst, const char* cmp_tag) {
@@ -132,36 +132,33 @@ static void blc_emit_cmp_inst(Inst* inst, const char* cmp_tag) {
   emit_blc_value_str(&inst->dst);
 }
 
+static void blc_emit_io_inst(const char* io_tag, Value* v) {
+  blc_emit_inst_header(INST_IO, v);
+  fputs(io_tag, stdout);
+}
+
+static void blc_emit_jmp_inst(Inst* inst) {
+  blc_emit_inst_header(INST_JMP, &inst->jmp);
+  fputs(PLACEHOLDER, stdout);
+}
+
+static void blc_emit_dump_inst(void) {
+  fputs(CONS4_HEAD, stdout);
+  fputs(INST_MOV, stdout);
+  fputs(NIL, stdout);
+  fputs(BLC_REG_A, stdout);
+  fputs(BLC_REG_A, stdout);
+}
+
+
 static void blc_emit_inst(Inst* inst) {
   switch (inst->op) {
   case MOV: blc_emit_basic_inst(inst, INST_MOV); break;
   case LOAD: blc_emit_basic_inst(inst, INST_LOAD); break;
   case STORE: blc_emit_basic_inst(inst, INST_STORE); break;
 
-  case ADD: blc_emit_addsub_inst(inst, true); break;
-  case SUB: blc_emit_addsub_inst(inst, false); break;
-
-  case PUTC:
-    blc_emit_inst_header(INST_IO, &inst->src);
-    fputs(IO_PUTC, stdout);
-    break;
-
-  case GETC:
-    blc_emit_inst_header(INST_IO, &inst->dst);
-    fputs(IO_GETC, stdout);
-    break;
-
-  case EXIT:
-    fputs(INST_EXIT, stdout);
-    break;
-
-  case DUMP:
-    fputs(CONS4_HEAD, stdout);
-    fputs(INST_MOV, stdout);
-    fputs(NIL, stdout);
-    fputs(BLC_REG_A, stdout);
-    fputs(BLC_REG_A, stdout);
-    break;
+  case ADD: blc_emit_addsub_inst(inst, T); break;
+  case SUB: blc_emit_addsub_inst(inst, NIL); break;
 
   case EQ: blc_emit_cmp_inst(inst, CMP_EQ); break;
   case NE: blc_emit_cmp_inst(inst, CMP_NE); break;
@@ -177,10 +174,13 @@ static void blc_emit_inst(Inst* inst) {
   case JLE: blc_emit_jumpcmp_inst(inst, CMP_LE); break;
   case JGE: blc_emit_jumpcmp_inst(inst, CMP_GE); break;
 
-  case JMP:
-    blc_emit_inst_header(INST_JMP, &inst->jmp);
-    fputs(PLACEHOLDER, stdout);
-    break;
+  case JMP: blc_emit_jmp_inst(inst); break;
+
+  case PUTC: blc_emit_io_inst(IO_PUTC, &inst->src); break;
+  case GETC: blc_emit_io_inst(IO_GETC, &inst->dst); break;
+
+  case DUMP: blc_emit_dump_inst(); break;
+  case EXIT: fputs(INST_EXIT, stdout); break;
 
   default:
     error("oops");
