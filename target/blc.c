@@ -76,7 +76,6 @@ static void blc_emit_int(int n) {
     fputs(CONS_HEAD, stdout);
     blc_debug("    ");
     fputs((n & bitcheck) ? NIL : T, stdout);
-    // fputs(CONT_BINTREE_COMMA, stdout);
     blc_debug("    ");
     blc_debug("\n");
     n = n << 1;
