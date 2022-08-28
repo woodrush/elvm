@@ -57,6 +57,8 @@ static const char IO_PUTC[] = "000010";
 static const char IO_GETC[] = "0000110";
 static const char PLACEHOLDER[] = "10";
 static const char BLC_16[] = "010001011010100000011100111010";
+static const char BLC_8[] = "0000011100111001110011100111001110011100111010";
+
 
 static const char* blc_reg(Reg r) {
   switch (r) {
@@ -233,7 +235,9 @@ void target_blc(Module* module) {
   fputs(BLC_APPLY, stdout);
   fputs(BLC_APPLY, stdout);
   fputs(BLC_APPLY, stdout);
+  fputs(BLC_APPLY, stdout);
   fputs(blc_core, stdout);
+  fputs(BLC_8, stdout);
   fputs(BLC_16, stdout);
   blc_emit_data_tree(BLC_N_BITS, module->data);
   blc_emit_text_tree(BLC_N_BITS, module->text);
