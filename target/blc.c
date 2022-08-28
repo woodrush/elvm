@@ -41,12 +41,11 @@ static const char BLC_REG_BP[] = "0101010001101000000111001110100000010110000011
 static const char INST_EXIT[] = "000010";
 static const char INST_IO[] = "0000000000000011111110";
 static const char INST_JUMPCMP[] = "000000000000001111110";
-static const char INST_JMP[] = "00000000000000111110";
+// static const char INST_JMP[] = "00000000000000111110";
 static const char INST_LOAD[] = "0000000000000011110";
 static const char INST_STORE[] = "000000000000001110";
 static const char INST_ADDSUB[] = "00000000000000110";
 static const char INST_MOV[] = "0000000000000010";
-
 
 static const char CMP_GT[] = "00010101100000100000100000110";
 static const char CMP_LT[] = "00010101100000100000110000010";
@@ -56,7 +55,7 @@ static const char CMP_GE[] = "000101011000001100000100000110";
 static const char CMP_NE[] = "000101011000001000001100000110";
 static const char IO_PUTC[] = "000010";
 static const char IO_GETC[] = "0000110";
-static const char PLACEHOLDER[] = "10";
+// static const char PLACEHOLDER[] = "10";
 
 
 static const char* blc_reg(Reg r) {
@@ -164,8 +163,8 @@ static void blc_emit_io_inst(const char* io_tag, Value* v) {
 }
 
 static void blc_emit_jmp_inst(Inst* inst) {
-  blc_emit_inst_header(INST_JMP, &inst->jmp);
-  fputs(PLACEHOLDER, stdout);
+  blc_emit_inst_header(INST_JUMPCMP, &inst->jmp);
+  fputs(NIL, stdout);
 }
 
 static void blc_emit_dump_inst(void) {
