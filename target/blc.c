@@ -39,13 +39,12 @@ static const char BLC_REG_SP[] = "0001011000001100001011000001000010110000011000
 static const char BLC_REG_BP[] = "01010100011010000001110011101000000101100000110110000010";
 
 static const char INST_EXIT[] = "000010";
-static const char INST_IO[] = "0000000000000011111110";
-static const char INST_JUMPCMP[] = "000000000000001111110";
-// static const char INST_JMP[] = "00000000000000111110";
-static const char INST_LOAD[] = "0000000000000011110";
-static const char INST_STORE[] = "000000000000001110";
-static const char INST_ADDSUB[] = "00000000000000110";
-static const char INST_MOV[] = "0000000000000010";
+static const char INST_IO[] = "0000000000001111110";
+static const char INST_JUMPCMP[] = "000000000000111110";
+static const char INST_LOAD[] = "00000000000011110";
+static const char INST_STORE[] = "0000000000001110";
+static const char INST_ADDSUB[] = "000000000000110";
+static const char INST_MOV[] = "00000000000010";
 
 static const char CMP_GT[] = "00010101100000100000100000110";
 static const char CMP_LT[] = "00010101100000100000110000010";
@@ -55,7 +54,6 @@ static const char CMP_GE[] = "000101011000001100000100000110";
 static const char CMP_NE[] = "000101011000001000001100000110";
 static const char IO_PUTC[] = "000010";
 static const char IO_GETC[] = "0000110";
-// static const char PLACEHOLDER[] = "10";
 
 
 static const char* blc_reg(Reg r) {
