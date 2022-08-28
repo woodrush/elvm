@@ -44,7 +44,7 @@ static const char INST_ADDSUB[] = "0000000000000000110";
 static const char INST_STORE[] = "00000000000000001110";
 static const char INST_LOAD[] = "000000000000000011110";
 static const char INST_JMP[] = "0000000000000000111110";
-static const char INST_CMP[] = "00000000000000001111110";
+// static const char INST_CMP[] = "00000000000000001111110";
 static const char INST_JUMPCMP[] = "000000000000000011111110";
 static const char INST_IO[] = "0000000000000000111111110";
 static const char CMP_GT[] = "00010101100000100000100000110";
@@ -145,10 +145,16 @@ static void blc_emit_jumpcmp_inst(Inst* inst, const char* cmp_tag) {
 }
 
 static void blc_emit_cmp_inst(Inst* inst, const char* cmp_tag) {
-  blc_emit_inst_header(INST_CMP, &inst->src);
-  fputs(CONS_HEAD, stdout);
+  blc_emit_inst_header(INST_JUMPCMP, &inst->src);
+  fputs(CONS4_HEAD, stdout);
   fputs(cmp_tag, stdout);
+  fputs(T, stdout);
+  fputs(NIL, stdout);
   emit_blc_value_str(&inst->dst);
+
+  // fputs(CONS_HEAD, stdout);
+  // fputs(cmp_tag, stdout);
+  // emit_blc_value_str(&inst->dst);
 }
 
 static void blc_emit_io_inst(const char* io_tag, Value* v) {
