@@ -4,25 +4,23 @@
 
 
 static const int BLC_N_BITS = 24;
+static const char BLC_16[] = "010001011010100000011100111010";
+static const char BLC_8[] = "0000011100111001110011100111001110011100111010";
 
 static const char BLC_APPLY[] = "01";
 
-// (cons x y) = (lambda (f) (f x y))
-//   = 00010110[x][y]
+// (cons x y) = (lambda (f) (f x y)) = 00010110[x][y]
 static const char CONS_HEAD[] = "00010110";
 
-// (cons4 x1 x2 x3 x4) = (lambda (f) (f x1 x2 x3 x4))
-//   = 000101010110[x1][x2][x3][x4]
+// (cons4 x1 x2 x3 x4) = (lambda (f) (f x1 x2 x3 x4)) = 000101010110[x1][x2][x3][x4]
 static const char CONS4_HEAD[] = "000101010110";
 
-// (let ((cons-t   (lambda (x f) (f t x)))
-//       (cons-nil (lambda (x f) (f nil x))))
-//   [A])
-//   = ((lambda (cons-t) (lambda (cons-nil) A)) (lambda (x f) (f t x)) (lambda (x f) (f nil x)))
+// ((lambda (cons-t cons-nil) [A]) (lambda (x f) (f t x)) (lambda (x f) (f nil x)))
 //   = 01000100[A]000001011000001011000000101100000110110
+// Where [A] is 
 // (F3 (F2 (F1 NIL)))
 //   = 01[F3]01[F2]01[F1]000010
-// F1, F2, ... is in { 10, 110 }
+// Where F1, F2, ... is in { 10, 110 }
 static const char INT_HEADER[] = "01000100";
 static const char INT_BIT1[] = "10";
 static const char INT_BIT0[] = "110";
@@ -45,7 +43,7 @@ static const char INST_STORE[] = "00000000000000001110";
 static const char INST_LOAD[] = "000000000000000011110";
 static const char INST_JMP[] = "0000000000000000111110";
 static const char INST_CMP[] = "00000000000000001111110";
-static const char INST_JUMPCMP[] = "000000000000000011111110";
+static const char INST_JMPCMP[] = "000000000000000011111110";
 static const char INST_IO[] = "0000000000000000111111110";
 static const char CMP_GT[] = "00010101100000100000100000110";
 static const char CMP_LT[] = "00010101100000100000110000010";
@@ -56,8 +54,6 @@ static const char CMP_NE[] = "000101011000001000001100000110";
 static const char IO_PUTC[] = "000010";
 static const char IO_GETC[] = "0000110";
 static const char PLACEHOLDER[] = "10";
-static const char BLC_16[] = "010001011010100000011100111010";
-static const char BLC_8[] = "0000011100111001110011100111001110011100111010";
 
 
 static const char* blc_reg(Reg r) {
@@ -134,8 +130,8 @@ static void blc_emit_addsub_inst(Inst* inst, const char* is_add) {
   fputs(is_add, stdout);
 }
 
-static void blc_emit_jumpcmp_inst(Inst* inst, const char* cmp_tag) {
-  blc_emit_inst_header(INST_JUMPCMP, &inst->src);
+static void blc_emit_jmpcmp_inst(Inst* inst, const char* cmp_tag) {
+  blc_emit_inst_header(INST_JMPCMP, &inst->src);
   blc_emit_inst_header(cmp_tag, &inst->jmp);
   emit_blc_value_str(&inst->dst);
 }
@@ -181,12 +177,12 @@ static void blc_emit_inst(Inst* inst) {
   case LE: blc_emit_cmp_inst(inst, CMP_LE); break;
   case GE: blc_emit_cmp_inst(inst, CMP_GE); break;
 
-  case JEQ: blc_emit_jumpcmp_inst(inst, CMP_EQ); break;
-  case JNE: blc_emit_jumpcmp_inst(inst, CMP_NE); break;
-  case JLT: blc_emit_jumpcmp_inst(inst, CMP_LT); break;
-  case JGT: blc_emit_jumpcmp_inst(inst, CMP_GT); break;
-  case JLE: blc_emit_jumpcmp_inst(inst, CMP_LE); break;
-  case JGE: blc_emit_jumpcmp_inst(inst, CMP_GE); break;
+  case JEQ: blc_emit_jmpcmp_inst(inst, CMP_EQ); break;
+  case JNE: blc_emit_jmpcmp_inst(inst, CMP_NE); break;
+  case JLT: blc_emit_jmpcmp_inst(inst, CMP_LT); break;
+  case JGT: blc_emit_jmpcmp_inst(inst, CMP_GT); break;
+  case JLE: blc_emit_jmpcmp_inst(inst, CMP_LE); break;
+  case JGE: blc_emit_jmpcmp_inst(inst, CMP_GE); break;
 
   case JMP: blc_emit_jmp_inst(inst); break;
 
