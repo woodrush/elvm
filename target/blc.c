@@ -217,18 +217,26 @@ static Inst* blc_emit_chunk(Inst* inst) {
   return inst;
 }
 
-static Inst* blc_emit_text_tree(int depth, Inst* inst) {
-  if (!inst) {
-    fputs(NIL, stdout);
-    return inst;
-  } else if (depth == 0) {
-    inst = blc_emit_chunk(inst);
-    return inst;
-  } else {
+// static Inst* blc_emit_text_tree(int depth, Inst* inst) {
+//   if (!inst) {
+//     fputs(NIL, stdout);
+//     return inst;
+//   } else if (depth == 0) {
+//     inst = blc_emit_chunk(inst);
+//     return inst;
+//   } else {
+//     fputs(CONS_HEAD, stdout);
+//     inst = blc_emit_text_tree(depth-1, inst);
+//     return blc_emit_text_tree(depth-1, inst);
+//   }
+// }
+
+static void blc_emit_text_list(Inst* inst) {
+  while (inst) {
     fputs(CONS_HEAD, stdout);
-    inst = blc_emit_text_tree(depth-1, inst);
-    return blc_emit_text_tree(depth-1, inst);
+    inst = blc_emit_chunk(inst);
   }
+  fputs(NIL, stdout);
 }
 
 void target_blc(Module* module) {
@@ -240,5 +248,6 @@ void target_blc(Module* module) {
   fputs(BLC_8, stdout);
   fputs(BLC_16, stdout);
   blc_emit_data_tree(BLC_N_BITS, module->data);
-  blc_emit_text_tree(BLC_N_BITS, module->text);
+  blc_emit_text_list(module->text);
+  // blc_emit_text_tree(BLC_N_BITS, module->text);
 }
