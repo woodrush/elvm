@@ -15,16 +15,16 @@ static const char CONS_HEAD[] = "00010110";
 // (cons4 x1 x2 x3 x4) = (lambda (f) (f x1 x2 x3 x4)) = 000101010110[x1][x2][x3][x4]
 static const char CONS4_HEAD[] = "000101010110";
 
-// ((lambda (cons-t cons-nil) [A]) (lambda (x f) (f t x)) (lambda (x f) (f nil x)))
-//   = 01000100[A]000001011000001011000000101100000110110
-// Where [A] is 
-// (F3 (F2 (F1 NIL)))
-//   = 01[F3]01[F2]01[F1]000010
-// Where F1, F2, ... is in { 10, 110 }
-static const char INT_HEADER[] = "01000100";
-static const char INT_BIT1[] = "10";
-static const char INT_BIT0[] = "110";
-static const char INT_FOOTER[] = "000010000001011000001011000000101100000110110";
+// // ((lambda (cons-t cons-nil) [A]) (lambda (x f) (f t x)) (lambda (x f) (f nil x)))
+// //   = 01000100[A]000001011000001011000000101100000110110
+// // Where [A] is 
+// // (F3 (F2 (F1 NIL)))
+// //   = 01[F3]01[F2]01[F1]000010
+// // Where F1, F2, ... is in { 10, 110 }
+// static const char INT_HEADER[] = "01000100";
+// static const char INT_BIT1[] = "10";
+// static const char INT_BIT0[] = "110";
+// static const char INT_FOOTER[] = "000010000001011000001011000000101100000110110";
 
 static const char T[] = "0000110";
 static const char NIL[] = "000010";
@@ -70,17 +70,20 @@ static const char* blc_reg(Reg r) {
 }
 
 static void blc_emit_int(int n) {
-  fputs(INT_HEADER, stdout);
+  // fputs(INT_HEADER, stdout);
   int checkbit = 1 << (BLC_N_BITS - 1);
   for (int i = 0; i < BLC_N_BITS; i++) {
 #ifndef __eir__
     n &= ((1 << BLC_N_BITS) - 1);
 #endif
-    fputs(BLC_APPLY, stdout);
-    fputs((n & checkbit) ? INT_BIT1 : INT_BIT0, stdout);
+    // fputs(BLC_APPLY, stdout);
+    // fputs((n & checkbit) ? INT_BIT1 : INT_BIT0, stdout);
+    fputs(CONS_HEAD, stdout);
+    fputs((n & checkbit) ? NIL : T, stdout);
     checkbit = checkbit >> 1;
   }
-  fputs(INT_FOOTER, stdout);
+  // fputs(INT_FOOTER, stdout);
+  fputs(NIL, stdout);
 }
 
 static void emit_blc_isimm(Value* v) {
