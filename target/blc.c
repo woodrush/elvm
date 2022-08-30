@@ -36,7 +36,6 @@ static const char BLC_REG_D[]  = "0001011000001100001011000001000010110000010000
 static const char BLC_REG_SP[] = "00010110000011000010110000010000101100000110000010";
 static const char BLC_REG_BP[] = "01010100011010000001110011101000000101100000110110000010";
 
-static const char INST_EXIT[] = "0000110";
 static const char INST_MOV[] = "000000000000000010";
 static const char INST_ADDSUB[] = "0000000000000000110";
 static const char INST_STORE[] = "00000000000000001110";
@@ -51,10 +50,10 @@ static const char CMP_EQ[] = "00010101100000110000010000010";
 static const char CMP_LE[] = "000101011000001100000110000010";
 static const char CMP_GE[] = "000101011000001100000100000110";
 static const char CMP_NE[] = "000101011000001000001100000110";
-static const char IO_PUTC[] = "000010";
-static const char IO_GETC[] = "0000110";
+static const char IO_GETC[] = "0000001110";
+static const char IO_PUTC[] = "000000110";
+static const char IO_EXIT[] = "00000010";
 static const char PLACEHOLDER[] = "10";
-
 
 static const char* blc_reg(Reg r) {
   switch (r) {
@@ -148,6 +147,14 @@ static void blc_emit_io_inst(const char* io_tag, Value* v) {
   fputs(io_tag, stdout);
 }
 
+static void blc_emit_exit_inst() {
+  fputs(CONS4_HEAD, stdout);
+  fputs(INST_IO, stdout);
+  fputs(NIL, stdout);
+  fputs(NIL, stdout);
+  fputs(IO_EXIT, stdout);
+}
+
 static void blc_emit_jmp_inst(Inst* inst) {
   blc_emit_inst_header(INST_JMP, &inst->jmp);
   fputs(PLACEHOLDER, stdout);
@@ -188,9 +195,9 @@ static void blc_emit_inst(Inst* inst) {
 
   case PUTC: blc_emit_io_inst(IO_PUTC, &inst->src); break;
   case GETC: blc_emit_io_inst(IO_GETC, &inst->dst); break;
-
+  
+  case EXIT: blc_emit_exit_inst(); break;
   case DUMP: blc_emit_dump_inst(); break;
-  case EXIT: fputs(INST_EXIT, stdout); break;
 
   default:
     error("oops");
