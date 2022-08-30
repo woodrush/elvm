@@ -35,9 +35,6 @@ static const char BLC_REG_C[]  = "0001011000001100001011000001100001011000001100
 static const char BLC_REG_D[]  = "0001011000001100001011000001000010110000010000010";
 static const char BLC_REG_SP[] = "00010110000011000010110000010000101100000110000010";
 static const char BLC_REG_BP[] = "01010100011010000001110011101000000101100000110110000010";
-
-
-
 static const char INST_IO[] = "000000000000000010";
 static const char INST_JMPCMP[] = "0000000000000000110";
 static const char INST_CMP[] = "00000000000000001110";
@@ -71,15 +68,13 @@ static const char* blc_reg(Reg r) {
 }
 
 static void blc_emit_int(int n) {
-  fputs(INT_HEADER, stdout);
-  int checkbit = 1 << (BLC_N_BITS - 1);
-  for (int i = 0; i < BLC_N_BITS; i++) {
 #ifndef __eir__
-    n &= ((1 << BLC_N_BITS) - 1);
+  n &= ((1 << BLC_N_BITS) - 1);
 #endif
+  fputs(INT_HEADER, stdout);
+  for (int checkbit = 1 << (BLC_N_BITS - 1); checkbit; checkbit >>= 1) {
     fputs(BLC_APPLY, stdout);
     fputs((n & checkbit) ? INT_BIT1 : INT_BIT0, stdout);
-    checkbit = checkbit >> 1;
   }
   fputs(INT_FOOTER, stdout);
 }
