@@ -594,9 +594,11 @@ TARGET := lazy
 RUNNER := tools/runlazy.sh
 ifndef FULL
 TEST_FILTER := out/8cc.c.eir.lazy out/elc.c.eir.lazy out/eli.c.eir.lazy out/dump_ir.c.eir.lazy \
-out/fizzbuzz.c.eir.lazy out/fizzbuzz_fast.c.eir.lazy
-
-# out/eof.c.eir.lazy out/24_muldiv.c.eir.lazy \
+out/fizzbuzz.c.eir.lazy out/fizzbuzz_fast.c.eir.lazy \
+out/qsort.c.eir.lazy \
+out/eof.c.eir.lazy \
+out/global.c.eir.lazy \
+out/24_muldiv.c.eir.lazy \
 
 # slow:
 # qsort
