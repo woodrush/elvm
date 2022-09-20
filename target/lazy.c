@@ -17,30 +17,54 @@ static const char CONS4_HEAD[] = "``s``s``s``si`k";
 
 static const char T[] = "k";
 static const char NIL[] = "`ki";
-static const char LAZY_REG_A[]  = "``s``si`k`ki`k``s``si`k`ki`k``s``si`k`ki`k`ki";
-static const char LAZY_REG_B[]  = "``s``si`k``s`kki`k``s``si`k`ki`k``s``si`k`ki`k`ki";
-static const char LAZY_REG_C[]  = "``s``si`k`ki`k``s``si`k``s`kki`k``s``si`k`ki`k`ki";
-static const char LAZY_REG_D[]  = "``s``si`k``s`kki`k``s``si`k``s`kki`k``s``si`k`ki`k`ki";
-static const char LAZY_REG_SP[] = "``s``si`k`ki`k``s``si`k`ki`k``s``si`k``s`kki`k`ki";
-static const char LAZY_REG_BP[] = "``s``si`k``s`kki`k``s``si`k`ki`k``s``si`k``s`kki`k`ki";
-static const char INST_ADD[] = "`k`k`k`k`k`k`k`ki";
-static const char INST_STORE[] = "`k`k`k`k`k`k`k``s`kki";
-static const char INST_MOV[] = "`k`k`k`k`k`k``s`kk``s`kki";
-static const char INST_JMP[] = "`k`k`k`k`k``s`kk``s`kk``s`kki";
-static const char INST_JUMPCMP[] = "`k`k`k`k``s`kk``s`kk``s`kk``s`kki";
-static const char INST_LOAD[] = "`k`k`k``s`kk``s`kk``s`kk``s`kk``s`kki";
-static const char INST_CMP[] = "`k`k``s`kk``s`kk``s`kk``s`kk``s`kk``s`kki";
-static const char INST_SUB[] = "`k``s`kk``s`kk``s`kk``s`kk``s`kk``s`kk``s`kki";
-static const char INST_IO_INT[] = "``s`kk``s`kk``s`kk``s`kk``s`kk``s`kk``s`kk``s`kki";
-static const char CMP_GT[] = "`k`k`k`k`ki";
-static const char CMP_LT[] = "`k`k`k`k``s`kki";
-static const char CMP_EQ[] = "`k`k`k``s`kk``s`kki";
-static const char CMP_LE[] = "`k`k``s`kk``s`kk``s`kki";
-static const char CMP_GE[] = "`k``s`kk``s`kk``s`kk``s`kki";
-static const char CMP_NE[] = "``s`kk``s`kk``s`kk``s`kk``s`kki";
-static const char IO_INT_PUTC[] = "`k`ki";
-static const char IO_INT_GETC[] = "`k``s`kki";
-static const char IO_INT_EXIT[] = "``s`kk``s`kki";
+static const char LAZY_REG_A[]  = "``s``si`k``s`kki`k`ki";
+static const char LAZY_REG_B[]  = "``s``si`k`ki`k``s``si`k``s`kki`k``s``si`k``s`kki`k`ki";
+static const char LAZY_REG_C[]  = "``s``si`k`ki`k``s``si`k`ki`k``s``si`k`ki`k``s``si`k`ki`k`ki";
+static const char LAZY_REG_D[]  = "``s``si`k`ki`k``s``si`k`ki`k``s``si`k``s`kki`k`ki";
+static const char LAZY_REG_SP[] = "``s``si`k`ki`k``s``si`k``s`kki`k``s``si`k`ki`k`ki";
+static const char LAZY_REG_BP[] = "``s``si`k`ki`k``s``si`k`ki`k``s``si`k`ki`k``s``si`k``s`kki`k`ki";
+
+static const char INST_IO[] = "``s`kk``s`kk``s`kk``s`kk``s`kk``s`kk``s`kki";
+static const char INST_JMPCMP[] = "`k``s`kk``s`kk``s`kk``s`kk``s`kk``s`kki";
+static const char INST_CMP[] = "`k`k``s`kk``s`kk``s`kk``s`kk``s`kki";
+static const char INST_JMP[] = "`k`k`k``s`kk``s`kk``s`kk``s`kki";
+static const char INST_LOAD[] = "`k`k`k`k``s`kk``s`kk``s`kki";
+static const char INST_STORE[] = "`k`k`k`k`k``s`kk``s`kki";
+static const char INST_ADDSUB[] = "`k`k`k`k`k`k``s`kki";
+static const char INST_MOV[] = "`k`k`k`k`k`k`ki";
+
+// static const char INST_ADD[] = "`k`k`k`k`k`k`k`ki";
+// static const char INST_STORE[] = "`k`k`k`k`k`k`k``s`kki";
+// static const char INST_MOV[] = "`k`k`k`k`k`k``s`kk``s`kki";
+// static const char INST_JMP[] = "`k`k`k`k`k``s`kk``s`kk``s`kki";
+// static const char INST_JUMPCMP[] = "`k`k`k`k``s`kk``s`kk``s`kk``s`kki";
+// static const char INST_LOAD[] = "`k`k`k``s`kk``s`kk``s`kk``s`kk``s`kki";
+// static const char INST_CMP[] = "`k`k``s`kk``s`kk``s`kk``s`kk``s`kk``s`kki";
+// static const char INST_SUB[] = "`k``s`kk``s`kk``s`kk``s`kk``s`kk``s`kk``s`kki";
+// static const char INST_IO_INT[] = "``s`kk``s`kk``s`kk``s`kk``s`kk``s`kk``s`kk``s`kki";
+
+static const char CMP_GT[] = "``s``s``si`k`ki`k`ki`k``s`kki";
+static const char CMP_LT[] = "``s``s``si`k`ki`k``s`kki`k`ki";
+static const char CMP_EQ[] = "``s``s``si`k``s`kki`k`ki`k`ki";
+static const char CMP_LE[] = "``s``s``si`k``s`kki`k``s`kki`k`ki";
+static const char CMP_GE[] = "``s``s``si`k``s`kki`k`ki`k``s`kki";
+static const char CMP_NE[] = "``s``s``si`k`ki`k``s`kki`k``s`kki";
+
+
+// static const char CMP_GT[] = "`k`k`k`k`ki";
+// static const char CMP_LT[] = "`k`k`k`k``s`kki";
+// static const char CMP_EQ[] = "`k`k`k``s`kk``s`kki";
+// static const char CMP_LE[] = "`k`k``s`kk``s`kk``s`kki";
+// static const char CMP_GE[] = "`k``s`kk``s`kk``s`kk``s`kki";
+// static const char CMP_NE[] = "``s`kk``s`kk``s`kk``s`kk``s`kki";
+
+static const char IO_GETC[] = "``s`kk``s`kki";
+static const char IO_PUTC[] = "`k``s`kki";
+static const char IO_EXIT[] = "`k`ki";
+
+// static const char IO_INT_PUTC[] = "`k`ki";
+// static const char IO_INT_GETC[] = "`k``s`kki";
+// static const char IO_INT_EXIT[] = "``s`kk``s`kki";
 
 static void lazy_debug(const char* fmt, ...) {
   printf("\n");
@@ -154,9 +178,27 @@ static void lazy_emit_basic_inst(Inst* inst, const char* inst_tag) {
     emit_lazy_value_str(&inst->dst);
 }
 
+static void lazy_emit_addsub_inst(Inst* inst, bool isadd) {
+    fputs(CONS4_HEAD, stdout);
+    fputs(INST_ADDSUB, stdout);
+    fputs(CONS_COMMA, stdout);
+    emit_lazy_isimm(&inst->src);
+    fputs(CONS_COMMA, stdout);
+    emit_lazy_value_str(&inst->src);
+    fputs(CONS_COMMA, stdout);
+    fputs(CONS_HEAD, stdout);
+    emit_lazy_value_str(&inst->dst);
+    fputs(CONS_COMMA, stdout);
+    if (isadd) {
+      fputs(NIL, stdout);
+    } else {
+      fputs(T, stdout);
+    }
+}
+
 static void lazy_emit_jumpcmp_inst(Inst* inst, const char* cmp_tag) {
     fputs(CONS4_HEAD, stdout);
-    fputs(INST_JUMPCMP, stdout);
+    fputs(INST_JMPCMP, stdout);
     fputs(CONS_COMMA, stdout);
     emit_lazy_isimm(&inst->src);
     fputs(CONS_COMMA, stdout);
@@ -196,10 +238,10 @@ static void lazy_emit_inst(Inst* inst) {
     lazy_emit_basic_inst(inst, INST_MOV);
     break;
   case ADD:
-    lazy_emit_basic_inst(inst, INST_ADD);
+    lazy_emit_addsub_inst(inst, true);
     break;
   case SUB:
-    lazy_emit_basic_inst(inst, INST_SUB);
+    lazy_emit_addsub_inst(inst, false);
     break;
   case LOAD:
     lazy_emit_basic_inst(inst, INST_LOAD);
@@ -211,35 +253,35 @@ static void lazy_emit_inst(Inst* inst) {
   case PUTC: //5
     // (cons4 inst-io-int _ [src] io-int-putc)
     fputs(CONS4_HEAD, stdout);
-    fputs(INST_IO_INT, stdout);
+    fputs(INST_IO, stdout);
     fputs(CONS_COMMA, stdout);
     emit_lazy_isimm(&inst->src);
     fputs(CONS_COMMA, stdout);
     emit_lazy_value_str(&inst->src);
     fputs(CONS_COMMA, stdout);
-    fputs(IO_INT_PUTC, stdout);
+    fputs(IO_PUTC, stdout);
     break;
 
   case GETC:
     fputs(CONS4_HEAD, stdout);
-    fputs(INST_IO_INT, stdout);
+    fputs(INST_IO, stdout);
     fputs(CONS_COMMA, stdout);
     fputs(NIL, stdout);
     fputs(CONS_COMMA, stdout);
     emit_lazy_value_str(&inst->dst);
     fputs(CONS_COMMA, stdout);
-    fputs(IO_INT_GETC, stdout);
+    fputs(IO_GETC, stdout);
     break;
 
   case EXIT:
     fputs(CONS4_HEAD, stdout);
-    fputs(INST_IO_INT, stdout);
+    fputs(INST_IO, stdout);
     fputs(CONS_COMMA, stdout);
-    fputs(T, stdout);
+    fputs(NIL, stdout);
     fputs(CONS_COMMA, stdout);
-    fputs(T, stdout);
+    fputs(NIL, stdout);
     fputs(CONS_COMMA, stdout);
-    fputs(IO_INT_EXIT, stdout);
+    fputs(IO_EXIT, stdout);
     break;
 
   case DUMP:
@@ -311,13 +353,13 @@ static void lazy_emit_inst(Inst* inst) {
 }
 
 void target_lazy(Module* module) {
-  #ifndef DEBUG
-    printf("``");
-    fputs(lazy_core, stdout);
-  #endif
+  printf("``");
+  fputs(lazy_core, stdout);
+  printf("\n");
 
   lazy_emit_data(module->data);
   fputs(CONS_HEAD, stdout);
+  printf("\n");
   emit_chunked_main_loop(module->text,
                         lazy_emit_func_prologue,
                         lazy_emit_func_epilogue,

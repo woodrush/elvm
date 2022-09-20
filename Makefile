@@ -1,6 +1,7 @@
 COMMONFLAGS := -W -Wall -W -Werror -MMD -MP -O -g -Wno-missing-field-initializers
 CFLAGS := -std=gnu99 $(COMMONFLAGS) -Wno-missing-field-initializers
 CXXFLAGS := -std=c++11 $(COMMONFLAGS)
+CC=gcc-9
 
 uname := $(shell uname)
 ifneq (,$(findstring arm,$(shell uname -m)))
