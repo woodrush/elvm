@@ -199,9 +199,9 @@ static void lazy_emit_addsub_inst(Inst* inst, bool isadd) {
     emit_lazy_value_str(&inst->dst);
     fputs(CONS_COMMA, stdout);
     if (isadd) {
-      fputs(NIL, stdout);
-    } else {
       fputs(T, stdout);
+    } else {
+      fputs(NIL, stdout);
     }
 }
 
