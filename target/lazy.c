@@ -216,11 +216,11 @@ static void lazy_emit_jumpcmp_inst(Inst* inst, const char* cmp_tag) {
     fputs(CONS4_HEAD, stdout);
     fputs(cmp_tag, stdout);
     fputs(CONS_COMMA, stdout);
-    emit_lazy_value_str(&inst->dst);
-    fputs(CONS_COMMA, stdout);
     emit_lazy_isimm(&inst->jmp);
     fputs(CONS_COMMA, stdout);
     emit_lazy_value_str(&inst->jmp);
+    fputs(CONS_COMMA, stdout);
+    emit_lazy_value_str(&inst->dst);
 }
 
 static void lazy_emit_cmp_inst(Inst* inst, const char* cmp_tag) {
