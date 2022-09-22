@@ -2,55 +2,57 @@
 #include <target/util.h>
 #include <target/ulambcore.h>
 
-// #define DEBUG
 
+static const int ULAMB_N_BITS = 24;
+static const char ULAMB_16[] = "010001011010100000011100111010";
+static const char ULAMB_8[] = "0000011100111001110011100111001110011100111010";
 
-// (cons x y) = (lambda (f) (f x y))
-// = 00010110[x][y]
+static const char ULAMB_APPLY[] = "01";
+
+// (cons x y) = (lambda (f) (f x y)) = 00010110[x][y]
 static const char CONS_HEAD[] = "00010110";
 
-// (cons4 x1 x2 x3 x4) = (lambda (f) (f x1 x2 x3 x4))
-// = 000101010110[x1][x2][x3][x4]
+// (cons4 x1 x2 x3 x4) = (lambda (f) (f x1 x2 x3 x4)) = 000101010110[x1][x2][x3][x4]
 static const char CONS4_HEAD[] = "000101010110";
+
+// ((lambda (cons-t cons-nil) [A]) (lambda (x f) (f t x)) (lambda (x f) (f nil x)))
+//   = 01000100[A]000001011000001011000000101100000110110
+// Where [A] is 
+// (F3 (F2 (F1 NIL)))
+//   = 01[F3]01[F2]01[F1]000010
+// Where F1, F2, ... is in { 10, 110 }
+static const char INT_HEADER[] = "01000100";
+static const char INT_BIT1[] = "10";
+static const char INT_BIT0[] = "110";
+static const char INT_FOOTER[] = "000010000001011000001011000000101100000110110";
 
 static const char T[] = "0000110";
 static const char NIL[] = "000010";
-static const char ULAMB_REG_A[] = "000101100000100001011000001000010110000010000010";
-static const char ULAMB_REG_B[] = "0001011000001100001011000001000010110000010000010";
-static const char ULAMB_REG_C[] = "0001011000001000010110000011000010110000010000010";
-static const char ULAMB_REG_D[] = "00010110000011000010110000011000010110000010000010";
-static const char ULAMB_REG_SP[] = "0001011000001000010110000010000101100000110000010";
-static const char ULAMB_REG_BP[] = "00010110000011000010110000010000101100000110000010";
-static const char INST_ADD[] = "00000000000000000010";
-static const char INST_STORE[] = "000000000000000000110";
-static const char INST_MOV[] = "0000000000000000001110";
-static const char INST_JMP[] = "00000000000000000011110";
-static const char INST_JUMPCMP[] = "000000000000000000111110";
-static const char INST_LOAD[] = "0000000000000000001111110";
-static const char INST_CMP[] = "00000000000000000011111110";
-static const char INST_SUB[] = "000000000000000000111111110";
-static const char INST_IO_INT[] = "0000000000000000001111111110";
-static const char CMP_EQ[] = "00000000000010";
-static const char CMP_NE[] = "000000000000110";
-static const char CMP_LT[] = "0000000000001110";
-static const char CMP_GT[] = "00000000000011110";
-static const char CMP_LE[] = "000000000000111110";
-static const char CMP_GE[] = "0000000000001111110";
-static const char IO_INT_PUTC[] = "00000010";
-static const char IO_INT_GETC[] = "000000110";
-static const char IO_INT_EXIT[] = "0000001110";
 
-static void ulamb_debug(const char* fmt, ...) {
-  if (fmt[0]) {
-    #ifndef DEBUG
-      return;
-    #endif
-    va_list ap;
-    va_start(ap, fmt);
-    vprintf(fmt, ap);
-    va_end(ap);
-  }
-}
+static const char ULAMB_REG_A[]  = "00010110000010000101100000110000010";
+static const char ULAMB_REG_B[]  = "00010110000011000010110000011000010110000010000010";
+static const char ULAMB_REG_C[]  = "00010110000011000010110000011000010110000011000010110000010000010";
+static const char ULAMB_REG_D[]  = "0001011000001100001011000001000010110000010000010";
+static const char ULAMB_REG_SP[] = "00010110000011000010110000010000101100000110000010";
+static const char ULAMB_REG_BP[] = "01010100011010000001110011101000000101100000110110000010";
+static const char INST_MOV[] = "000000000000000010";
+static const char INST_ADDSUB[] = "0000000000000000110";
+static const char INST_STORE[] = "00000000000000001110";
+static const char INST_LOAD[] = "000000000000000011110";
+static const char INST_JMP[] = "0000000000000000111110";
+static const char INST_CMP[] = "00000000000000001111110";
+static const char INST_JMPCMP[] = "000000000000000011111110";
+static const char INST_IO[] = "0000000000000000111111110";
+static const char CMP_GT[] = "00010101100000100000100000110";
+static const char CMP_LT[] = "00010101100000100000110000010";
+static const char CMP_EQ[] = "00010101100000110000010000010";
+static const char CMP_LE[] = "000101011000001100000110000010";
+static const char CMP_GE[] = "000101011000001100000100000110";
+static const char CMP_NE[] = "000101011000001000001100000110";
+static const char IO_GETC[] = "0000001110";
+static const char IO_PUTC[] = "000000110";
+static const char IO_EXIT[] = "00000010";
+static const char PLACEHOLDER[] = "10";
 
 static const char* ulamb_reg(Reg r) {
   switch (r) {
@@ -66,19 +68,15 @@ static const char* ulamb_reg(Reg r) {
 }
 
 static void ulamb_emit_int(int n) {
-  ulamb_debug("\n# int %d (%0d)\n", n, n);
-  for (int i = 0; i < 24; i++) {
 #ifndef __eir__
-    n &= ((1 << 24) - 1);
+  n &= ((1 << ULAMB_N_BITS) - 1);
 #endif
-    fputs(CONS_HEAD, stdout);
-    ulamb_debug("    ");
-    fputs((n & 1) ? T : NIL, stdout);
-    ulamb_debug("    ");
-    ulamb_debug("\n");
-    n = n >> 1;
+  fputs(INT_HEADER, stdout);
+  for (int checkbit = 1 << (ULAMB_N_BITS - 1); checkbit; checkbit >>= 1) {
+    fputs(ULAMB_APPLY, stdout);
+    fputs((n & checkbit) ? INT_BIT1 : INT_BIT0, stdout);
   }
-  fputs(NIL, stdout);
+  fputs(INT_FOOTER, stdout);
 }
 
 static void emit_ulamb_isimm(Value* v) {
@@ -101,187 +99,134 @@ static void emit_ulamb_value_str(Value* v) {
   }
 }
 
-static void ulamb_emit_data(Data* data) {
-  ulamb_debug("# Data\n");
-  for (Data* d = data; d; d = d->next) {
-    ulamb_debug("\n# data\n");
+static void ulamb_emit_data_list(Data* data) {
+  for (; data; data = data->next){
     fputs(CONS_HEAD, stdout);
-    ulamb_emit_int(d->v);
+    ulamb_emit_int(data->v);
   }
-  ulamb_debug("\n# Data end\n");
   fputs(NIL, stdout);
 }
 
-static void ulamb_emit_func_prologue(int func_id) {
-  ulamb_debug("\n# Func_prologue\n");
-
-  // Placeholder code that does nothing, to suppress compilation errors
-  if (func_id) {
-    return;
-  }
-}
-
-static void ulamb_emit_pc_change(int pc) {
-  if (pc) {
-    ulamb_debug("\n# PC change\n");
-    fputs(NIL, stdout);
-    fputs(CONS_HEAD, stdout);
-  }
-}
-
-static void ulamb_emit_func_epilogue(void) {
-  ulamb_debug("\n# Func_epilogue\n");
+static void ulamb_emit_inst_header(const char* inst_tag, Value* v) {
+  fputs(CONS4_HEAD, stdout);
+  fputs(inst_tag, stdout);
+  emit_ulamb_isimm(v);
+  emit_ulamb_value_str(v);
 }
 
 static void ulamb_emit_basic_inst(Inst* inst, const char* inst_tag) {
-    fputs(CONS4_HEAD, stdout);
-    fputs(inst_tag, stdout);
-    emit_ulamb_isimm(&inst->src);
-    emit_ulamb_value_str(&inst->src);
-    emit_ulamb_value_str(&inst->dst);
+  ulamb_emit_inst_header(inst_tag, &inst->src);
+  emit_ulamb_value_str(&inst->dst);
 }
 
-static void ulamb_emit_jumpcmp_inst(Inst* inst, const char* cmp_tag) {
-    fputs(CONS4_HEAD, stdout);
-    fputs(INST_JUMPCMP, stdout);
-    emit_ulamb_isimm(&inst->src);
-    emit_ulamb_value_str(&inst->src);
-    fputs(CONS4_HEAD, stdout);
-    fputs(cmp_tag, stdout);
-    emit_ulamb_value_str(&inst->dst);
-    emit_ulamb_isimm(&inst->jmp);
-    emit_ulamb_value_str(&inst->jmp);
+static void ulamb_emit_addsub_inst(Inst* inst, const char* is_add) {
+  ulamb_emit_inst_header(INST_ADDSUB, &inst->src);
+  fputs(CONS_HEAD, stdout);
+  emit_ulamb_value_str(&inst->dst);
+  fputs(is_add, stdout);
+}
+
+static void ulamb_emit_jmpcmp_inst(Inst* inst, const char* cmp_tag) {
+  ulamb_emit_inst_header(INST_JMPCMP, &inst->src);
+  ulamb_emit_inst_header(cmp_tag, &inst->jmp);
+  emit_ulamb_value_str(&inst->dst);
 }
 
 static void ulamb_emit_cmp_inst(Inst* inst, const char* cmp_tag) {
-    fputs(CONS4_HEAD, stdout);
-    fputs(INST_CMP, stdout);
-    emit_ulamb_isimm(&inst->src);
-    emit_ulamb_value_str(&inst->src);
-    fputs(CONS_HEAD, stdout);
-    fputs(cmp_tag, stdout);
-    emit_ulamb_value_str(&inst->dst);
+  ulamb_emit_inst_header(INST_CMP, &inst->src);
+  fputs(CONS_HEAD, stdout);
+  fputs(cmp_tag, stdout);
+  emit_ulamb_value_str(&inst->dst);
 }
 
+static void ulamb_emit_io_inst(const char* io_tag, Value* v) {
+  ulamb_emit_inst_header(INST_IO, v);
+  fputs(io_tag, stdout);
+}
+
+static void ulamb_emit_exit_inst() {
+  fputs(CONS4_HEAD, stdout);
+  fputs(INST_IO, stdout);
+  fputs(NIL, stdout);
+  fputs(NIL, stdout);
+  fputs(IO_EXIT, stdout);
+}
+
+static void ulamb_emit_jmp_inst(Inst* inst) {
+  ulamb_emit_inst_header(INST_JMP, &inst->jmp);
+  fputs(PLACEHOLDER, stdout);
+}
+
+static void ulamb_emit_dump_inst(void) {
+  fputs(CONS4_HEAD, stdout);
+  fputs(INST_MOV, stdout);
+  fputs(NIL, stdout);
+  fputs(ULAMB_REG_A, stdout);
+  fputs(ULAMB_REG_A, stdout);
+}
 
 static void ulamb_emit_inst(Inst* inst) {
-  ulamb_debug("\n# Inst\n");
-  fputs(CONS_HEAD, stdout);
-  ulamb_debug("\n# Inst-body (%d)\n", inst->op);
   switch (inst->op) {
-  case MOV:
-    ulamb_emit_basic_inst(inst, INST_MOV);
-    break;
-  case ADD:
-    ulamb_emit_basic_inst(inst, INST_ADD);
-    break;
-  case SUB:
-    ulamb_emit_basic_inst(inst, INST_SUB);
-    break;
-  case LOAD:
-    ulamb_emit_basic_inst(inst, INST_LOAD);
-    break;
-  case STORE:
-    ulamb_emit_basic_inst(inst, INST_STORE);
-    break;
+  case MOV: ulamb_emit_basic_inst(inst, INST_MOV); break;
+  case LOAD: ulamb_emit_basic_inst(inst, INST_LOAD); break;
+  case STORE: ulamb_emit_basic_inst(inst, INST_STORE); break;
 
-  case PUTC:
-    fputs(CONS4_HEAD, stdout);
-    fputs(INST_IO_INT, stdout);
-    emit_ulamb_isimm(&inst->src);
-    emit_ulamb_value_str(&inst->src);
-    fputs(IO_INT_PUTC, stdout);
-    break;
+  case ADD: ulamb_emit_addsub_inst(inst, T); break;
+  case SUB: ulamb_emit_addsub_inst(inst, NIL); break;
 
-  case GETC:
-    fputs(CONS4_HEAD, stdout);
-    fputs(INST_IO_INT, stdout);
-    fputs(NIL, stdout);
-    emit_ulamb_value_str(&inst->dst);
-    fputs(IO_INT_GETC, stdout);
-    break;
+  case EQ: ulamb_emit_cmp_inst(inst, CMP_EQ); break;
+  case NE: ulamb_emit_cmp_inst(inst, CMP_NE); break;
+  case LT: ulamb_emit_cmp_inst(inst, CMP_LT); break;
+  case GT: ulamb_emit_cmp_inst(inst, CMP_GT); break;
+  case LE: ulamb_emit_cmp_inst(inst, CMP_LE); break;
+  case GE: ulamb_emit_cmp_inst(inst, CMP_GE); break;
 
-  case EXIT:
-    fputs(CONS4_HEAD, stdout);
-    fputs(INST_IO_INT, stdout);
-    fputs(T, stdout);
-    fputs(T, stdout);
-    fputs(IO_INT_EXIT, stdout);
-    break;
+  case JEQ: ulamb_emit_jmpcmp_inst(inst, CMP_EQ); break;
+  case JNE: ulamb_emit_jmpcmp_inst(inst, CMP_NE); break;
+  case JLT: ulamb_emit_jmpcmp_inst(inst, CMP_LT); break;
+  case JGT: ulamb_emit_jmpcmp_inst(inst, CMP_GT); break;
+  case JLE: ulamb_emit_jmpcmp_inst(inst, CMP_LE); break;
+  case JGE: ulamb_emit_jmpcmp_inst(inst, CMP_GE); break;
 
-  case DUMP:
-    fputs(CONS4_HEAD, stdout);
-    fputs(INST_MOV, stdout);
-    fputs(NIL, stdout);
-    fputs(ULAMB_REG_A, stdout);
-    fputs(ULAMB_REG_A, stdout);
-    break;
+  case JMP: ulamb_emit_jmp_inst(inst); break;
 
-  case EQ:
-    ulamb_emit_cmp_inst(inst, CMP_EQ);
-    break;
-  case NE:
-    ulamb_emit_cmp_inst(inst, CMP_NE);
-    break;
-  case LT:
-    ulamb_emit_cmp_inst(inst, CMP_LT);
-    break;
-  case GT:
-    ulamb_emit_cmp_inst(inst, CMP_GT);
-    break;
-  case LE:
-    ulamb_emit_cmp_inst(inst, CMP_LE);
-    break;
-  case GE:
-    ulamb_emit_cmp_inst(inst, CMP_GE);
-    break;
-
-  case JEQ:
-    ulamb_emit_jumpcmp_inst(inst, CMP_EQ);
-    break;
-  case JNE:
-    ulamb_emit_jumpcmp_inst(inst, CMP_NE);
-    break;
-  case JLT:
-    ulamb_emit_jumpcmp_inst(inst, CMP_LT);
-    break;
-  case JGT:
-    ulamb_emit_jumpcmp_inst(inst, CMP_GT);
-    break;
-  case JLE:
-    ulamb_emit_jumpcmp_inst(inst, CMP_LE);
-    break;
-  case JGE:
-    ulamb_emit_jumpcmp_inst(inst, CMP_GE);
-    break;
-
-  case JMP:
-    fputs(CONS4_HEAD, stdout);
-    fputs(INST_JMP, stdout);
-    emit_ulamb_isimm(&inst->jmp);
-    emit_ulamb_value_str(&inst->jmp);
-    fputs(NIL, stdout);
-    break;
+  case PUTC: ulamb_emit_io_inst(IO_PUTC, &inst->src); break;
+  case GETC: ulamb_emit_io_inst(IO_GETC, &inst->dst); break;
+  
+  case EXIT: ulamb_emit_exit_inst(); break;
+  case DUMP: ulamb_emit_dump_inst(); break;
 
   default:
     error("oops");
   }
-  ulamb_debug("\n# Inst-end\n");
+}
+
+static Inst* ulamb_emit_chunk(Inst* inst) {
+  const int init_pc = inst->pc;
+  for (; inst && (inst->pc == init_pc); inst = inst->next) {
+    fputs(CONS_HEAD, stdout);
+    ulamb_emit_inst(inst);
+  }
+  fputs(NIL, stdout);
+  return inst;
+}
+
+static void ulamb_emit_text_list(Inst* inst) {
+  while (inst) {
+    fputs(CONS_HEAD, stdout);
+    inst = ulamb_emit_chunk(inst);
+  }
+  fputs(NIL, stdout);
 }
 
 void target_ulamb(Module* module) {
-  #ifndef DEBUG
-    printf("0101");
-    fputs(ulamb_core, stdout);
-  #endif
-
-  ulamb_emit_data(module->data);
-  fputs(CONS_HEAD, stdout);
-  emit_chunked_main_loop(module->text,
-                        ulamb_emit_func_prologue,
-                        ulamb_emit_func_epilogue,
-                        ulamb_emit_pc_change,
-                        ulamb_emit_inst);
-  fputs(NIL, stdout);
-  fputs(NIL, stdout);
+  fputs(ULAMB_APPLY, stdout);
+  fputs(ULAMB_APPLY, stdout);
+  fputs(ULAMB_APPLY, stdout);
+  fputs(ULAMB_APPLY, stdout);
+  fputs(ulamb_core, stdout);
+  fputs(ULAMB_8, stdout);
+  fputs(ULAMB_16, stdout);
+  ulamb_emit_data_list(module->data);
+  ulamb_emit_text_list(module->text);
 }
