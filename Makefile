@@ -602,9 +602,7 @@ $(OUT.eir.lazy.out): tools/runlazy.sh
 TARGET := blc
 RUNNER := tools/runblc.sh
 ifndef FULL
-TEST_FILTER := out/elc.c.eir.blc \
-out/8cc.c.eir.blc \
-out/eli.c.eir.blc out/dump_ir.c.eir.blc
+TEST_FILTER := out/elc.c.eir.blc out/eli.c.eir.blc out/dump_ir.c.eir.blc
 
 endif
 include target.mk
