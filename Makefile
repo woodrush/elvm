@@ -602,23 +602,9 @@ $(OUT.eir.lazy.out): tools/runlazy.sh
 TARGET := blc
 RUNNER := tools/runblc.sh
 ifndef FULL
-TEST_FILTER := \
-out/24_muldiv.c.eir.blc \
-out/eof.c.eir.blc \
-out/fizzbuzz.c.eir.blc \
-out/fizzbuzz_fast.c.eir.blc \
-out/qsort.c.eir.blc \
-\
-out/elc.c.eir.blc \
+TEST_FILTER := out/elc.c.eir.blc \
 out/8cc.c.eir.blc \
-out/fgets.c.eir.blc \
 out/eli.c.eir.blc out/dump_ir.c.eir.blc
-
-# out/24_cmp2.c.eir.blc
-# out/24_cmp.c.eir.blc
-# out/bitops.c.eir.blc
-# out/bool.c.eir.blc
-# out/computed_goto.c.eir.blc
 
 endif
 include target.mk
