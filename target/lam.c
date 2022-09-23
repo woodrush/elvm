@@ -11,8 +11,8 @@ static const char CONS_HEAD[] = "(\\f.(f ";
 static const char CONS_FOOTER[] = "))";
 
 static const char INT_HEADER[] = "(((\\x.(\\y.";
-static const char INT_BIT1[] = "x ";
-static const char INT_BIT0[] = "y ";
+static const char INT_BIT1[] = "y ";
+static const char INT_BIT0[] = "x ";
 static const char INT_FOOTER[] = ")) (\\x.(\\y.((y (\\x.(\\a.x))) x)))) (\\x.(\\y.((y (\\x.(\\a.a))) x))))";
 
 static const char T[] = "(\\x.\\y.x)";
@@ -68,9 +68,11 @@ static void lam_emit_int(int n) {
 #endif
   fputs(INT_HEADER, stdout);
   for (int checkbit = 1 << (LAM_N_BITS - 1); checkbit; checkbit >>= 1) {
+    fputs("(", stdout);
     fputs((n & checkbit) ? INT_BIT1 : INT_BIT0, stdout);
   }
   fputs(NIL, stdout);
+  lam_print_n(LAM_N_BITS, ")");
   fputs(INT_FOOTER, stdout);
 }
 
