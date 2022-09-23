@@ -7,24 +7,12 @@ static const int LAM_N_BITS = 24;
 static const char LAM_16[] = "((\\x.((x x) x)) (\\x.(\\y.(x (x y)))))";
 static const char LAM_8[] = "(\\x.(\\y.(((\\x.(\\y.(x (x y)))) (((\\y.(y y)) (\\x.(\\y.(x (x y))))) x)) y)))";
 
-// static const char LAM_APPLY[] = "01";
-
-// (cons x y) = (lambda (f) (f x y)) = 00010110[x][y]
 static const char CONS_HEAD[] = "(\\f.(f ";
-static const char CONS_FOOTER[] = ")";
+static const char CONS_FOOTER[] = "))";
 
-// (cons4 x1 x2 x3 x4) = (lambda (f) (f x1 x2 x3 x4)) = 000101010110[x1][x2][x3][x4]
-// static const char CONS4_HEAD[] = "(\\f.(f ";
-
-// ((lambda (cons-t cons-nil) [A]) (lambda (x f) (f t x)) (lambda (x f) (f nil x)))
-//   = 01000100[A]000001011000001011000000101100000110110
-// Where [A] is 
-// (F3 (F2 (F1 NIL)))
-//   = 01[F3]01[F2]01[F1]000010
-// Where F1, F2, ... is in { 10, 110 }
 static const char INT_HEADER[] = "(((\\x.(\\y.";
-static const char INT_BIT1[] = "y ";
-static const char INT_BIT0[] = "x ";
+static const char INT_BIT1[] = "x ";
+static const char INT_BIT0[] = "y ";
 static const char INT_FOOTER[] = ")) (\\x.(\\y.((y (\\x.(\\a.x))) x)))) (\\x.(\\y.((y (\\x.(\\a.a))) x))))";
 
 static const char T[] = "(\\x.\\y.x)";
@@ -82,6 +70,7 @@ static void lam_emit_int(int n) {
   for (int checkbit = 1 << (LAM_N_BITS - 1); checkbit; checkbit >>= 1) {
     fputs((n & checkbit) ? INT_BIT1 : INT_BIT0, stdout);
   }
+  fputs(NIL, stdout);
   fputs(INT_FOOTER, stdout);
 }
 
@@ -106,12 +95,14 @@ static void emit_lam_value_str(Value* v) {
 }
 
 static void lam_emit_data_list(Data* data) {
+  int n_data = 0;
   for (; data; data = data->next){
     fputs(CONS_HEAD, stdout);
     lam_emit_int(data->v);
+    n_data++;
   }
   fputs(NIL, stdout);
-  fputs(CONS_FOOTER, stdout);
+  lam_print_n(n_data, CONS_FOOTER);
 }
 
 static void lam_emit_inst_header(const char* inst_tag, Value* v) {
