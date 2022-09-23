@@ -81,7 +81,7 @@ static void emit_lam_isimm(Value* v) {
   switch (v->type) {
     case REG: fputs(LAM_NIL, stdout); break;
     case IMM: fputs(LAM_T, stdout); break;
-    default: error("invalid value"); break;
+    default: error("invalid value");
   }
 }
 
@@ -89,7 +89,7 @@ static void emit_lam_value_str(Value* v) {
   switch (v->type) {
     case REG: fputs(lam_reg(v->reg), stdout); break;
     case IMM: lam_emit_int(v->imm); break;
-    default: error("invalid value"); break;
+    default: error("invalid value");
   }
 }
 
@@ -200,10 +200,9 @@ static void lam_emit_inst(Inst* inst) {
 
 static void lam_emit_data_list(Data* data) {
   int n_data = 0;
-  for (; data; data = data->next){
+  for (; data; data = data->next, n_data++){
     fputs(LAM_CONS_HEAD, stdout);
     lam_emit_int(data->v);
-    n_data++;
   }
   fputs(LAM_NIL, stdout);
   lam_print_n(n_data, LAM_CONS_FOOTER);
@@ -212,10 +211,9 @@ static void lam_emit_data_list(Data* data) {
 static Inst* lam_emit_chunk(Inst* inst) {
   const int init_pc = inst->pc;
   int n_insts = 0;
-  for (; inst && (inst->pc == init_pc); inst = inst->next) {
+  for (; inst && (inst->pc == init_pc); inst = inst->next, n_insts++) {
     fputs(LAM_CONS_HEAD, stdout);
     lam_emit_inst(inst);
-    n_insts++;
   }
   fputs(LAM_NIL, stdout);
   lam_print_n(n_insts, LAM_CONS_FOOTER);
@@ -224,10 +222,9 @@ static Inst* lam_emit_chunk(Inst* inst) {
 
 static void lam_emit_text_list(Inst* inst) {
   int n_chunks = 0;
-  while (inst) {
+  for (; inst; n_chunks++) {
     fputs(LAM_CONS_HEAD, stdout);
     inst = lam_emit_chunk(inst);
-    n_chunks++;
   }
   fputs(LAM_NIL, stdout);
   lam_print_n(n_chunks, LAM_CONS_FOOTER);
