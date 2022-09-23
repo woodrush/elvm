@@ -43,6 +43,7 @@ static const char LAM_IO_PUTC[] = "(\\x.\\y.\\z.y)";
 static const char LAM_IO_EXIT[] = "(\\x.\\y.\\z.z)";
 static const char LAM_PLACEHOLDER[] = "(\\x.x)";
 
+
 static const char* lam_reg(Reg r) {
   switch (r) {
   case A: return LAM_REG_A;
@@ -77,22 +78,18 @@ static void lam_emit_int(int n) {
 }
 
 static void emit_lam_isimm(Value* v) {
-  if (v->type == REG) {
-    fputs(LAM_NIL, stdout);
-  } else if (v->type == IMM) {
-    fputs(LAM_T, stdout);
-  } else {
-    error("invalid value");
+  switch (v->type) {
+    case REG: fputs(LAM_NIL, stdout); break;
+    case IMM: fputs(LAM_T, stdout); break;
+    default: error("invalid value"); break;
   }
 }
 
 static void emit_lam_value_str(Value* v) {
-  if (v->type == REG) {
-    fputs(lam_reg(v->reg), stdout);
-  } else if (v->type == IMM) {
-    lam_emit_int(v->imm);
-  } else {
-    error("invalid value");
+  switch (v->type) {
+    case REG: fputs(lam_reg(v->reg), stdout); break;
+    case IMM: lam_emit_int(v->imm); break;
+    default: error("invalid value"); break;
   }
 }
 
