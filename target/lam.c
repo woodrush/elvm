@@ -7,6 +7,9 @@ static const int LAM_N_BITS = 24;
 static const char LAM_8[] = "(\\x.\\y.(((\\x.\\y.(x(x y)))(((\\y.(y y))(\\x.\\y.(x(x y))))x))y))";
 static const char LAM_16[] = "((\\x.(x x x))(\\x.\\y.(x(x y))))";
 
+static const char LAM_T[] = "(\\x.\\y.x)";
+static const char LAM_NIL[] = "(\\x.\\y.y)";
+
 static const char LAM_CONS_HEAD[] = "(\\f.(f";
 static const char LAM_CONS_FOOTER[] = "))";
 
@@ -14,9 +17,6 @@ static const char LAM_INT_HEADER[] = "((\\x.\\y.";
 static const char LAM_INT_BIT0[] = "x";
 static const char LAM_INT_BIT1[] = "y";
 static const char LAM_INT_FOOTER[] = ")(\\x.\\y.(y(\\x.\\a.x)x))(\\x.\\y.(y(\\x.\\a.a)x)))";
-
-static const char LAM_T[] = "(\\x.\\y.x)";
-static const char LAM_NIL[] = "(\\x.\\y.y)";
 
 static const char LAM_REG_A[]  = "(\\x.(x(\\y.\\z.y)(\\y.\\z.z)))";
 static const char LAM_REG_B[]  = "(\\x.(x(\\y.\\z.z)(\\x.(x(\\z.\\a.z)(\\x.(x(\\a.\\b.a)(\\a.\\b.b)))))))";
@@ -56,7 +56,7 @@ static const char* lam_reg(Reg r) {
   }
 }
 
-static void lam_prLAM_INT_n (int n, const char* s) {
+static void lam_print_n (int n, const char* s) {
   for (int i=0; i<n; i++) {
     fputs(s, stdout);
   }
@@ -72,7 +72,7 @@ static void lam_emit_int(int n) {
     fputs((n & checkbit) ? LAM_INT_BIT1 : LAM_INT_BIT0, stdout);
   }
   fputs(LAM_NIL, stdout);
-  lam_prLAM_INT_n(LAM_N_BITS, ")");
+  lam_print_n(LAM_N_BITS, ")");
   fputs(LAM_INT_FOOTER, stdout);
 }
 
@@ -96,32 +96,21 @@ static void emit_lam_value_str(Value* v) {
   }
 }
 
-static void lam_emit_data_list(Data* data) {
-  int n_data = 0;
-  for (; data; data = data->next){
-    fputs(LAM_CONS_HEAD, stdout);
-    lam_emit_int(data->v);
-    n_data++;
-  }
-  fputs(LAM_NIL, stdout);
-  lam_prLAM_INT_n(n_data, LAM_CONS_FOOTER);
-}
-
-static void lam_emit_LAM_INST_header(const char* LAM_INST_tag, Value* v) {
+static void lam_emit_inst_header(const char* inst_tag, Value* v) {
   fputs(LAM_CONS_HEAD, stdout);
-  fputs(LAM_INST_tag, stdout);
+  fputs(inst_tag, stdout);
   emit_lam_isimm(v);
   emit_lam_value_str(v);
 }
 
-static void lam_emit_basic_inst(Inst* inst, const char* LAM_INST_tag) {
-  lam_emit_LAM_INST_header(LAM_INST_tag, &inst->src);
+static void lam_emit_basic_inst(Inst* inst, const char* inst_tag) {
+  lam_emit_inst_header(inst_tag, &inst->src);
   emit_lam_value_str(&inst->dst);
   fputs(LAM_CONS_FOOTER, stdout);
 }
 
 static void lam_emit_addsub_inst(Inst* inst, const char* is_add) {
-  lam_emit_LAM_INST_header(LAM_INST_ADDSUB, &inst->src);
+  lam_emit_inst_header(LAM_INST_ADDSUB, &inst->src);
   fputs(LAM_CONS_HEAD, stdout);
   emit_lam_value_str(&inst->dst);
   fputs(is_add, stdout);
@@ -129,26 +118,26 @@ static void lam_emit_addsub_inst(Inst* inst, const char* is_add) {
   fputs(LAM_CONS_FOOTER, stdout);
 }
 
-static void lam_emit_jmpLAM_CMP_inst(Inst* inst, const char* LAM_CMP_tag) {
-  lam_emit_LAM_INST_header(LAM_INST_JMPCMP, &inst->src);
-  lam_emit_LAM_INST_header(LAM_CMP_tag, &inst->jmp);
+static void lam_emit_jmpcmp_inst(Inst* inst, const char* cmp_tag) {
+  lam_emit_inst_header(LAM_INST_JMPCMP, &inst->src);
+  lam_emit_inst_header(cmp_tag, &inst->jmp);
   emit_lam_value_str(&inst->dst);
   fputs(LAM_CONS_FOOTER, stdout);
   fputs(LAM_CONS_FOOTER, stdout);
 }
 
-static void lam_emit_LAM_CMP_inst(Inst* inst, const char* LAM_CMP_tag) {
-  lam_emit_LAM_INST_header(LAM_INST_CMP, &inst->src);
+static void lam_emit_cmp_inst(Inst* inst, const char* cmp_tag) {
+  lam_emit_inst_header(LAM_INST_CMP, &inst->src);
   fputs(LAM_CONS_HEAD, stdout);
-  fputs(LAM_CMP_tag, stdout);
+  fputs(cmp_tag, stdout);
   emit_lam_value_str(&inst->dst);
   fputs(LAM_CONS_FOOTER, stdout);
   fputs(LAM_CONS_FOOTER, stdout);
 }
 
-static void lam_emit_LAM_IO_inst(const char* LAM_IO_tag, Value* v) {
-  lam_emit_LAM_INST_header(LAM_INST_IO, v);
-  fputs(LAM_IO_tag, stdout);
+static void lam_emit_io_inst(const char* io_tag, Value* v) {
+  lam_emit_inst_header(LAM_INST_IO, v);
+  fputs(io_tag, stdout);
   fputs(LAM_CONS_FOOTER, stdout);
 }
 
@@ -162,7 +151,7 @@ static void lam_emit_exit_inst() {
 }
 
 static void lam_emit_jmp_inst(Inst* inst) {
-  lam_emit_LAM_INST_header(LAM_INST_JMP, &inst->jmp);
+  lam_emit_inst_header(LAM_INST_JMP, &inst->jmp);
   fputs(LAM_PLACEHOLDER, stdout);
   fputs(LAM_CONS_FOOTER, stdout);
 }
@@ -185,24 +174,24 @@ static void lam_emit_inst(Inst* inst) {
   case ADD: lam_emit_addsub_inst(inst, LAM_T); break;
   case SUB: lam_emit_addsub_inst(inst, LAM_NIL); break;
 
-  case EQ: lam_emit_LAM_CMP_inst(inst, LAM_CMP_EQ); break;
-  case NE: lam_emit_LAM_CMP_inst(inst, LAM_CMP_NE); break;
-  case LT: lam_emit_LAM_CMP_inst(inst, LAM_CMP_LT); break;
-  case GT: lam_emit_LAM_CMP_inst(inst, LAM_CMP_GT); break;
-  case LE: lam_emit_LAM_CMP_inst(inst, LAM_CMP_LE); break;
-  case GE: lam_emit_LAM_CMP_inst(inst, LAM_CMP_GE); break;
+  case EQ: lam_emit_cmp_inst(inst, LAM_CMP_EQ); break;
+  case NE: lam_emit_cmp_inst(inst, LAM_CMP_NE); break;
+  case LT: lam_emit_cmp_inst(inst, LAM_CMP_LT); break;
+  case GT: lam_emit_cmp_inst(inst, LAM_CMP_GT); break;
+  case LE: lam_emit_cmp_inst(inst, LAM_CMP_LE); break;
+  case GE: lam_emit_cmp_inst(inst, LAM_CMP_GE); break;
 
-  case JEQ: lam_emit_jmpLAM_CMP_inst(inst, LAM_CMP_EQ); break;
-  case JNE: lam_emit_jmpLAM_CMP_inst(inst, LAM_CMP_NE); break;
-  case JLT: lam_emit_jmpLAM_CMP_inst(inst, LAM_CMP_LT); break;
-  case JGT: lam_emit_jmpLAM_CMP_inst(inst, LAM_CMP_GT); break;
-  case JLE: lam_emit_jmpLAM_CMP_inst(inst, LAM_CMP_LE); break;
-  case JGE: lam_emit_jmpLAM_CMP_inst(inst, LAM_CMP_GE); break;
+  case JEQ: lam_emit_jmpcmp_inst(inst, LAM_CMP_EQ); break;
+  case JNE: lam_emit_jmpcmp_inst(inst, LAM_CMP_NE); break;
+  case JLT: lam_emit_jmpcmp_inst(inst, LAM_CMP_LT); break;
+  case JGT: lam_emit_jmpcmp_inst(inst, LAM_CMP_GT); break;
+  case JLE: lam_emit_jmpcmp_inst(inst, LAM_CMP_LE); break;
+  case JGE: lam_emit_jmpcmp_inst(inst, LAM_CMP_GE); break;
 
   case JMP: lam_emit_jmp_inst(inst); break;
 
-  case PUTC: lam_emit_LAM_IO_inst(LAM_IO_PUTC, &inst->src); break;
-  case GETC: lam_emit_LAM_IO_inst(LAM_IO_GETC, &inst->dst); break;
+  case PUTC: lam_emit_io_inst(LAM_IO_PUTC, &inst->src); break;
+  case GETC: lam_emit_io_inst(LAM_IO_GETC, &inst->dst); break;
   
   case EXIT: lam_emit_exit_inst(); break;
   case DUMP: lam_emit_dump_inst(); break;
@@ -210,6 +199,17 @@ static void lam_emit_inst(Inst* inst) {
   default:
     error("oops");
   }
+}
+
+static void lam_emit_data_list(Data* data) {
+  int n_data = 0;
+  for (; data; data = data->next){
+    fputs(LAM_CONS_HEAD, stdout);
+    lam_emit_int(data->v);
+    n_data++;
+  }
+  fputs(LAM_NIL, stdout);
+  lam_print_n(n_data, LAM_CONS_FOOTER);
 }
 
 static Inst* lam_emit_chunk(Inst* inst) {
@@ -221,7 +221,7 @@ static Inst* lam_emit_chunk(Inst* inst) {
     n_insts++;
   }
   fputs(LAM_NIL, stdout);
-  lam_prLAM_INT_n(n_insts, LAM_CONS_FOOTER);
+  lam_print_n(n_insts, LAM_CONS_FOOTER);
   return inst;
 }
 
@@ -233,7 +233,7 @@ static void lam_emit_text_list(Inst* inst) {
     n_chunks++;
   }
   fputs(LAM_NIL, stdout);
-  lam_prLAM_INT_n(n_chunks, LAM_CONS_FOOTER);
+  lam_print_n(n_chunks, LAM_CONS_FOOTER);
 }
 
 void target_lam(Module* module) {
