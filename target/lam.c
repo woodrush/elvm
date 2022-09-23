@@ -54,18 +54,11 @@ static const char LAM_INT_FOOTER[] = ")(\\x.\\y.(y(\\x.\\a.x)x))"
                                      "(\\x.\\y.(y(\\x.\\a.a)x)))";
 
 static const char LAM_REG_A[]  = "(\\x.(x(\\y.\\z.y)(\\y.\\z.z)))";
-static const char LAM_REG_B[]  = "(\\x.(x(\\y.\\z.z)(\\x.(x(\\z.\\a.z)"
-                                 "(\\x.(x(\\a.\\b.a)(\\a.\\b.b)))))))";
-static const char LAM_REG_SP[] = "(\\x.(x(\\y.\\z.z)(\\x.(x(\\z.\\a.z)"
-                                 "(\\x.(x(\\a.\\b.b)(\\a.\\b.b)))))))";
-static const char LAM_REG_D[]  = "(\\x.(x(\\y.\\z.z)(\\x.(x(\\z.\\a.a)"
-                                 "(\\x.(x(\\a.\\b.a)(\\a.\\b.b)))))))";
-static const char LAM_REG_BP[] = "(\\x.(x(\\y.\\z.z)(\\x.(x(\\z.\\a.a)"
-                                 "(\\x.(x(\\a.\\b.b)(\\x.(x(\\b.\\c.b)"
-                                 "(\\b.\\c.c)))))))))";
-static const char LAM_REG_C[]  = "(\\x.(x(\\y.\\z.z)(\\x.(x(\\z.\\a.a)"
-                                 "(\\x.(x(\\a.\\b.b)(\\x.(x(\\b.\\c.c)"
-                                 "(\\b.\\c.c)))))))))";
+static const char LAM_REG_B[]  = "(\\x.(x(\\y.\\z.z)(\\x.(x(\\z.\\a.z)(\\x.(x(\\a.\\b.a)(\\a.\\b.b)))))))";
+static const char LAM_REG_SP[] = "(\\x.(x(\\y.\\z.z)(\\x.(x(\\z.\\a.z)(\\x.(x(\\a.\\b.b)(\\a.\\b.b)))))))";
+static const char LAM_REG_D[]  = "(\\x.(x(\\y.\\z.z)(\\x.(x(\\z.\\a.a)(\\x.(x(\\a.\\b.a)(\\a.\\b.b)))))))";
+static const char LAM_REG_BP[] = "(\\x.(x(\\y.\\z.z)(\\x.(x(\\z.\\a.a)(\\x.(x(\\a.\\b.b)(\\x.(x(\\b.\\c.b)(\\b.\\c.c)))))))))";
+static const char LAM_REG_C[]  = "(\\x.(x(\\y.\\z.z)(\\x.(x(\\z.\\a.a)(\\x.(x(\\a.\\b.b)(\\x.(x(\\b.\\c.c)(\\b.\\c.c)))))))))";
 static const char LAM_INST_IO[]     = "(\\x.\\y.\\z.\\a.\\b.\\c.\\d.\\e.x)";
 static const char LAM_INST_JMPCMP[] = "(\\x.\\y.\\z.\\a.\\b.\\c.\\d.\\e.y)";
 static const char LAM_INST_CMP[]    = "(\\x.\\y.\\z.\\a.\\b.\\c.\\d.\\e.z)";
