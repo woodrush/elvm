@@ -230,22 +230,26 @@ static void lam_emit_inst(Inst* inst) {
 static void lam_emit_data_list(Data* data) {
   int n_data;
   for (n_data=0; data; data=data->next, n_data++){
+    fputs("\n    ", stdout);
     fputs(LAM_CONS_HEAD, stdout);
     lam_emit_int(data->v);
   }
   fputs(LAM_NIL, stdout);
   lam_print_n(n_data, LAM_CONS_FOOTER);
+  fputs("\n", stdout);
 }
 
 static Inst* lam_emit_chunk(Inst* inst) {
   const int init_pc = inst->pc;
   int n_insts;
   for (n_insts=0; inst && (inst->pc == init_pc); inst=inst->next, n_insts++) {
+    fputs("\n  ", stdout);
     fputs(LAM_CONS_HEAD, stdout);
     lam_emit_inst(inst);
   }
   fputs(LAM_NIL, stdout);
   lam_print_n(n_insts, LAM_CONS_FOOTER);
+  fputs("\n", stdout);
   return inst;
 }
 
