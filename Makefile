@@ -125,6 +125,7 @@ ELC_SRCS := \
 	java.c \
 	js.c \
 	kx.c \
+	lam.c \
 	lua.c \
 	ll.c \
 	lol.c \
@@ -587,6 +588,12 @@ RUNNER := tools/runqftasm.sh
 TOOL := python
 # Since the QFTASM backend is 16-bit, 24-bit-related programs are filtered out.
 TEST_FILTER := $(addsuffix .qftasm,$(filter out/24_%.c.eir,$(OUT.eir))) out/eof.c.eir.qftasm out/neg.c.eir.qftasm out/8cc.c.eir.qftasm out/elc.c.eir.qftasm out/dump_ir.c.eir.qftasm out/eli.c.eir.qftasm
+include target.mk
+
+TARGET := lam
+RUNNER := tools/runlam.sh
+TOOL := python
+TEST_FILTER := out/elc.c.eir.lam out/dump_ir.c.eir.lam out/eli.c.eir.lam
 include target.mk
 
 test: $(TEST_RESULTS)
