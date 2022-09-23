@@ -199,8 +199,8 @@ static void lam_emit_inst(Inst* inst) {
 }
 
 static void lam_emit_data_list(Data* data) {
-  int n_data = 0;
-  for (; data; data = data->next, n_data++){
+  int n_data;
+  for (n_data = 0; data; data = data->next, n_data++){
     fputs(LAM_CONS_HEAD, stdout);
     lam_emit_int(data->v);
   }
@@ -210,8 +210,8 @@ static void lam_emit_data_list(Data* data) {
 
 static Inst* lam_emit_chunk(Inst* inst) {
   const int init_pc = inst->pc;
-  int n_insts = 0;
-  for (; inst && (inst->pc == init_pc); inst = inst->next, n_insts++) {
+  int n_insts;
+  for (n_insts = 0; inst && (inst->pc == init_pc); inst = inst->next, n_insts++) {
     fputs(LAM_CONS_HEAD, stdout);
     lam_emit_inst(inst);
   }
@@ -221,8 +221,8 @@ static Inst* lam_emit_chunk(Inst* inst) {
 }
 
 static void lam_emit_text_list(Inst* inst) {
-  int n_chunks = 0;
-  for (; inst; n_chunks++) {
+  int n_chunks;
+  for (n_chunks = 0; inst; n_chunks++) {
     fputs(LAM_CONS_HEAD, stdout);
     inst = lam_emit_chunk(inst);
   }
