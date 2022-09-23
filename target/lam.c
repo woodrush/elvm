@@ -4,8 +4,8 @@
 
 
 static const int LAM_N_BITS = 24;
-static const char LAM_16[] = "((\\x.((x x)x))(\\x.(\\y.(x(x y)))))";
-static const char LAM_8[] = "(\\x.(\\y.(((\\x.(\\y.(x(x y))))(((\\y.(y y))(\\x.(\\y.(x(x y)))))x))y)))";
+static const char LAM_16[] = "((\\x.(x x x))(\\x.\\y.(x(x y))))";
+static const char LAM_8[] = "(\\x.\\y.(((\\x.\\y.(x(x y)))(((\\y.(y y))(\\x.\\y.(x(x y))))x))y))";
 
 static const char CONS_HEAD[] = "(\\f.(f";
 static const char CONS_FOOTER[] = "))";
