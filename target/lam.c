@@ -116,7 +116,8 @@ static void emit_lam_isimm(Value* v) {
   switch (v->type) {
     case REG: fputs(LAM_NIL, stdout); break;
     case IMM: fputs(LAM_T, stdout); break;
-    default: error("invalid value");
+    default:
+      error("invalid value");
   }
 }
 
@@ -124,7 +125,8 @@ static void emit_lam_value_str(Value* v) {
   switch (v->type) {
     case REG: fputs(lam_reg(v->reg), stdout); break;
     case IMM: lam_emit_int(v->imm); break;
-    default: error("invalid value");
+    default: 
+      error("invalid value");
   }
 }
 
