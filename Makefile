@@ -593,8 +593,7 @@ include target.mk
 TARGET := ulamb
 RUNNER := tools/runulamb.sh
 ifndef FULL
-TEST_FILTER := out/8cc.c.eir.ulamb out/elc.c.eir.ulamb out/eli.c.eir.ulamb out/dump_ir.c.eir.ulamb \
-out/fizzbuzz.c.eir.ulamb out/fizzbuzz_fast.c.eir.ulamb
+TEST_FILTER := out/8cc.c.eir.ulamb out/elc.c.eir.ulamb out/eli.c.eir.ulamb out/dump_ir.c.eir.ulamb
 endif
 include target.mk
 $(OUT.eir.ulamb.out): tools/runulamb.sh
