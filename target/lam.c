@@ -194,8 +194,8 @@ static void lam_emit_dump_inst(void) {
   fputs(LAM_CONS_HEAD, stdout);
   fputs(LAM_INST_MOV, stdout);
   fputs(LAM_NIL, stdout);
-  fputs(LAM_REG_A, stdout);
-  fputs(LAM_REG_A, stdout);
+  fputs(LAM_NIL, stdout);
+  fputs(LAM_NIL, stdout);
   fputs(LAM_CONS_FOOTER, stdout);
 }
 
