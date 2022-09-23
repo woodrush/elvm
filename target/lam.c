@@ -2,7 +2,7 @@
 #include <target/util.h>
 
 
-static char lam_core[] =
+static char lam_vm[] =
 "(\\x.(\\y.(\\z.(\\a.(\\b.((\\c.((\\d.((\\e.((\\f.((\\g.((\\h.((a (((\\i.((i (("
 "d (\\j.(\\k.((k (\\l.(\\m.(\\l.(\\o.((o k) (j m))))))) k)))) a)) ((i z) (d (\\"
 "j.(\\k.(\\l.(\\b.(\\n.(\\o.(\\p.((\\q.((\\r.((\\s.((((((n (\\t.(\\u.(\\v.(\\w."
@@ -37,7 +37,8 @@ static char lam_core[] =
 
 
 static const int LAM_N_BITS = 24;
-static const char LAM_8[] = "(\\x.\\y.(((\\x.\\y.(x(x y)))(((\\y.(y y))(\\x.\\y.(x(x y))))x))y))";
+static const char LAM_8[] = "(\\x.\\y.(((\\x.\\y.(x(x y)))"
+                            "(((\\y.(y y))(\\x.\\y.(x(x y))))x))y))";
 static const char LAM_16[] = "((\\x.(x x x))(\\x.\\y.(x(x y))))";
 
 static const char LAM_T[] = "(\\x.\\y.x)";
@@ -49,14 +50,22 @@ static const char LAM_CONS_FOOTER[] = "))";
 static const char LAM_INT_HEADER[] = "((\\x.\\y.";
 static const char LAM_INT_BIT0[] = "x";
 static const char LAM_INT_BIT1[] = "y";
-static const char LAM_INT_FOOTER[] = ")(\\x.\\y.(y(\\x.\\a.x)x))(\\x.\\y.(y(\\x.\\a.a)x)))";
+static const char LAM_INT_FOOTER[] = ")(\\x.\\y.(y(\\x.\\a.x)x))"
+                                     "(\\x.\\y.(y(\\x.\\a.a)x)))";
 
 static const char LAM_REG_A[]  = "(\\x.(x(\\y.\\z.y)(\\y.\\z.z)))";
-static const char LAM_REG_B[]  = "(\\x.(x(\\y.\\z.z)(\\x.(x(\\z.\\a.z)(\\x.(x(\\a.\\b.a)(\\a.\\b.b)))))))";
-static const char LAM_REG_SP[] = "(\\x.(x(\\y.\\z.z)(\\x.(x(\\z.\\a.z)(\\x.(x(\\a.\\b.b)(\\a.\\b.b)))))))";
-static const char LAM_REG_D[]  = "(\\x.(x(\\y.\\z.z)(\\x.(x(\\z.\\a.a)(\\x.(x(\\a.\\b.a)(\\a.\\b.b)))))))";
-static const char LAM_REG_BP[] = "(\\x.(x(\\y.\\z.z)(\\x.(x(\\z.\\a.a)(\\x.(x(\\a.\\b.b)(\\x.(x(\\b.\\c.b)(\\b.\\c.c)))))))))";
-static const char LAM_REG_C[]  = "(\\x.(x(\\y.\\z.z)(\\x.(x(\\z.\\a.a)(\\x.(x(\\a.\\b.b)(\\x.(x(\\b.\\c.c)(\\b.\\c.c)))))))))";
+static const char LAM_REG_B[]  = "(\\x.(x(\\y.\\z.z)(\\x.(x(\\z.\\a.z)"
+                                 "(\\x.(x(\\a.\\b.a)(\\a.\\b.b)))))))";
+static const char LAM_REG_SP[] = "(\\x.(x(\\y.\\z.z)(\\x.(x(\\z.\\a.z)"
+                                 "(\\x.(x(\\a.\\b.b)(\\a.\\b.b)))))))";
+static const char LAM_REG_D[]  = "(\\x.(x(\\y.\\z.z)(\\x.(x(\\z.\\a.a)"
+                                 "(\\x.(x(\\a.\\b.a)(\\a.\\b.b)))))))";
+static const char LAM_REG_BP[] = "(\\x.(x(\\y.\\z.z)(\\x.(x(\\z.\\a.a)"
+                                 "(\\x.(x(\\a.\\b.b)(\\x.(x(\\b.\\c.b)"
+                                 "(\\b.\\c.c)))))))))";
+static const char LAM_REG_C[]  = "(\\x.(x(\\y.\\z.z)(\\x.(x(\\z.\\a.a)"
+                                 "(\\x.(x(\\a.\\b.b)(\\x.(x(\\b.\\c.c)"
+                                 "(\\b.\\c.c)))))))))";
 static const char LAM_INST_IO[]     = "(\\x.\\y.\\z.\\a.\\b.\\c.\\d.\\e.x)";
 static const char LAM_INST_JMPCMP[] = "(\\x.\\y.\\z.\\a.\\b.\\c.\\d.\\e.y)";
 static const char LAM_INST_CMP[]    = "(\\x.\\y.\\z.\\a.\\b.\\c.\\d.\\e.z)";
@@ -233,7 +242,7 @@ static void lam_emit_inst(Inst* inst) {
 
 static void lam_emit_data_list(Data* data) {
   int n_data;
-  for (n_data = 0; data; data = data->next, n_data++){
+  for (n_data=0; data; data=data->next, n_data++){
     fputs(LAM_CONS_HEAD, stdout);
     lam_emit_int(data->v);
   }
@@ -244,7 +253,7 @@ static void lam_emit_data_list(Data* data) {
 static Inst* lam_emit_chunk(Inst* inst) {
   const int init_pc = inst->pc;
   int n_insts;
-  for (n_insts = 0; inst && (inst->pc == init_pc); inst = inst->next, n_insts++) {
+  for (n_insts=0; inst && (inst->pc == init_pc); inst=inst->next, n_insts++) {
     fputs(LAM_CONS_HEAD, stdout);
     lam_emit_inst(inst);
   }
@@ -255,7 +264,7 @@ static Inst* lam_emit_chunk(Inst* inst) {
 
 static void lam_emit_text_list(Inst* inst) {
   int n_chunks;
-  for (n_chunks = 0; inst; n_chunks++) {
+  for (n_chunks=0; inst; n_chunks++) {
     fputs(LAM_CONS_HEAD, stdout);
     inst = lam_emit_chunk(inst);
   }
@@ -265,7 +274,7 @@ static void lam_emit_text_list(Inst* inst) {
 
 void target_lam(Module* module) {
   fputs("(", stdout);
-  fputs(lam_core, stdout);
+  fputs(lam_vm, stdout);
   fputs(LAM_8, stdout);
   fputs(LAM_16, stdout);
   lam_emit_data_list(module->data);
