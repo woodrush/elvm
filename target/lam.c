@@ -3,17 +3,18 @@
 #include <target/lamcore.h>
 
 
-static const int BLC_N_BITS = 24;
-static const char BLC_16[] = "010001011010100000011100111010";
-static const char BLC_8[] = "0000011100111001110011100111001110011100111010";
+static const int LAM_N_BITS = 24;
+static const char LAM_16[] = "((\\x.((x x) x)) (\\x.(\\y.(x (x y)))))";
+static const char LAM_8[] = "(\\x.(\\y.(((\\x.(\\y.(x (x y)))) (((\\y.(y y)) (\\x.(\\y.(x (x y))))) x)) y)))";
 
-static const char BLC_APPLY[] = "01";
+// static const char LAM_APPLY[] = "01";
 
 // (cons x y) = (lambda (f) (f x y)) = 00010110[x][y]
-static const char CONS_HEAD[] = "00010110";
+static const char CONS_HEAD[] = "(\\f.(f ";
+static const char CONS_FOOTER[] = ")";
 
 // (cons4 x1 x2 x3 x4) = (lambda (f) (f x1 x2 x3 x4)) = 000101010110[x1][x2][x3][x4]
-static const char CONS4_HEAD[] = "000101010110";
+// static const char CONS4_HEAD[] = "(\\f.(f ";
 
 // ((lambda (cons-t cons-nil) [A]) (lambda (x f) (f t x)) (lambda (x f) (f nil x)))
 //   = 01000100[A]000001011000001011000000101100000110110
@@ -21,65 +22,70 @@ static const char CONS4_HEAD[] = "000101010110";
 // (F3 (F2 (F1 NIL)))
 //   = 01[F3]01[F2]01[F1]000010
 // Where F1, F2, ... is in { 10, 110 }
-static const char INT_HEADER[] = "01000100";
-static const char INT_BIT1[] = "10";
-static const char INT_BIT0[] = "110";
-static const char INT_FOOTER[] = "000010000001011000001011000000101100000110110";
+static const char INT_HEADER[] = "(((\\x.(\\y.";
+static const char INT_BIT1[] = "y ";
+static const char INT_BIT0[] = "x ";
+static const char INT_FOOTER[] = ")) (\\x.(\\y.((y (\\x.(\\a.x))) x)))) (\\x.(\\y.((y (\\x.(\\a.a))) x))))";
 
-static const char T[] = "0000110";
-static const char NIL[] = "000010";
+static const char T[] = "(\\x.\\y.x)";
+static const char NIL[] = "(\\x.\\y.y)";
 
-static const char BLC_REG_A[]  = "00010110000010000101100000110000010";
-static const char BLC_REG_B[]  = "00010110000011000010110000011000010110000010000010";
-static const char BLC_REG_C[]  = "00010110000011000010110000011000010110000011000010110000010000010";
-static const char BLC_REG_D[]  = "0001011000001100001011000001000010110000010000010";
-static const char BLC_REG_SP[] = "00010110000011000010110000010000101100000110000010";
-static const char BLC_REG_BP[] = "01010100011010000001110011101000000101100000110110000010";
-static const char INST_MOV[] = "000000000000000010";
-static const char INST_ADDSUB[] = "0000000000000000110";
-static const char INST_STORE[] = "00000000000000001110";
-static const char INST_LOAD[] = "000000000000000011110";
-static const char INST_JMP[] = "0000000000000000111110";
-static const char INST_CMP[] = "00000000000000001111110";
-static const char INST_JMPCMP[] = "000000000000000011111110";
-static const char INST_IO[] = "0000000000000000111111110";
-static const char CMP_GT[] = "00010101100000100000100000110";
-static const char CMP_LT[] = "00010101100000100000110000010";
-static const char CMP_EQ[] = "00010101100000110000010000010";
-static const char CMP_LE[] = "000101011000001100000110000010";
-static const char CMP_GE[] = "000101011000001100000100000110";
-static const char CMP_NE[] = "000101011000001000001100000110";
-static const char IO_GETC[] = "0000001110";
-static const char IO_PUTC[] = "000000110";
-static const char IO_EXIT[] = "00000010";
-static const char PLACEHOLDER[] = "10";
+static const char LAM_REG_A[] = "(\\x.((x (\\y.(\\z.y))) (\\y.(\\z.z))))";
+static const char LAM_REG_B[] = "(\\x.((x (\\y.(\\z.z))) (\\x.((x (\\z.(\\a.z))) (\\x.((x (\\a.(\\b.a))) (\\a.(\\b.b))))))))";
+static const char LAM_REG_C[] = "(\\x.((x (\\y.(\\z.z))) (\\x.((x (\\z.(\\a.a))) (\\x.((x (\\a.(\\b.b))) (\\x.((x (\\b.(\\c.c))) (\\b.(\\c.c))))))))))";
+static const char LAM_REG_D[] = "(\\x.((x (\\y.(\\z.z))) (\\x.((x (\\z.(\\a.a))) (\\x.((x (\\a.(\\b.a))) (\\a.(\\b.b))))))))";
+static const char LAM_REG_SP[] = "(\\x.((x (\\y.(\\z.z))) (\\x.((x (\\z.(\\a.z))) (\\x.((x (\\a.(\\b.b))) (\\a.(\\b.b))))))))";
+static const char LAM_REG_BP[] = "(\\x.((x (\\y.(\\z.z))) (\\x.((x (\\z.(\\a.a))) (\\x.((x (\\a.(\\b.b))) (\\x.((x (\\b.(\\c.b))) (\\b.(\\c.c))))))))))";
+static const char INST_IO[] = "(\\x.(\\y.(\\z.(\\a.(\\b.(\\c.(\\d.(\\e.x))))))))";
+static const char INST_JMPCMP[] = "(\\x.(\\y.(\\z.(\\a.(\\b.(\\c.(\\d.(\\e.y))))))))";
+static const char INST_CMP[] = "(\\x.(\\y.(\\z.(\\a.(\\b.(\\c.(\\d.(\\e.z))))))))";
+static const char INST_JMP[] = "(\\x.(\\y.(\\z.(\\a.(\\b.(\\c.(\\d.(\\e.a))))))))";
+static const char INST_LOAD[] = "(\\x.(\\y.(\\z.(\\a.(\\b.(\\c.(\\d.(\\e.b))))))))";
+static const char INST_STORE[] = "(\\x.(\\y.(\\z.(\\a.(\\b.(\\c.(\\d.(\\e.c))))))))";
+static const char INST_ADDSUB[] = "(\\x.(\\y.(\\z.(\\a.(\\b.(\\c.(\\d.(\\e.d))))))))";
+static const char INST_MOV[] = "(\\x.(\\y.(\\z.(\\a.(\\b.(\\c.(\\d.(\\e.e))))))))";
+static const char CMP_GT[] = "(\\x.(((x (\\y.(\\z.z))) (\\y.(\\z.z))) (\\y.(\\z.y))))";
+static const char CMP_LT[] = "(\\x.(((x (\\y.(\\z.z))) (\\y.(\\z.y))) (\\y.(\\z.z))))";
+static const char CMP_EQ[] = "(\\x.(((x (\\y.(\\z.y))) (\\y.(\\z.z))) (\\y.(\\z.z))))";
+static const char CMP_LE[] = "(\\x.(((x (\\y.(\\z.y))) (\\y.(\\z.y))) (\\y.(\\z.z))))";
+static const char CMP_GE[] = "(\\x.(((x (\\y.(\\z.y))) (\\y.(\\z.z))) (\\y.(\\z.y))))";
+static const char CMP_NE[] = "(\\x.(((x (\\y.(\\z.z))) (\\y.(\\z.y))) (\\y.(\\z.y))))";
+static const char IO_GETC[] = "(\\x.(\\y.(\\z.x)))";
+static const char IO_PUTC[] = "(\\x.(\\y.(\\z.y)))";
+static const char IO_EXIT[] = "(\\x.(\\y.(\\z.z)))";
+static const char PLACEHOLDER[] = "(\\x.x)";
 
-static const char* blc_reg(Reg r) {
+static const char* lam_reg(Reg r) {
   switch (r) {
-  case A: return BLC_REG_A;
-  case B: return BLC_REG_B;
-  case C: return BLC_REG_C;
-  case D: return BLC_REG_D;
-  case BP: return BLC_REG_BP;
-  case SP: return BLC_REG_SP;
+  case A: return LAM_REG_A;
+  case B: return LAM_REG_B;
+  case C: return LAM_REG_C;
+  case D: return LAM_REG_D;
+  case BP: return LAM_REG_BP;
+  case SP: return LAM_REG_SP;
   default:
     error("unknown register: %d", r);
   }
 }
 
-static void blc_emit_int(int n) {
+static void lam_print_n (int n, const char* s) {
+  for (int i=0; i<n; i++) {
+    fputs(s, stdout);
+  }
+}
+
+static void lam_emit_int(int n) {
 #ifndef __eir__
-  n &= ((1 << BLC_N_BITS) - 1);
+  n &= ((1 << LAM_N_BITS) - 1);
 #endif
   fputs(INT_HEADER, stdout);
-  for (int checkbit = 1 << (BLC_N_BITS - 1); checkbit; checkbit >>= 1) {
-    fputs(BLC_APPLY, stdout);
+  for (int checkbit = 1 << (LAM_N_BITS - 1); checkbit; checkbit >>= 1) {
     fputs((n & checkbit) ? INT_BIT1 : INT_BIT0, stdout);
   }
   fputs(INT_FOOTER, stdout);
 }
 
-static void emit_blc_isimm(Value* v) {
+static void emit_lam_isimm(Value* v) {
   if (v->type == REG) {
     fputs(NIL, stdout);
   } else if (v->type == IMM) {
@@ -89,144 +95,160 @@ static void emit_blc_isimm(Value* v) {
   }
 }
 
-static void emit_blc_value_str(Value* v) {
+static void emit_lam_value_str(Value* v) {
   if (v->type == REG) {
-    fputs(blc_reg(v->reg), stdout);
+    fputs(lam_reg(v->reg), stdout);
   } else if (v->type == IMM) {
-    blc_emit_int(v->imm);
+    lam_emit_int(v->imm);
   } else {
     error("invalid value");
   }
 }
 
-static void blc_emit_data_list(Data* data) {
+static void lam_emit_data_list(Data* data) {
   for (; data; data = data->next){
     fputs(CONS_HEAD, stdout);
-    blc_emit_int(data->v);
+    lam_emit_int(data->v);
   }
   fputs(NIL, stdout);
+  fputs(CONS_FOOTER, stdout);
 }
 
-static void blc_emit_inst_header(const char* inst_tag, Value* v) {
-  fputs(CONS4_HEAD, stdout);
-  fputs(inst_tag, stdout);
-  emit_blc_isimm(v);
-  emit_blc_value_str(v);
-}
-
-static void blc_emit_basic_inst(Inst* inst, const char* inst_tag) {
-  blc_emit_inst_header(inst_tag, &inst->src);
-  emit_blc_value_str(&inst->dst);
-}
-
-static void blc_emit_addsub_inst(Inst* inst, const char* is_add) {
-  blc_emit_inst_header(INST_ADDSUB, &inst->src);
+static void lam_emit_inst_header(const char* inst_tag, Value* v) {
   fputs(CONS_HEAD, stdout);
-  emit_blc_value_str(&inst->dst);
+  fputs(inst_tag, stdout);
+  emit_lam_isimm(v);
+  emit_lam_value_str(v);
+}
+
+static void lam_emit_basic_inst(Inst* inst, const char* inst_tag) {
+  lam_emit_inst_header(inst_tag, &inst->src);
+  emit_lam_value_str(&inst->dst);
+  fputs(CONS_FOOTER, stdout);
+}
+
+static void lam_emit_addsub_inst(Inst* inst, const char* is_add) {
+  lam_emit_inst_header(INST_ADDSUB, &inst->src);
+  fputs(CONS_HEAD, stdout);
+  emit_lam_value_str(&inst->dst);
   fputs(is_add, stdout);
+  fputs(CONS_FOOTER, stdout);
+  fputs(CONS_FOOTER, stdout);
 }
 
-static void blc_emit_jmpcmp_inst(Inst* inst, const char* cmp_tag) {
-  blc_emit_inst_header(INST_JMPCMP, &inst->src);
-  blc_emit_inst_header(cmp_tag, &inst->jmp);
-  emit_blc_value_str(&inst->dst);
+static void lam_emit_jmpcmp_inst(Inst* inst, const char* cmp_tag) {
+  lam_emit_inst_header(INST_JMPCMP, &inst->src);
+  lam_emit_inst_header(cmp_tag, &inst->jmp);
+  emit_lam_value_str(&inst->dst);
+  fputs(CONS_FOOTER, stdout);
+  fputs(CONS_FOOTER, stdout);
 }
 
-static void blc_emit_cmp_inst(Inst* inst, const char* cmp_tag) {
-  blc_emit_inst_header(INST_CMP, &inst->src);
+static void lam_emit_cmp_inst(Inst* inst, const char* cmp_tag) {
+  lam_emit_inst_header(INST_CMP, &inst->src);
   fputs(CONS_HEAD, stdout);
   fputs(cmp_tag, stdout);
-  emit_blc_value_str(&inst->dst);
+  emit_lam_value_str(&inst->dst);
+  fputs(CONS_FOOTER, stdout);
+  fputs(CONS_FOOTER, stdout);
 }
 
-static void blc_emit_io_inst(const char* io_tag, Value* v) {
-  blc_emit_inst_header(INST_IO, v);
+static void lam_emit_io_inst(const char* io_tag, Value* v) {
+  lam_emit_inst_header(INST_IO, v);
   fputs(io_tag, stdout);
+  fputs(CONS_FOOTER, stdout);
 }
 
-static void blc_emit_exit_inst() {
-  fputs(CONS4_HEAD, stdout);
+static void lam_emit_exit_inst() {
+  fputs(CONS_HEAD, stdout);
   fputs(INST_IO, stdout);
   fputs(NIL, stdout);
   fputs(NIL, stdout);
   fputs(IO_EXIT, stdout);
+  fputs(CONS_FOOTER, stdout);
 }
 
-static void blc_emit_jmp_inst(Inst* inst) {
-  blc_emit_inst_header(INST_JMP, &inst->jmp);
+static void lam_emit_jmp_inst(Inst* inst) {
+  lam_emit_inst_header(INST_JMP, &inst->jmp);
   fputs(PLACEHOLDER, stdout);
+  fputs(CONS_FOOTER, stdout);
 }
 
-static void blc_emit_dump_inst(void) {
-  fputs(CONS4_HEAD, stdout);
+static void lam_emit_dump_inst(void) {
+  fputs(CONS_HEAD, stdout);
   fputs(INST_MOV, stdout);
   fputs(NIL, stdout);
-  fputs(BLC_REG_A, stdout);
-  fputs(BLC_REG_A, stdout);
+  fputs(LAM_REG_A, stdout);
+  fputs(LAM_REG_A, stdout);
+  fputs(CONS_FOOTER, stdout);
 }
 
-static void blc_emit_inst(Inst* inst) {
+static void lam_emit_inst(Inst* inst) {
   switch (inst->op) {
-  case MOV: blc_emit_basic_inst(inst, INST_MOV); break;
-  case LOAD: blc_emit_basic_inst(inst, INST_LOAD); break;
-  case STORE: blc_emit_basic_inst(inst, INST_STORE); break;
+  case MOV: lam_emit_basic_inst(inst, INST_MOV); break;
+  case LOAD: lam_emit_basic_inst(inst, INST_LOAD); break;
+  case STORE: lam_emit_basic_inst(inst, INST_STORE); break;
 
-  case ADD: blc_emit_addsub_inst(inst, T); break;
-  case SUB: blc_emit_addsub_inst(inst, NIL); break;
+  case ADD: lam_emit_addsub_inst(inst, T); break;
+  case SUB: lam_emit_addsub_inst(inst, NIL); break;
 
-  case EQ: blc_emit_cmp_inst(inst, CMP_EQ); break;
-  case NE: blc_emit_cmp_inst(inst, CMP_NE); break;
-  case LT: blc_emit_cmp_inst(inst, CMP_LT); break;
-  case GT: blc_emit_cmp_inst(inst, CMP_GT); break;
-  case LE: blc_emit_cmp_inst(inst, CMP_LE); break;
-  case GE: blc_emit_cmp_inst(inst, CMP_GE); break;
+  case EQ: lam_emit_cmp_inst(inst, CMP_EQ); break;
+  case NE: lam_emit_cmp_inst(inst, CMP_NE); break;
+  case LT: lam_emit_cmp_inst(inst, CMP_LT); break;
+  case GT: lam_emit_cmp_inst(inst, CMP_GT); break;
+  case LE: lam_emit_cmp_inst(inst, CMP_LE); break;
+  case GE: lam_emit_cmp_inst(inst, CMP_GE); break;
 
-  case JEQ: blc_emit_jmpcmp_inst(inst, CMP_EQ); break;
-  case JNE: blc_emit_jmpcmp_inst(inst, CMP_NE); break;
-  case JLT: blc_emit_jmpcmp_inst(inst, CMP_LT); break;
-  case JGT: blc_emit_jmpcmp_inst(inst, CMP_GT); break;
-  case JLE: blc_emit_jmpcmp_inst(inst, CMP_LE); break;
-  case JGE: blc_emit_jmpcmp_inst(inst, CMP_GE); break;
+  case JEQ: lam_emit_jmpcmp_inst(inst, CMP_EQ); break;
+  case JNE: lam_emit_jmpcmp_inst(inst, CMP_NE); break;
+  case JLT: lam_emit_jmpcmp_inst(inst, CMP_LT); break;
+  case JGT: lam_emit_jmpcmp_inst(inst, CMP_GT); break;
+  case JLE: lam_emit_jmpcmp_inst(inst, CMP_LE); break;
+  case JGE: lam_emit_jmpcmp_inst(inst, CMP_GE); break;
 
-  case JMP: blc_emit_jmp_inst(inst); break;
+  case JMP: lam_emit_jmp_inst(inst); break;
 
-  case PUTC: blc_emit_io_inst(IO_PUTC, &inst->src); break;
-  case GETC: blc_emit_io_inst(IO_GETC, &inst->dst); break;
+  case PUTC: lam_emit_io_inst(IO_PUTC, &inst->src); break;
+  case GETC: lam_emit_io_inst(IO_GETC, &inst->dst); break;
   
-  case EXIT: blc_emit_exit_inst(); break;
-  case DUMP: blc_emit_dump_inst(); break;
+  case EXIT: lam_emit_exit_inst(); break;
+  case DUMP: lam_emit_dump_inst(); break;
 
   default:
     error("oops");
   }
 }
 
-static Inst* blc_emit_chunk(Inst* inst) {
+static Inst* lam_emit_chunk(Inst* inst) {
   const int init_pc = inst->pc;
+  int n_insts = 0;
   for (; inst && (inst->pc == init_pc); inst = inst->next) {
     fputs(CONS_HEAD, stdout);
-    blc_emit_inst(inst);
+    lam_emit_inst(inst);
+    n_insts++;
   }
   fputs(NIL, stdout);
+  lam_print_n(n_insts, CONS_FOOTER);
   return inst;
 }
 
-static void blc_emit_text_list(Inst* inst) {
+static void lam_emit_text_list(Inst* inst) {
+  int n_chunks = 0;
   while (inst) {
     fputs(CONS_HEAD, stdout);
-    inst = blc_emit_chunk(inst);
+    inst = lam_emit_chunk(inst);
+    n_chunks++;
   }
   fputs(NIL, stdout);
+  lam_print_n(n_chunks, CONS_FOOTER);
 }
 
 void target_lam(Module* module) {
-  fputs(BLC_APPLY, stdout);
-  fputs(BLC_APPLY, stdout);
-  fputs(BLC_APPLY, stdout);
-  fputs(BLC_APPLY, stdout);
-  fputs(blc_core, stdout);
-  fputs(BLC_8, stdout);
-  fputs(BLC_16, stdout);
-  blc_emit_data_list(module->data);
-  blc_emit_text_list(module->text);
+  fputs("(", stdout);
+  fputs(lam_core, stdout);
+  fputs(LAM_8, stdout);
+  fputs(LAM_16, stdout);
+  lam_emit_data_list(module->data);
+  lam_emit_text_list(module->text);
+  fputs(")", stdout);
 }
