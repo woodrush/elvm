@@ -1,6 +1,6 @@
 #include <ir/ir.h>
 #include <target/util.h>
-#include <target/blc.h>
+#include <target/blc_lib.h>
 
 
 static const int BLC_N_BITS = 24;
