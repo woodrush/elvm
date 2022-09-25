@@ -99,6 +99,7 @@ $(COBJS): out/%.o: ir/%.c
 	$(CC) -c -I. $(CFLAGS) $< -o $@
 
 ELC_SRCS := \
+	c.c \
 	elc.c \
 	util.c \
 	lam.c \
