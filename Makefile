@@ -537,7 +537,7 @@ include target.mk
 TARGET := lam
 RUNNER := tools/runlam.sh
 TOOL := python
-TEST_FILTER := out/dump_ir.c.eir.lam out/eli.c.eir.lam
+TEST_FILTER := out/eli.c.eir.lam
 include target.mk
 
 test: $(TEST_RESULTS)
