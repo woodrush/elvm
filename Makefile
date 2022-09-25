@@ -99,11 +99,67 @@ $(COBJS): out/%.o: ir/%.c
 	$(CC) -c -I. $(CFLAGS) $< -o $@
 
 ELC_SRCS := \
-	c.c \
 	elc.c \
 	util.c \
+	asmjs.c \
+	arm.c \
+	awk.c \
+	bef.c \
+	bf.c \
+	c.c \
+	cl.c \
+	cmake.c \
+	cpp.c \
+	cpp_template.c \
+	cr.c \
+	cs.c \
+	el.c \
+	forth.c \
+	f90.c \
+	fs.c \
+	go.c \
+	hell.c \
+	hs.c \
+	i.c \
+	j.c \
+	java.c \
+	js.c \
+	kx.c \
 	lam.c \
+	lua.c \
+	ll.c \
+	lol.c \
 	mcfunction.c \
+	oct.c \
+	php.c \
+	piet.c \
+	pietasm.c \
+	pl.c \
+	py.c \
+	ps.c \
+	qftasm.c \
+	rb.c \
+	rs.c \
+	sed.c \
+	sh.c \
+	sqlite3.c \
+	scala.c \
+	scm_sr.c \
+	scratch3.c \
+	subleq.c \
+	swift.c \
+	tcl.c \
+	tex.c \
+	tf.c \
+	tm.c \
+	unl.c \
+	vim.c \
+	wasi.c \
+	wasm.c \
+	whirl.c \
+	wm.c \
+	ws.c \
+	x86.c \
 
 ELC_SRCS := $(addprefix target/,$(ELC_SRCS))
 COBJS := $(addprefix out/,$(notdir $(ELC_SRCS:.c=.o)))
@@ -537,7 +593,6 @@ include target.mk
 TARGET := lam
 RUNNER := tools/runlam.sh
 TOOL := python
-TEST_FILTER := out/eli.c.eir.lam
 include target.mk
 
 test: $(TEST_RESULTS)
