@@ -27,4 +27,6 @@ if [ ! -e out/uni++ ]; then
 fi
 
 (cat $1 | out/lam2bin | out/asc2bin; cat) | out/uni++ -o
+# cat $1 | out/lam2bin #| out/asc2bin; cat) | out/unid -o
+# (./out/blc blc $1 | out/asc2bin; cat) | out/unid -o
 
