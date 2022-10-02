@@ -51,11 +51,12 @@ all: build
 	@echo '   (WARNING: will take a lot of time/disk)'
 	@echo ''
 
-out/git_submodule.stamp: .git/index
-	git submodule update --init
-	touch $@
+# out/git_submodule.stamp: .git/index
+# 	git submodule update --init
+# 	touch $@
 
-$(8CC_SRCS) lci/install.py Whitespace/whitespace.c tinycc/configure: out/git_submodule.stamp
+$(8CC_SRCS):
+	git submodule update --init
 
 Whitespace/whitespace.out: Whitespace/whitespace.c
 	$(MAKE) -C Whitespace 'MAX_SOURCE_SIZE:=100000000' 'MAX_BYTECODE_SIZE:=16777216' 'MAX_N_LABEL:=1048576' 'HEAP_SIZE:=16777224' 'STACK_SIZE:=16777224'
