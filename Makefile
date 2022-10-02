@@ -1,4 +1,4 @@
-COMMONFLAGS := -W -Wall -W -Werror -MMD -MP -O -g -Wno-missing-field-initializers
+COMMONFLAGS := -W -Wall -W -MMD -MP -O -g -Wno-missing-field-initializers
 CFLAGS := -std=gnu99 $(COMMONFLAGS) -Wno-missing-field-initializers
 CXXFLAGS := -std=c++11 $(COMMONFLAGS)
 
