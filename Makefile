@@ -106,6 +106,7 @@ ELC_SRCS := \
 	elc.c \
 	util.c \
 	lam.c \
+	lazy.c \
 	mcfunction.c \
 	x86.c \
 
