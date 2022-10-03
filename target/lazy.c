@@ -13,6 +13,9 @@ static const char LAZY_APPLY[] = "`";
 static const char CONS_HEAD[] = "``s``si`k";
 static const char CONS_COMMA[] = "`k";
 
+static const char LAZY_8[] = "``s``s`ks``s`kk``s`k``s``s`ks``s`kki``s``s`ks``s`kki`ki``s`k```sii``s``s`ks``s`kki``s``s`ks``s`kki`kii`ki";
+static const char LAZY_16[] = "```s``siii``s``s`ks``s`kki``s``s`ks``s`kki`ki";
+
 // (cons4 x1 x2 x3 x4) = (lambda (f) (f x1 x2 x3 x4))
 // = ``s``s``s``si`k[x1]`k[x2]`k[x3]`k[x4]
 static const char CONS4_HEAD[] = "``s``s``s``si`k";
@@ -317,7 +320,11 @@ static void lazy_emit_text_list(Inst* inst) {
 void target_lazy(Module* module) {
   fputs(LAZY_APPLY, stdout);
   fputs(LAZY_APPLY, stdout);
+  fputs(LAZY_APPLY, stdout);
+  fputs(LAZY_APPLY, stdout);
   fputs(lazy_core, stdout);
+  fputs(LAZY_8, stdout);
+  fputs(LAZY_16, stdout);
   lazy_emit_data_list(module->data);
   lazy_emit_text_list(module->text);
 }
