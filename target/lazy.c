@@ -47,18 +47,6 @@ static const char LAZY_IO_GETC[] = "``s`kkk";
 static const char LAZY_IO_PUTC[] = "`kk";
 static const char LAZY_IO_EXIT[] = "`k`ki";
 
-static void lazy_debug(const char* fmt, ...) {
-  printf("\n");
-  if (fmt[0]) {
-    #ifndef DEBUG
-      return;
-    #endif
-    va_list ap;
-    va_start(ap, fmt);
-    vprintf(fmt, ap);
-    va_end(ap);
-  }
-}
 
 static const char* lazy_reg(Reg r) {
   switch (r) {
@@ -77,7 +65,6 @@ static void lazy_emit_int(int n) {
 #ifndef __eir__
     n &= ((1 << 24) - 1);
 #endif
-  lazy_debug("\n# int %d (%0d)\n", n, n);
   for (int checkbit = 1 << (24 - 1); checkbit; checkbit >>= 1) {
     fputs(LAZY_CONS_HEAD, stdout);
     fputs((n & checkbit) ? LAZY_NIL : LAZY_T, stdout);
