@@ -1,6 +1,7 @@
 COMMONFLAGS := -W -Wall -W -MMD -MP -O -g -Wno-missing-field-initializers
 CFLAGS := -std=gnu99 $(COMMONFLAGS) -Wno-missing-field-initializers
 CXXFLAGS := -std=c++11 $(COMMONFLAGS)
+CC=gcc-9
 
 uname := $(shell uname)
 ifneq (,$(findstring arm,$(shell uname -m)))
@@ -545,6 +546,20 @@ TARGET := blc
 RUNNER := tools/runblc.sh
 include target.mk
 $(OUT.eir.blc.out): tools/runblc.sh
+
+TARGET := lazy
+RUNNER := tools/runlazy.sh
+ifndef FULL
+TEST_FILTER := out/8cc.c.eir.lazy out/elc.c.eir.lazy out/eli.c.eir.lazy out/dump_ir.c.eir.lazy \
+out/fizzbuzz.c.eir.lazy out/fizzbuzz_fast.c.eir.lazy \
+out/qsort.c.eir.lazy \
+out/eof.c.eir.lazy \
+out/global.c.eir.lazy \
+out/24_muldiv.c.eir.lazy
+endif
+include target.mk
+$(OUT.eir.lazy.out): tools/runlazy.sh
+
 
 test: $(TEST_RESULTS)
 

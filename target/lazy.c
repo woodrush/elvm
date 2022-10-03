@@ -2,58 +2,51 @@
 #include <target/util.h>
 #include <target/lazycore.h>
 
-// #define DEBUG
 
 
+static const char LAZY_APPLY[] = "`";
+static const char LAZY_T[] = "k";
+static const char LAZY_NIL[] = "`ki";
+
+static const char LAZY_8[] = "``s``s`ks``s`kk``s`k``s``s`ks``s`kki``s``s`ks``s`kki`ki``s`k```sii``s``s`ks``s`kki``s``s`ks``s`kki`kii`ki";
+static const char LAZY_16[] = "```s``siii``s``s`ks``s`kki``s``s`ks``s`kki`ki";
 
 // (cons x y) = (lambda (f) (f x y))
 // = ``s``si`k[x]`k[y]
-static const char CONS_HEAD[] = "``s``si`k";
-static const char CONS_COMMA[] = "`k";
+static const char LAZY_CONS_HEAD[] = "``s``si`k";
+static const char LAZY_CONS_COMMA[] = "`k";
 
 // (cons4 x1 x2 x3 x4) = (lambda (f) (f x1 x2 x3 x4))
 // = ``s``s``s``si`k[x1]`k[x2]`k[x3]`k[x4]
-static const char CONS4_HEAD[] = "``s``s``s``si`k";
+static const char LAZY_CONS4_HEAD[] = "``s``s``s``si`k";
 
-static const char T[] = "k";
-static const char NIL[] = "`ki";
-static const char LAZY_REG_A[] = "``s`kk``s`kk``s`kk``s`kkk";
-static const char LAZY_REG_B[] = "`k``s`kk``s`kk``s`kkk";
-static const char LAZY_REG_C[] = "`k`k``s`kk``s`kkk";
-static const char LAZY_REG_D[] = "`k`k`k``s`kkk";
-static const char LAZY_REG_SP[] = "`k`k`k`kk";
-static const char LAZY_REG_BP[] = "`k`k`k`k`ki";
-static const char INST_IO_INT[] = "``s`kk``s`kk``s`kk``s`kk``s`kk``s`kk``s`kkk";
-static const char INST_SUB[] = "`k``s`kk``s`kk``s`kk``s`kk``s`kk``s`kkk";
-static const char INST_CMP[] = "`k`k``s`kk``s`kk``s`kk``s`kk``s`kkk";
-static const char INST_LOAD[] = "`k`k`k``s`kk``s`kk``s`kk``s`kkk";
-static const char INST_JUMPCMP[] = "`k`k`k`k``s`kk``s`kk``s`kkk";
-static const char INST_JMP[] = "`k`k`k`k`k``s`kk``s`kkk";
-static const char INST_MOV[] = "`k`k`k`k`k`k``s`kkk";
-static const char INST_STORE[] = "`k`k`k`k`k`k`kk";
-static const char INST_ADD[] = "`k`k`k`k`k`k`k`ki";
-static const char CMP_EQ[] = "``s`kk``s`kk``s`kk``s`kkk";
-static const char CMP_NE[] = "`k``s`kk``s`kk``s`kkk";
-static const char CMP_LT[] = "`k`k``s`kk``s`kkk";
-static const char CMP_GT[] = "`k`k`k``s`kkk";
-static const char CMP_LE[] = "`k`k`k`kk";
-static const char CMP_GE[] = "`k`k`k`k`ki";
-static const char IO_INT_EXIT[] = "``s`kkk";
-static const char IO_INT_GETC[] = "`kk";
-static const char IO_INT_PUTC[] = "`k`ki";
+static const char LAZY_REG_A[]  = "``s``si`kk`k`ki";
+static const char LAZY_REG_B[]  = "``s``si`k`ki`k``s``si`kk`k``s``si`kk`k`ki";
+static const char LAZY_REG_C[]  = "``s``si`k`ki`k``s``si`k`ki`k``s``si`k`ki`k``s``si`k`ki`k`ki";
+static const char LAZY_REG_D[]  = "``s``si`k`ki`k``s``si`k`ki`k``s``si`kk`k`ki";
+static const char LAZY_REG_SP[] = "``s``si`k`ki`k``s``si`kk`k``s``si`k`ki`k`ki";
+static const char LAZY_REG_BP[] = "``s``si`k`ki`k``s``si`k`ki`k``s``si`k`ki`k``s``si`kk`k`ki";
 
-static void lazy_debug(const char* fmt, ...) {
-  printf("\n");
-  if (fmt[0]) {
-    #ifndef DEBUG
-      return;
-    #endif
-    va_list ap;
-    va_start(ap, fmt);
-    vprintf(fmt, ap);
-    va_end(ap);
-  }
-}
+static const char LAZY_INST_IO[] = "``s`kk``s`kk``s`kk``s`kk``s`kk``s`kkk";
+static const char LAZY_INST_JMPCMP[] = "`k``s`kk``s`kk``s`kk``s`kk``s`kkk";
+static const char LAZY_INST_CMP[] = "`k`k``s`kk``s`kk``s`kk``s`kkk";
+static const char LAZY_INST_JMP[] = "`k`k`k``s`kk``s`kk``s`kkk";
+static const char LAZY_INST_LOAD[] = "`k`k`k`k``s`kk``s`kkk";
+static const char LAZY_INST_STORE[] = "`k`k`k`k`k``s`kkk";
+static const char LAZY_INST_ADDSUB[] = "`k`k`k`k`k`kk";
+static const char LAZY_INST_MOV[] = "`k`k`k`k`k`k`ki";
+
+static const char LAZY_CMP_GT[] = "``s``s``si`k`ki`k`ki`kk";
+static const char LAZY_CMP_LT[] = "``s``s``si`k`ki`kk`k`ki";
+static const char LAZY_CMP_EQ[] = "``s``s``si`kk`k`ki`k`ki";
+static const char LAZY_CMP_LE[] = "``s``s``si`kk`kk`k`ki";
+static const char LAZY_CMP_GE[] = "``s``s``si`kk`k`ki`kk";
+static const char LAZY_CMP_NE[] = "``s``s``si`k`ki`kk`kk";
+
+static const char LAZY_IO_GETC[] = "``s`kkk";
+static const char LAZY_IO_PUTC[] = "`kk";
+static const char LAZY_IO_EXIT[] = "`k`ki";
+
 
 static const char* lazy_reg(Reg r) {
   switch (r) {
@@ -69,33 +62,28 @@ static const char* lazy_reg(Reg r) {
 }
 
 static void lazy_emit_int(int n) {
-  lazy_debug("\n# int %d (%0d)\n", n, n);
-  for (int i = 0; i < 24; i++) {
 #ifndef __eir__
     n &= ((1 << 24) - 1);
 #endif
-    fputs(CONS_HEAD, stdout);
-    lazy_debug("    ");
-    fputs((n & 1) ? T : NIL, stdout);
-    lazy_debug("    ");
-    fputs(CONS_COMMA, stdout);
-    lazy_debug("\n");
-    n = n >> 1;
+  for (int checkbit = 1 << (24 - 1); checkbit; checkbit >>= 1) {
+    fputs(LAZY_CONS_HEAD, stdout);
+    fputs((n & checkbit) ? LAZY_NIL : LAZY_T, stdout);
+    fputs(LAZY_CONS_COMMA, stdout);
   }
-  fputs(NIL, stdout);
+  fputs(LAZY_NIL, stdout);
 }
 
-static void emit_lazy_isimm(Value* v) {
+static void lazy_emit_isimm(Value* v) {
   if (v->type == REG) {
-    fputs(NIL, stdout);
+    fputs(LAZY_NIL, stdout);
   } else if (v->type == IMM) {
-    fputs(T, stdout);
+    fputs(LAZY_T, stdout);
   } else {
     error("invalid value");
   }
 }
 
-static void emit_lazy_value_str(Value* v) {
+static void lazy_emit_value_str(Value* v) {
   if (v->type == REG) {
     fputs(lazy_reg(v->reg), stdout);
   } else if (v->type == IMM) {
@@ -105,225 +93,187 @@ static void emit_lazy_value_str(Value* v) {
   }
 }
 
-static void lazy_emit_data(Data* data) {
-  lazy_debug("# Data\n");
-  for (Data* d = data; d; d = d->next) {
-    lazy_debug("\n# data\n");
-    fputs(CONS_HEAD, stdout);
-    lazy_emit_int(d->v);
-    fputs(CONS_COMMA, stdout);
-  }
-  lazy_debug("\n# Data end\n");
-  fputs(NIL, stdout);
-}
-
-static void lazy_emit_func_prologue(int func_id) {
-  lazy_debug("\n# Func_prologue\n");
-  // fputs(CONS_HEAD, stdout);
-
-  // Placeholder code that does nothing, to suppress compilation errors
-  if (func_id) {
-    return;
-  }
-}
-
-static void lazy_emit_pc_change(int pc) {
-  if (pc) {
-    lazy_debug("\n# PC change\n");
-    fputs(NIL, stdout);
-    fputs(CONS_COMMA, stdout);
-    fputs(CONS_HEAD, stdout);
-  }
-}
-
-static void lazy_emit_func_epilogue(void) {
-  lazy_debug("\n# Func_epilogue\n");
-  // fputs(NIL, stdout);
-  // fputs(CONS_COMMA, stdout);
-  // fputs(NIL, stdout);
-}
-
 static void lazy_emit_basic_inst(Inst* inst, const char* inst_tag) {
-    fputs(CONS4_HEAD, stdout);
+    fputs(LAZY_CONS4_HEAD, stdout);
     fputs(inst_tag, stdout);
-    fputs(CONS_COMMA, stdout);
-    emit_lazy_isimm(&inst->src);
-    fputs(CONS_COMMA, stdout);
-    emit_lazy_value_str(&inst->src);
-    fputs(CONS_COMMA, stdout);
-    emit_lazy_value_str(&inst->dst);
+    fputs(LAZY_CONS_COMMA, stdout);
+    lazy_emit_isimm(&inst->src);
+    fputs(LAZY_CONS_COMMA, stdout);
+    lazy_emit_value_str(&inst->src);
+    fputs(LAZY_CONS_COMMA, stdout);
+    lazy_emit_value_str(&inst->dst);
+}
+
+static void lazy_emit_addsub_inst(Inst* inst, const char* isadd) {
+    fputs(LAZY_CONS4_HEAD, stdout);
+    fputs(LAZY_INST_ADDSUB, stdout);
+    fputs(LAZY_CONS_COMMA, stdout);
+    lazy_emit_isimm(&inst->src);
+    fputs(LAZY_CONS_COMMA, stdout);
+    lazy_emit_value_str(&inst->src);
+    fputs(LAZY_CONS_COMMA, stdout);
+    fputs(LAZY_CONS_HEAD, stdout);
+    lazy_emit_value_str(&inst->dst);
+    fputs(LAZY_CONS_COMMA, stdout);
+    fputs(isadd, stdout);
 }
 
 static void lazy_emit_jumpcmp_inst(Inst* inst, const char* cmp_tag) {
-    fputs(CONS4_HEAD, stdout);
-    fputs(INST_JUMPCMP, stdout);
-    fputs(CONS_COMMA, stdout);
-    emit_lazy_isimm(&inst->src);
-    fputs(CONS_COMMA, stdout);
-    emit_lazy_value_str(&inst->src);
-    fputs(CONS_COMMA, stdout);
-    fputs(CONS4_HEAD, stdout);
+    fputs(LAZY_CONS4_HEAD, stdout);
+    fputs(LAZY_INST_JMPCMP, stdout);
+    fputs(LAZY_CONS_COMMA, stdout);
+    lazy_emit_isimm(&inst->src);
+    fputs(LAZY_CONS_COMMA, stdout);
+    lazy_emit_value_str(&inst->src);
+    fputs(LAZY_CONS_COMMA, stdout);
+    fputs(LAZY_CONS4_HEAD, stdout);
     fputs(cmp_tag, stdout);
-    fputs(CONS_COMMA, stdout);
-    emit_lazy_value_str(&inst->dst);
-    fputs(CONS_COMMA, stdout);
-    emit_lazy_isimm(&inst->jmp);
-    fputs(CONS_COMMA, stdout);
-    emit_lazy_value_str(&inst->jmp);
+    fputs(LAZY_CONS_COMMA, stdout);
+    lazy_emit_isimm(&inst->jmp);
+    fputs(LAZY_CONS_COMMA, stdout);
+    lazy_emit_value_str(&inst->jmp);
+    fputs(LAZY_CONS_COMMA, stdout);
+    lazy_emit_value_str(&inst->dst);
 }
 
 static void lazy_emit_cmp_inst(Inst* inst, const char* cmp_tag) {
-    fputs(CONS4_HEAD, stdout);
-    fputs(INST_CMP, stdout);
-    fputs(CONS_COMMA, stdout);
-    emit_lazy_isimm(&inst->src);
-    fputs(CONS_COMMA, stdout);
-    emit_lazy_value_str(&inst->src);
-    fputs(CONS_COMMA, stdout);
-    fputs(CONS_HEAD, stdout);
+    fputs(LAZY_CONS4_HEAD, stdout);
+    fputs(LAZY_INST_CMP, stdout);
+    fputs(LAZY_CONS_COMMA, stdout);
+    lazy_emit_isimm(&inst->src);
+    fputs(LAZY_CONS_COMMA, stdout);
+    lazy_emit_value_str(&inst->src);
+    fputs(LAZY_CONS_COMMA, stdout);
+    fputs(LAZY_CONS_HEAD, stdout);
     fputs(cmp_tag, stdout);
-    fputs(CONS_COMMA, stdout);
-    emit_lazy_value_str(&inst->dst);
+    fputs(LAZY_CONS_COMMA, stdout);
+    lazy_emit_value_str(&inst->dst);
 }
 
 
 static void lazy_emit_inst(Inst* inst) {
-  lazy_debug("\n# Inst\n");
-  fputs(CONS_HEAD, stdout);
-  lazy_debug("\n# Inst-body (%d)\n", inst->op);
   switch (inst->op) {
-  case MOV:
-    lazy_emit_basic_inst(inst, INST_MOV);
-    break;
-  case ADD:
-    lazy_emit_basic_inst(inst, INST_ADD);
-    break;
-  case SUB:
-    lazy_emit_basic_inst(inst, INST_SUB);
-    break;
-  case LOAD:
-    lazy_emit_basic_inst(inst, INST_LOAD);
-    break;
-  case STORE:
-    lazy_emit_basic_inst(inst, INST_STORE);
+  case MOV: lazy_emit_basic_inst(inst, LAZY_INST_MOV); break;
+  case LOAD: lazy_emit_basic_inst(inst, LAZY_INST_LOAD); break;
+  case STORE: lazy_emit_basic_inst(inst, LAZY_INST_STORE); break;
+
+  case ADD: lazy_emit_addsub_inst(inst, LAZY_T); break;
+  case SUB: lazy_emit_addsub_inst(inst, LAZY_NIL); break;
+
+  case EQ: lazy_emit_cmp_inst(inst, LAZY_CMP_EQ); break;
+  case NE: lazy_emit_cmp_inst(inst, LAZY_CMP_NE); break;
+  case LT: lazy_emit_cmp_inst(inst, LAZY_CMP_LT); break;
+  case GT: lazy_emit_cmp_inst(inst, LAZY_CMP_GT); break;
+  case LE: lazy_emit_cmp_inst(inst, LAZY_CMP_LE); break;
+  case GE: lazy_emit_cmp_inst(inst, LAZY_CMP_GE); break;
+
+  case JEQ: lazy_emit_jumpcmp_inst(inst, LAZY_CMP_EQ); break;
+  case JNE: lazy_emit_jumpcmp_inst(inst, LAZY_CMP_NE); break;
+  case JLT: lazy_emit_jumpcmp_inst(inst, LAZY_CMP_LT); break;
+  case JGT: lazy_emit_jumpcmp_inst(inst, LAZY_CMP_GT); break;
+  case JLE: lazy_emit_jumpcmp_inst(inst, LAZY_CMP_LE); break;
+  case JGE: lazy_emit_jumpcmp_inst(inst, LAZY_CMP_GE); break;
+
+  case JMP:
+    fputs(LAZY_CONS4_HEAD, stdout);
+    fputs(LAZY_INST_JMP, stdout);
+    fputs(LAZY_CONS_COMMA, stdout);
+    lazy_emit_isimm(&inst->jmp);
+    fputs(LAZY_CONS_COMMA, stdout);
+    lazy_emit_value_str(&inst->jmp);
+    fputs(LAZY_CONS_COMMA, stdout);
+    fputs(LAZY_NIL, stdout);
     break;
 
-  case PUTC: //5
-    // (cons4 inst-io-int _ [src] io-int-putc)
-    fputs(CONS4_HEAD, stdout);
-    fputs(INST_IO_INT, stdout);
-    fputs(CONS_COMMA, stdout);
-    emit_lazy_isimm(&inst->src);
-    fputs(CONS_COMMA, stdout);
-    emit_lazy_value_str(&inst->src);
-    fputs(CONS_COMMA, stdout);
-    fputs(IO_INT_PUTC, stdout);
+  case PUTC:
+    fputs(LAZY_CONS4_HEAD, stdout);
+    fputs(LAZY_INST_IO, stdout);
+    fputs(LAZY_CONS_COMMA, stdout);
+    lazy_emit_isimm(&inst->src);
+    fputs(LAZY_CONS_COMMA, stdout);
+    lazy_emit_value_str(&inst->src);
+    fputs(LAZY_CONS_COMMA, stdout);
+    fputs(LAZY_IO_PUTC, stdout);
     break;
 
   case GETC:
-    fputs(CONS4_HEAD, stdout);
-    fputs(INST_IO_INT, stdout);
-    fputs(CONS_COMMA, stdout);
-    fputs(NIL, stdout);
-    fputs(CONS_COMMA, stdout);
-    emit_lazy_value_str(&inst->dst);
-    fputs(CONS_COMMA, stdout);
-    fputs(IO_INT_GETC, stdout);
+    fputs(LAZY_CONS4_HEAD, stdout);
+    fputs(LAZY_INST_IO, stdout);
+    fputs(LAZY_CONS_COMMA, stdout);
+    fputs(LAZY_NIL, stdout);
+    fputs(LAZY_CONS_COMMA, stdout);
+    lazy_emit_value_str(&inst->dst);
+    fputs(LAZY_CONS_COMMA, stdout);
+    fputs(LAZY_IO_GETC, stdout);
     break;
 
   case EXIT:
-    fputs(CONS4_HEAD, stdout);
-    fputs(INST_IO_INT, stdout);
-    fputs(CONS_COMMA, stdout);
-    fputs(T, stdout);
-    fputs(CONS_COMMA, stdout);
-    fputs(T, stdout);
-    fputs(CONS_COMMA, stdout);
-    fputs(IO_INT_EXIT, stdout);
+    fputs(LAZY_CONS4_HEAD, stdout);
+    fputs(LAZY_INST_IO, stdout);
+    fputs(LAZY_CONS_COMMA, stdout);
+    fputs(LAZY_NIL, stdout);
+    fputs(LAZY_CONS_COMMA, stdout);
+    fputs(LAZY_NIL, stdout);
+    fputs(LAZY_CONS_COMMA, stdout);
+    fputs(LAZY_IO_EXIT, stdout);
     break;
 
   case DUMP:
-    fputs(CONS4_HEAD, stdout);
-    fputs(INST_MOV, stdout);
-    fputs(CONS_COMMA, stdout);
-    fputs(NIL, stdout);
-    fputs(CONS_COMMA, stdout);
+    fputs(LAZY_CONS4_HEAD, stdout);
+    fputs(LAZY_INST_MOV, stdout);
+    fputs(LAZY_CONS_COMMA, stdout);
+    fputs(LAZY_NIL, stdout);
+    fputs(LAZY_CONS_COMMA, stdout);
     fputs(LAZY_REG_A, stdout);
-    fputs(CONS_COMMA, stdout);
+    fputs(LAZY_CONS_COMMA, stdout);
     fputs(LAZY_REG_A, stdout);
-    break;
-
-  // (cons4 inst-cmp [src-isimm] [src] (cons [emum-cmp] [dst]))
-  case EQ:
-    lazy_emit_cmp_inst(inst, CMP_EQ);
-    break;
-  case NE: //10
-    lazy_emit_cmp_inst(inst, CMP_NE);
-    break;
-  case LT:
-    lazy_emit_cmp_inst(inst, CMP_LT);
-    break;
-  case GT:
-    lazy_emit_cmp_inst(inst, CMP_GT);
-    break;
-  case LE:
-    lazy_emit_cmp_inst(inst, CMP_LE);
-    break;
-  case GE: //14
-    lazy_emit_cmp_inst(inst, CMP_GE);
-    break;
-
-  case JEQ:
-    lazy_emit_jumpcmp_inst(inst, CMP_EQ);
-    break;
-  case JNE:
-    lazy_emit_jumpcmp_inst(inst, CMP_NE);
-    break;
-  case JLT:
-    lazy_emit_jumpcmp_inst(inst, CMP_LT);
-    break;
-  case JGT:
-    lazy_emit_jumpcmp_inst(inst, CMP_GT);
-    break;
-  case JLE:
-    lazy_emit_jumpcmp_inst(inst, CMP_LE);
-    break;
-  case JGE:
-    lazy_emit_jumpcmp_inst(inst, CMP_GE);
-    break;
-
-  case JMP:
-    fputs(CONS4_HEAD, stdout);
-    fputs(INST_JMP, stdout);
-    fputs(CONS_COMMA, stdout);
-    emit_lazy_isimm(&inst->jmp);
-    fputs(CONS_COMMA, stdout);
-    emit_lazy_value_str(&inst->jmp);
-    fputs(CONS_COMMA, stdout);
-    fputs(NIL, stdout);
     break;
 
   default:
     error("oops");
   }
-  lazy_debug("\n# Inst-end\n");
-  fputs(CONS_COMMA, stdout);
+}
+
+static Inst* lazy_emit_chunk(Inst* inst) {
+  const int init_pc = inst->pc;
+  for (; inst && (inst->pc == init_pc); inst = inst->next) {
+    fputs("\n  ", stdout);
+    fputs(LAZY_CONS_HEAD, stdout);
+    lazy_emit_inst(inst);
+    fputs(LAZY_CONS_COMMA, stdout);
+  }
+  fputs(LAZY_NIL, stdout);
+  return inst;
+}
+
+static void lazy_emit_data_list(Data* data) {
+  for (; data; data = data->next){
+    fputs("\n  ", stdout);
+    fputs(LAZY_CONS_HEAD, stdout);
+    lazy_emit_int(data->v);
+    fputs(LAZY_CONS_COMMA, stdout);
+  }
+  fputs(LAZY_NIL, stdout);
+}
+
+static void lazy_emit_text_list(Inst* inst) {
+  while (inst) {
+    putchar('\n');
+    fputs(LAZY_CONS_HEAD, stdout);
+    inst = lazy_emit_chunk(inst);
+    fputs(LAZY_CONS_COMMA, stdout);
+  }
+  fputs(LAZY_NIL, stdout);
 }
 
 void target_lazy(Module* module) {
-  #ifndef DEBUG
-    printf("``");
-    fputs(lazy_core, stdout);
-  #endif
-
-  lazy_emit_data(module->data);
-  fputs(CONS_HEAD, stdout);
-  emit_chunked_main_loop(module->text,
-                        lazy_emit_func_prologue,
-                        lazy_emit_func_epilogue,
-                        lazy_emit_pc_change,
-                        lazy_emit_inst);
-  fputs(NIL, stdout);
-  fputs(CONS_COMMA, stdout);
-  fputs(NIL, stdout);
+  fputs(LAZY_APPLY, stdout);
+  fputs(LAZY_APPLY, stdout);
+  fputs(LAZY_APPLY, stdout);
+  fputs(LAZY_APPLY, stdout);
+  fputs(lazy_core, stdout);
+  fputs(LAZY_8, stdout);
+  fputs(LAZY_16, stdout);
+  lazy_emit_data_list(module->data);
+  lazy_emit_text_list(module->text);
 }
