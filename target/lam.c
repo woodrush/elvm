@@ -231,13 +231,13 @@ static void lam_emit_inst(Inst* inst) {
 static void lam_emit_data_list(Data* data) {
   int n_data;
   for (n_data=0; data; data=data->next, n_data++){
-    fputs("\n    ", stdout);
+    putchar('\n');
     fputs(LAM_CONS_HEADER, stdout);
     lam_emit_int(data->v);
   }
   fputs(LAM_NIL, stdout);
   lam_print_n(n_data, LAM_CONS_FOOTER);
-  fputs("\n", stdout);
+  putchar('\n');
 }
 
 static Inst* lam_emit_chunk(Inst* inst) {
