@@ -237,6 +237,7 @@ static void lazy_emit_inst(Inst* inst) {
 static Inst* lazy_emit_chunk(Inst* inst) {
   const int init_pc = inst->pc;
   for (; inst && (inst->pc == init_pc); inst = inst->next) {
+    fputs("\n  ", stdout);
     fputs(LAZY_CONS_HEAD, stdout);
     lazy_emit_inst(inst);
     fputs(LAZY_CONS_COMMA, stdout);
@@ -247,6 +248,7 @@ static Inst* lazy_emit_chunk(Inst* inst) {
 
 static void lazy_emit_data_list(Data* data) {
   for (; data; data = data->next){
+    fputs("\n  ", stdout);
     fputs(LAZY_CONS_HEAD, stdout);
     lazy_emit_int(data->v);
     fputs(LAZY_CONS_COMMA, stdout);
@@ -256,6 +258,7 @@ static void lazy_emit_data_list(Data* data) {
 
 static void lazy_emit_text_list(Inst* inst) {
   while (inst) {
+    putchar('\n');
     fputs(LAZY_CONS_HEAD, stdout);
     inst = lazy_emit_chunk(inst);
     fputs(LAZY_CONS_COMMA, stdout);
