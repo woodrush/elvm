@@ -100,6 +100,7 @@ $(COBJS): out/%.o: ir/%.c
 	$(CC) -c -I. $(CFLAGS) $< -o $@
 
 ELC_SRCS := \
+	blc.c \
 	c.c \
 	elc.c \
 	util.c \
@@ -538,8 +539,12 @@ endif
 
 TARGET := lam
 RUNNER := tools/runlam.sh
-TOOL := python
 include target.mk
+
+TARGET := blc
+RUNNER := tools/runblc.sh
+include target.mk
+$(OUT.eir.blc.out): tools/runblc.sh
 
 test: $(TEST_RESULTS)
 
