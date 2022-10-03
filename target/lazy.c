@@ -2,28 +2,24 @@
 #include <target/util.h>
 #include <target/lazycore.h>
 
-// #define DEBUG
 
-
-
-// (cons x y) = (lambda (f) (f x y))
-// = ``s``si`k[x]`k[y]
 
 static const char LAZY_APPLY[] = "`";
-static const char LAZY_CONS_HEAD[] = "``s``si`k";
-static const char LAZY_CONS_COMMA[] = "`k";
+static const char LAZY_T[] = "k";
+static const char LAZY_NIL[] = "`ki";
 
 static const char LAZY_8[] = "``s``s`ks``s`kk``s`k``s``s`ks``s`kki``s``s`ks``s`kki`ki``s`k```sii``s``s`ks``s`kki``s``s`ks``s`kki`kii`ki";
 static const char LAZY_16[] = "```s``siii``s``s`ks``s`kki``s``s`ks``s`kki`ki";
+
+// (cons x y) = (lambda (f) (f x y))
+// = ``s``si`k[x]`k[y]
+static const char LAZY_CONS_HEAD[] = "``s``si`k";
+static const char LAZY_CONS_COMMA[] = "`k";
 
 // (cons4 x1 x2 x3 x4) = (lambda (f) (f x1 x2 x3 x4))
 // = ``s``s``s``si`k[x1]`k[x2]`k[x3]`k[x4]
 static const char LAZY_CONS4_HEAD[] = "``s``s``s``si`k";
 
-
-
-static const char LAZY_T[] = "k";
-static const char LAZY_NIL[] = "`ki";
 static const char LAZY_REG_A[]  = "``s``si`kk`k`ki";
 static const char LAZY_REG_B[]  = "``s``si`k`ki`k``s``si`kk`k``s``si`kk`k`ki";
 static const char LAZY_REG_C[]  = "``s``si`k`ki`k``s``si`k`ki`k``s``si`k`ki`k``s``si`k`ki`k`ki";
@@ -121,7 +117,7 @@ static void lazy_emit_basic_inst(Inst* inst, const char* inst_tag) {
     lazy_emit_value_str(&inst->dst);
 }
 
-static void lazy_emit_addsub_inst(Inst* inst, bool isadd) {
+static void lazy_emit_addsub_inst(Inst* inst, const char* isadd) {
     fputs(LAZY_CONS4_HEAD, stdout);
     fputs(LAZY_INST_ADDSUB, stdout);
     fputs(LAZY_CONS_COMMA, stdout);
@@ -132,11 +128,7 @@ static void lazy_emit_addsub_inst(Inst* inst, bool isadd) {
     fputs(LAZY_CONS_HEAD, stdout);
     lazy_emit_value_str(&inst->dst);
     fputs(LAZY_CONS_COMMA, stdout);
-    if (isadd) {
-      fputs(LAZY_T, stdout);
-    } else {
-      fputs(LAZY_NIL, stdout);
-    }
+    fputs(isadd, stdout);
 }
 
 static void lazy_emit_jumpcmp_inst(Inst* inst, const char* cmp_tag) {
@@ -174,20 +166,36 @@ static void lazy_emit_cmp_inst(Inst* inst, const char* cmp_tag) {
 
 static void lazy_emit_inst(Inst* inst) {
   switch (inst->op) {
-  case MOV:
-    lazy_emit_basic_inst(inst, LAZY_INST_MOV);
-    break;
-  case ADD:
-    lazy_emit_addsub_inst(inst, true);
-    break;
-  case SUB:
-    lazy_emit_addsub_inst(inst, false);
-    break;
-  case LOAD:
-    lazy_emit_basic_inst(inst, LAZY_INST_LOAD);
-    break;
-  case STORE:
-    lazy_emit_basic_inst(inst, LAZY_INST_STORE);
+  case MOV: lazy_emit_basic_inst(inst, LAZY_INST_MOV); break;
+  case LOAD: lazy_emit_basic_inst(inst, LAZY_INST_LOAD); break;
+  case STORE: lazy_emit_basic_inst(inst, LAZY_INST_STORE); break;
+
+  case ADD: lazy_emit_addsub_inst(inst, LAZY_T); break;
+  case SUB: lazy_emit_addsub_inst(inst, LAZY_NIL); break;
+
+  case EQ: lazy_emit_cmp_inst(inst, LAZY_CMP_EQ); break;
+  case NE: lazy_emit_cmp_inst(inst, LAZY_CMP_NE); break;
+  case LT: lazy_emit_cmp_inst(inst, LAZY_CMP_LT); break;
+  case GT: lazy_emit_cmp_inst(inst, LAZY_CMP_GT); break;
+  case LE: lazy_emit_cmp_inst(inst, LAZY_CMP_LE); break;
+  case GE: lazy_emit_cmp_inst(inst, LAZY_CMP_GE); break;
+
+  case JEQ: lazy_emit_jumpcmp_inst(inst, LAZY_CMP_EQ); break;
+  case JNE: lazy_emit_jumpcmp_inst(inst, LAZY_CMP_NE); break;
+  case JLT: lazy_emit_jumpcmp_inst(inst, LAZY_CMP_LT); break;
+  case JGT: lazy_emit_jumpcmp_inst(inst, LAZY_CMP_GT); break;
+  case JLE: lazy_emit_jumpcmp_inst(inst, LAZY_CMP_LE); break;
+  case JGE: lazy_emit_jumpcmp_inst(inst, LAZY_CMP_GE); break;
+
+  case JMP:
+    fputs(LAZY_CONS4_HEAD, stdout);
+    fputs(LAZY_INST_JMP, stdout);
+    fputs(LAZY_CONS_COMMA, stdout);
+    lazy_emit_isimm(&inst->jmp);
+    fputs(LAZY_CONS_COMMA, stdout);
+    lazy_emit_value_str(&inst->jmp);
+    fputs(LAZY_CONS_COMMA, stdout);
+    fputs(LAZY_NIL, stdout);
     break;
 
   case PUTC:
@@ -232,55 +240,6 @@ static void lazy_emit_inst(Inst* inst) {
     fputs(LAZY_REG_A, stdout);
     fputs(LAZY_CONS_COMMA, stdout);
     fputs(LAZY_REG_A, stdout);
-    break;
-
-  case EQ:
-    lazy_emit_cmp_inst(inst, LAZY_CMP_EQ);
-    break;
-  case NE:
-    lazy_emit_cmp_inst(inst, LAZY_CMP_NE);
-    break;
-  case LT:
-    lazy_emit_cmp_inst(inst, LAZY_CMP_LT);
-    break;
-  case GT:
-    lazy_emit_cmp_inst(inst, LAZY_CMP_GT);
-    break;
-  case LE:
-    lazy_emit_cmp_inst(inst, LAZY_CMP_LE);
-    break;
-  case GE:
-    lazy_emit_cmp_inst(inst, LAZY_CMP_GE);
-    break;
-
-  case JEQ:
-    lazy_emit_jumpcmp_inst(inst, LAZY_CMP_EQ);
-    break;
-  case JNE:
-    lazy_emit_jumpcmp_inst(inst, LAZY_CMP_NE);
-    break;
-  case JLT:
-    lazy_emit_jumpcmp_inst(inst, LAZY_CMP_LT);
-    break;
-  case JGT:
-    lazy_emit_jumpcmp_inst(inst, LAZY_CMP_GT);
-    break;
-  case JLE:
-    lazy_emit_jumpcmp_inst(inst, LAZY_CMP_LE);
-    break;
-  case JGE:
-    lazy_emit_jumpcmp_inst(inst, LAZY_CMP_GE);
-    break;
-
-  case JMP:
-    fputs(LAZY_CONS4_HEAD, stdout);
-    fputs(LAZY_INST_JMP, stdout);
-    fputs(LAZY_CONS_COMMA, stdout);
-    lazy_emit_isimm(&inst->jmp);
-    fputs(LAZY_CONS_COMMA, stdout);
-    lazy_emit_value_str(&inst->jmp);
-    fputs(LAZY_CONS_COMMA, stdout);
-    fputs(LAZY_NIL, stdout);
     break;
 
   default:
