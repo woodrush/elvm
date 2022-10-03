@@ -3,7 +3,30 @@
 
 
 static char lam_vm[] =
-"(\\x.\\y.\\z.\\a.\\b.((\\c.((\\d.((\\e.((\\f.((\\g.((\\h.(a ((\\i.(i (d (\\j.\\k.(k (\\l.\\m.\\l.\\o.(o k (j m))) k)) a) (\\j.(i z (d (\\k.\\l.\\b.\\n.\\o.\\p.((\\q.((\\r.((\\s.(n (\\t.\\u.\\v.\\w.v) (\\t.t) (\\t.\\u.\\v.u) (\\t.\\u.u) (o (\\t.\\u.\\v.(k l b t u p)) o) (n (\\t.\\u.((\\v.(t (\\w.\\A.\\B.((\\A.\\B.\\E.(A (E B) (s B E))) A B (\\C.\\D.(w (D ((\\E.(b (\\F.\\G.\\H.(E (y (\\I.\\J.(J (\\I.\\L.I) I)) F) G)) (E c b))) (\\E.\\b.(r B E (k l b u o)))) (\\E.(E (y (\\F.(F (\\G.\\H.H))) C) (v p))) A) (D (\\E.\\F.\\G.\\H.((\\A.\\B.\\K.(A (K B) (s B K))) F G (s H (\\I.\\J.(E (e I C) (q J) (v p))))))) (D (\\E.\\F.((\\c.(f (\\H.\\I.I) (E (s F e C)) c c (\\H.(r F)))) c)) v) (q C) (h l C (r D) v) (s D (g l C) k b u o p) (D (\\D.\\F.(s D (f F F) C (\\G.(r D)))) v) (r D C v))))))) (k l b u o)))))) (h p))) (g p))) (\\q.(h j q (\\a.(a (k l b) p))))))))))) (\\i.\\j.(d (\\k.\\i.\\m.\\j.(i (\\o.\\o.\\o.(m (\\o.\\s.\\o.(k i s (\\u.\\i.(k i s (\\w.(j (\\A.(A u w)))))))) (i j))) (j i i))) i c (\\k.\\l.(j k)))) b) (\\i.\\j.j))) (\\h.\\i.\\j.(d (\\k.\\h.\\i.(h (\\n.\\o.\\p.(i (\\q.\\r.\\p.(q (k n) (k o) r)) (j h))) (j c))) h i)))) (d (\\g.\\h.\\i.\\j.\\k.(i (\\l.\\m.\\n.((\\k.(h (\\p.\\q.\\n.(l (h k) (k q p))) (k (\\p.\\q.q) (\\p.\\q.q)))) (\\o.(g o m j (\\p.\\q.(l (k (\\r.(r p q))) (k (\\r.(r q p))))))))) (k j)))))) (d (\\f.\\g.\\h.\\i.\\j.\\k.(i (\\l.\\m.\\n.(j (\\o.\\p.(f g h m p (\\q.\\r.((\\s.((\\o.((\\u.((\\k.((\\k.(u o q (k (\\A.\\B.A)) (k (\\A.\\B.B)))) (u q s (k (\\w.\\A.w)) (k (\\w.\\A.A))))) (\\v.\\w.(k w (\\u.(u v r)))))) (\\u.\\v.(l (o u v) (o v u))))) (h o (o (\\t.\\u.u) (\\t.\\u.t))))) (q (\\s.\\t.t) (\\s.\\t.s)))))))) (k g i)))))) (d (\\e.\\f.\\g.(f (\\h.\\i.\\j.(g (\\k.\\l.((\\m.(h (k m (\\n.\\o.\\p.o)) (k (\\n.\\o.\\p.p) m))) (e i l))))) (\\h.\\i.\\j.h)))))) (\\d.((\\e.(d (e e))) (\\e.(d (e e))))))) ((\\c.(y c (x c (\\d.\\e.e)))) (\\c.\\d.(d (\\c.\\f.c) c)))))";
+"(\\x.\\y.\\z.\\a.\\b.((\\c.((\\d.((\\e.((\\f.((\\g.((\\h.(a ((\\i.(i (d ( \\j."
+"\\k.(k (\\l.\\m.\\n.\\o.(o k (j m))) k)) a) (\\j.(i z (d (\\k.\\l.\\m.\\n.\\o."
+"\\p.((\\q.((\\r.((\\s.(n (\\t.\\u.\\v.\\w.v) (\\t.t) (\\t.\\u.\\v.u) (\\t.\\u."
+"u) (o (\\t.\\u.\\v.(o (k l m) p)) o) (n (\\t.\\u.((\\v.(t (\\w.\\A.\\B.((\\C.("
+"A (C B) (s B C))) (\\C.\\D.(w (D ((\\E.(m (\\F.\\G.\\H.(E (y (\\I.\\J.(J (\\K."
+"\\L.K) I)) F) G)) (E c m))) (\\E.\\F.(r B E (k l F u o)))) (\\E.(E (y (\\F.(F("
+"\\G.\\H.H))) C) (v p))) A) (D (\\E.\\F.\\G.\\H.((\\I.(F (I G) (s G I))) (s H ("
+"\\I.\\J.(E (e I C) (q J) (v p))))))) (D (\\E.\\F.((\\G.(f (\\H.\\I.I) (E (s F "
+"e C)) G G (\\H.(r F)))) c)) v) (q C) (h l C (r D) v) (s D (g l C) k m u o p) ("
+"D (\\E.\\F.(s E (f F F) C (\\G.(r E)))) v) (r D C v))))))) (k l m u o)))))) (h"
+" p))) (g p))) (\\q.(h j q (\\r.(r (k l m) p))))))))))) (\\i.\\j.(d (\\k.\\l.\\"
+"m.\\n.(l (\\o.\\p.\\q.(m (\\r.\\s.\\t.(k l s (\\u.\\v.(k v s (\\w.(n (\\A.(A u"
+" w)))))))) (l n))) (n l l))) i c (\\k.\\l.(j k)))) b) (\\i.\\j.j))) (d (\\h.\\"
+"i.\\j.\\k.(i (\\l.\\m.\\n.(j (\\o.\\p.\\q.(o (h l) (h m) p k)) (k i))) (k c)))"
+"))) (d (\\g.\\h.\\i.\\j.\\k.(i (\\l.\\m.\\n.((\\o.(h (\\p.\\q.\\r.(l (h o) (o "
+"q p))) (o (\\p.\\q.q) (\\p.\\q.q)))) (\\o.(g o m j (\\p.\\q.(l (k (\\r.(r p q)"
+")) (k (\\r.(r q p))))))))) (k j)))))) (d (\\f.\\g.\\h.\\i.\\j.\\k.(i (\\l.\\m."
+"\\n.(j (\\o.\\p.(f g h m p (\\q.\\r.((\\s.((\\t.((\\u.((\\v.(t s q (v (\\w.\\A"
+".w)) (v (\\w.\\A.A)))) (t q (q (\\v.\\w.w) (\\v.\\w.v)) (u (\\v.\\w.v)) (u (\\"
+"v.\\w.w))))) (\\u.\\v.(k v (\\w.(w u r)))))) (\\t.\\u.(l (s t u) (s u t))))) ("
+"h o (o (\\s.\\t.t) (\\s.\\t.s))))))))) (k g i)))))) (d (\\e.\\f.\\g.(f (\\h.\\"
+"i.\\j.(g (\\k.\\l.((\\m.(h (k m (\\n.\\o.\\p.o)) (k (\\n.\\o.\\p.p) m))) (e i "
+"l))))) (\\h.\\i.\\j.h)))))) (\\d.((\\e.(d (e e))) (\\e.(d (e e))))))) ((\\c.(y"
+" c (x c (\\d.\\e.e)))) (\\c.\\d.(d (\\e.\\f.e) c)))))";
 
 
 static const int LAM_N_BITS = 24;
