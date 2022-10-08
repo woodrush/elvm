@@ -596,7 +596,6 @@ ifndef FULL
 TEST_FILTER := out/elc.c.eir.blc out/eli.c.eir.blc out/dump_ir.c.eir.blc
 endif
 include target.mk
-$(OUT.eir.blc.out): tools/runblc.sh
 
 test: $(TEST_RESULTS)
 
