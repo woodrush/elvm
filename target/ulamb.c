@@ -224,7 +224,7 @@ void target_ulamb(Module* module) {
   fputs(ULAMB_APPLY, stdout);
   fputs(ULAMB_APPLY, stdout);
   fputs(ULAMB_APPLY, stdout);
-  fputs(ulamb_core, stdout);
+  fputs(ULAMB_CORE, stdout);
   fputs(ULAMB_8, stdout);
   fputs(ULAMB_16, stdout);
   ulamb_emit_data_list(module->data);
