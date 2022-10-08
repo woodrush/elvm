@@ -578,10 +578,10 @@ TARGET := tcl
 RUNNER := tclsh
 include target.mk
 
-# TARGET := j
-# RUNNER := jconsole
-# CAN_BUILD := $(shell DISPLAY=fail jconsole -js "echo i.4" -js "exit 0" 2>&1 | perl -ne 'print /^0 1 2 3/ ? 1 : 0')
-# include target.mk
+TARGET := j
+RUNNER := jconsole
+CAN_BUILD := $(shell DISPLAY=fail jconsole -js "echo i.4" -js "exit 0" 2>&1 | perl -ne 'print /^0 1 2 3/ ? 1 : 0')
+include target.mk
 
 TARGET := qftasm
 RUNNER := tools/runqftasm.sh
