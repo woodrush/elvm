@@ -35,4 +35,7 @@ if [ ! -e out/uni++ ]; then
     rm -rf $dir
 fi
 
+# Required for parsing large programs
+ulimit -s 524288
+
 (cat $1 | out/lam2bin | out/packbits; cat) | out/uni++ -o
