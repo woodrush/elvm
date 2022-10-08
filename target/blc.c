@@ -56,7 +56,7 @@ static const char BLC_CONS4_HEAD[] = "000101010110";
 
 // ((lambda (cons-t cons-nil) [A]) (lambda (x f) (f t x)) (lambda (x f) (f nil x)))
 //   = 01000100[A]000001011000001011000000101100000110110
-// Where [A] is 
+// Where [A] is
 // (F3 (F2 (F1 BLC_NIL)))
 //   = 01[F3]01[F2]01[F1]000010
 // Where F1, F2, ... is in { 10, 110 }
@@ -231,7 +231,7 @@ static void blc_emit_inst(Inst* inst) {
 
   case PUTC: blc_emit_io_inst(BLC_IO_PUTC, &inst->src); break;
   case GETC: blc_emit_io_inst(BLC_IO_GETC, &inst->dst); break;
-  
+
   case EXIT: blc_emit_exit_inst(); break;
   case DUMP: blc_emit_dump_inst(); break;
 
