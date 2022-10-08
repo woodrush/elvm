@@ -2,7 +2,7 @@
 #include <target/util.h>
 
 
-static char lam_vm[] =
+static char LAM_VM[] =
 "(\\x.\\y.\\z.\\a.\\b.((\\c.((\\d.((\\e.((\\f.((\\g.((\\h.(a ((\\i.(i (d ( \\j."
 "\\k.(k (\\l.\\m.\\n.\\o.(o k (j m))) k)) a) (\\j.(i z (d (\\k.\\l.\\m.\\n.\\o."
 "\\p.((\\q.((\\r.((\\s.(n (\\t.\\u.\\v.\\w.v) (\\t.t) (\\t.\\u.\\v.u) (\\t.\\u."
@@ -118,7 +118,7 @@ static void emit_lam_value_str(Value* v) {
   switch (v->type) {
     case REG: fputs(lam_reg(v->reg), stdout); break;
     case IMM: lam_emit_int(v->imm); break;
-    default: 
+    default:
       error("invalid value");
   }
 }
@@ -219,7 +219,7 @@ static void lam_emit_inst(Inst* inst) {
 
   case PUTC: lam_emit_io_inst(LAM_IO_PUTC, &inst->src); break;
   case GETC: lam_emit_io_inst(LAM_IO_GETC, &inst->dst); break;
-  
+
   case EXIT: lam_emit_exit_inst(); break;
   case DUMP: lam_emit_dump_inst(); break;
 
@@ -266,7 +266,7 @@ static void lam_emit_text_list(Inst* inst) {
 
 void target_lam(Module* module) {
   fputs("(", stdout);
-  fputs(lam_vm, stdout);
+  fputs(LAM_VM, stdout);
   fputs(LAM_8, stdout);
   fputs(LAM_16, stdout);
   lam_emit_data_list(module->data);
