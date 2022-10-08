@@ -4,12 +4,13 @@
 
 
 
+static const int LAZY_N_BITS = 24;
+static const char LAZY_8[] = "``s``s`ks``s`kk``s`k``s``s`ks``s`kki``s``s`ks``s`kki`ki``s`k```sii``s``s`ks``s`kki``s``s`ks``s`kki`kii`ki";
+static const char LAZY_16[] = "```s``siii``s``s`ks``s`kki``s``s`ks``s`kki`ki";
+
 static const char LAZY_APPLY[] = "`";
 static const char LAZY_T[] = "k";
 static const char LAZY_NIL[] = "`ki";
-
-static const char LAZY_8[] = "``s``s`ks``s`kk``s`k``s``s`ks``s`kki``s``s`ks``s`kki`ki``s`k```sii``s``s`ks``s`kki``s``s`ks``s`kki`kii`ki";
-static const char LAZY_16[] = "```s``siii``s``s`ks``s`kki``s``s`ks``s`kki`ki";
 
 // (cons x y) = (lambda (f) (f x y))
 // = ``s``si`k[x]`k[y]
@@ -63,9 +64,9 @@ static const char* lazy_reg(Reg r) {
 
 static void lazy_emit_int(int n) {
 #ifndef __eir__
-    n &= ((1 << 24) - 1);
+    n &= ((1 << LAZY_N_BITS) - 1);
 #endif
-  for (int checkbit = 1 << (24 - 1); checkbit; checkbit >>= 1) {
+  for (int checkbit = 1 << (LAZY_N_BITS - 1); checkbit; checkbit >>= 1) {
     fputs(LAZY_CONS_HEAD, stdout);
     fputs((n & checkbit) ? LAZY_NIL : LAZY_T, stdout);
     fputs(LAZY_CONS_COMMA, stdout);
