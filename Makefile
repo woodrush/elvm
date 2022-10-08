@@ -597,7 +597,6 @@ TEST_FILTER := out/8cc.c.eir.lazy out/elc.c.eir.lazy out/eli.c.eir.lazy out/dump
 out/fizzbuzz.c.eir.lazy out/fizzbuzz_fast.c.eir.lazy out/qsort.c.eir.lazy
 endif
 include target.mk
-$(OUT.eir.lazy.out): tools/runlazy.sh
 
 test: $(TEST_RESULTS)
 
