@@ -3,10 +3,12 @@
 set -e
 
 
-if [ ! -e out/uni++ ] || [ ! -e out/packbits ]; then
+if [ ! -e out/packbits ]; then
     gcc -O2 tools/packbits.c -o packbits
     mv packbits out
+fi
 
+if [ ! -e out/uni++ ]; then
     orig_dir=$(pwd)
     dir=$(mktemp -d)
     cd $dir
