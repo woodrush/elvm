@@ -3,9 +3,9 @@
 set -e
 
 
-if [ ! -e out/uni++ ]; then
-    gcc -O2 tools/asc2bin.c -o asc2bin
-    mv asc2bin out
+if [ ! -e out/uni++ ] || [ ! -e out/packbits ]; then
+    gcc -O2 tools/packbits.c -o packbits
+    mv packbits out
 
     orig_dir=$(pwd)
     dir=$(mktemp -d)
@@ -23,4 +23,4 @@ fi
 # Required for parsing large programs
 ulimit -s 524288
 
-(cat $1 | ./out/asc2bin; cat - ) | out/uni++ -o
+(cat $1 | ./out/packbits; cat - ) | out/uni++ -o
