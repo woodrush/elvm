@@ -3,7 +3,7 @@
 
 
 
-static char blc_vm[] =
+static const char BLC_VM[] =
 "000000000001000100010001000100010001011111111100101000101100101111111000000101"
 "100000000001011011111001111111011101011111111100001011101111111111100111111110"
 "000000000000010001000100010101010101111111000000000110001000000011000001001011"
@@ -263,7 +263,7 @@ void target_blc(Module* module) {
   fputs(BLC_APPLY, stdout);
   fputs(BLC_APPLY, stdout);
   fputs(BLC_APPLY, stdout);
-  fputs(blc_vm, stdout);
+  fputs(BLC_VM, stdout);
   fputs(BLC_8, stdout);
   fputs(BLC_16, stdout);
   blc_emit_data_list(module->data);
