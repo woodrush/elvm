@@ -596,7 +596,6 @@ ifndef FULL
 TEST_FILTER := out/8cc.c.eir.ulamb out/elc.c.eir.ulamb out/eli.c.eir.ulamb out/dump_ir.c.eir.ulamb
 endif
 include target.mk
-$(OUT.eir.ulamb.out): tools/runulamb.sh
 
 test: $(TEST_RESULTS)
 
