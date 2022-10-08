@@ -10,7 +10,7 @@ if [ ! -e out/lazyk ]; then
 
     git clone https://github.com/irori/lazyk
     cd lazyk
-    make
+    make > /dev/null
 
     mv lazyk ${orig_dir}/out
     cd $orig_dir
