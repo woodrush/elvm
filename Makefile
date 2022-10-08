@@ -1,7 +1,6 @@
 COMMONFLAGS := -W -Wall -W -Werror -MMD -MP -O -g -Wno-missing-field-initializers
 CFLAGS := -std=gnu99 $(COMMONFLAGS) -Wno-missing-field-initializers
 CXXFLAGS := -std=c++11 $(COMMONFLAGS)
-CC=gcc-9
 
 uname := $(shell uname)
 ifneq (,$(findstring arm,$(shell uname -m)))
@@ -455,7 +454,7 @@ endif
 TARGET := unl
 RUNNER := tools/rununl.sh
 ifndef FULL
-TEST_FILTER := out/8cc.c.eir.unl out/elc.c.eir.unl out/eli.c.eir.unl out/dump_ir.c.eir.unl
+TEST_FILTER := out/eli.c.eir.unl out/dump_ir.c.eir.unl
 endif
 include target.mk
 $(OUT.eir.unl.out): tools/rununl.sh
@@ -579,10 +578,10 @@ TARGET := tcl
 RUNNER := tclsh
 include target.mk
 
-# TARGET := j
-# RUNNER := jconsole
-# CAN_BUILD := $(shell DISPLAY=fail jconsole -js "echo i.4" -js "exit 0" 2>&1 | perl -ne 'print /^0 1 2 3/ ? 1 : 0')
-# include target.mk
+TARGET := j
+RUNNER := jconsole
+CAN_BUILD := $(shell DISPLAY=fail jconsole -js "echo i.4" -js "exit 0" 2>&1 | perl -ne 'print /^0 1 2 3/ ? 1 : 0')
+include target.mk
 
 TARGET := qftasm
 RUNNER := tools/runqftasm.sh
