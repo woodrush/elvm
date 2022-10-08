@@ -272,7 +272,7 @@ void target_lazy(Module* module) {
   fputs(LAZY_APPLY, stdout);
   fputs(LAZY_APPLY, stdout);
   fputs(LAZY_APPLY, stdout);
-  fputs(lazy_core, stdout);
+  fputs(LAZY_VM, stdout);
   fputs(LAZY_8, stdout);
   fputs(LAZY_16, stdout);
   lazy_emit_data_list(module->data);
