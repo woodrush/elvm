@@ -17,7 +17,7 @@ static const char CONS4_HEAD[] = "000101010110";
 
 // ((lambda (cons-t cons-nil) [A]) (lambda (x f) (f t x)) (lambda (x f) (f nil x)))
 //   = 01000100[A]000001011000001011000000101100000110110
-// Where [A] is 
+// Where [A] is
 // (F3 (F2 (F1 NIL)))
 //   = 01[F3]01[F2]01[F1]000010
 // Where F1, F2, ... is in { 10, 110 }
@@ -192,7 +192,7 @@ static void ulamb_emit_inst(Inst* inst) {
 
   case PUTC: ulamb_emit_io_inst(IO_PUTC, &inst->src); break;
   case GETC: ulamb_emit_io_inst(IO_GETC, &inst->dst); break;
-  
+
   case EXIT: ulamb_emit_exit_inst(); break;
   case DUMP: ulamb_emit_dump_inst(); break;
 
