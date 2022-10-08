@@ -126,7 +126,6 @@ ELC_SRCS := \
 	java.c \
 	js.c \
 	kx.c \
-	lazy.c \
 	lua.c \
 	ll.c \
 	lol.c \
