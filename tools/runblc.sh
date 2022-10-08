@@ -15,7 +15,7 @@ if [ ! -e out/uni++ ]; then
 
     git clone https://github.com/melvinzhang/binary-lambda-calculus
     cd binary-lambda-calculus
-    make
+    make > /dev/null
     mv uni ${orig_dir}/out/uni++
 
     cd $orig_dir
