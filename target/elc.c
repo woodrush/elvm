@@ -10,6 +10,7 @@ void target_asmjs(Module* module);
 void target_awk(Module* module);
 void target_bef(Module* module);
 void target_bf(Module* module);
+void target_blc(Module* module);
 void target_c(Module* module);
 void target_cl(Module* module);
 void target_cmake(Module* module);
@@ -30,6 +31,7 @@ void target_java(Module* module);
 void target_js(Module* module);
 void target_kx(Module* module);
 void target_lam(Module* module);
+void target_lazy(Module* module);
 void target_lua(Module* module);
 void target_ll(Module* module);
 void target_lol(Module* module);
@@ -76,6 +78,7 @@ static target_func_t get_target_func(const char* ext) {
     split_basic_block_by_mem();
     return target_bf;
   }
+  if (!strcmp(ext, "blc")) return target_blc;
   if (!strcmp(ext, "c")) return target_c;
   if (!strcmp(ext, "cl")) return target_cl;
   if (!strcmp(ext, "cmake")) return target_cmake;
@@ -96,6 +99,7 @@ static target_func_t get_target_func(const char* ext) {
   if (!strcmp(ext, "js")) return target_js;
   if (!strcmp(ext, "kx")) return target_kx;
   if (!strcmp(ext, "lam")) return target_lam;
+  if (!strcmp(ext, "lazy")) return target_lazy;
   if (!strcmp(ext, "lua")) return target_lua;
   if (!strcmp(ext, "ll")) return target_ll;
   if (!strcmp(ext, "lol")) return target_lol;
