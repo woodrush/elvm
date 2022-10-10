@@ -598,6 +598,7 @@ ifndef FULL
 TEST_FILTER := out/8cc.c.eir.lazy out/elc.c.eir.lazy out/eli.c.eir.lazy out/dump_ir.c.eir.lazy \
 out/fizzbuzz.c.eir.lazy out/fizzbuzz_fast.c.eir.lazy out/qsort.c.eir.lazy
 endif
+include target.mk
 
 TARGET := blc
 RUNNER := tools/runblc.sh
@@ -610,6 +611,7 @@ TARGET := lam
 RUNNER := tools/runlam.sh
 ifndef FULL
 TEST_FILTER := out/elc.c.eir.lam out/eli.c.eir.lam out/dump_ir.c.eir.lam
+endif
 include target.mk
 
 test: $(TEST_RESULTS)
