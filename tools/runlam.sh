@@ -8,17 +8,19 @@ if [ ! -e out/packbits ]; then
     mv packbits out
 fi
 
-if [ ! -e out/lam2bin ]; then
+if [ ! -e out/blc ]; then
     orig_dir=$(pwd)
     dir=$(mktemp -d)
     cd $dir
 
-    wget https://justine.lol/lambda/lam2bin.c
-    sed -i 's/1024/16777216/g' lam2bin.c
-    gcc lam2bin.c -o lam2bin > /dev/null
+    git clone https://github.com/tromp/AIT
+    cd AIT
+    cabal install dlist --lib > /dev/null
+    cabal install mtl-2.2.2 --lib > /dev/null
+    make blc > /dev/null
 
     cd $orig_dir
-    mv $dir/lam2bin out
+    mv $dir/AIT/blc out
     rm -rf $dir
 fi
 
@@ -38,4 +40,4 @@ fi
 # Required for parsing large programs
 ulimit -s 524288
 
-(cat $1 | out/lam2bin | out/packbits; cat) | out/uni -o
+(out/blc blc $1 | out/packbits; cat) | out/uni -o
