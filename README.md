@@ -13,7 +13,7 @@ Unlike LLVM bitcode, EIR is designed to be extremely simple, so
 there's more chance we can write a translator from EIR to an esoteric
 language.
 
-Currently, there are 51 backends:
+Currently, there are 55 backends:
 
 1. Awk (by [@dubek](https://github.com/dubek/))
 1. Bash
@@ -39,6 +39,7 @@ Currently, there are 51 backends:
 1. Java
 1. JavaScript
 1. Kinx (by [@Kray-G](https://github.com/Kray-G/))
+1. Lambda calculus (by [@woodrush](https://github.com/woodrush/))
 1. Lazy K (by [@woodrush](https://github.com/woodrush/))
 1. LLVM IR (by [@retrage](https://github.com/retrage/))
 1. LOLCODE (by [@gamerk](https://github.com/gamerk))
@@ -372,6 +373,21 @@ This backend is tested with the interpreter [uni](https://github.com/melvinzhang
 a fast implementation of the "Most Functional" interpreter written in C++ by [@melvinzhang](https://github.com/melvinzhang).
 This interpreter significantly speeds up the running time of large programs such as 8cc.c.
 tools/runblc.sh automatically clones and builds uni via tools/runblc.sh when the tests are run.
+
+### Lambda Calculus
+This backend was contributed by [@woodrush](https://github.com/woodrush/).
+This backend outputs an untyped lambda calculus term written in plain text, such as `\x.(x x)`.
+
+The I/O model used in this backend is identical to the one used in the [Binary Lambda Calculus backend](#binary-lambda-calculus).
+Implementation details are described in the [LambdaVM](https://github.com/woodrush/lambdavm) and [lambda-8cc](https://github.com/woodrush/lambda-8cc) repositories.
+
+The output untyped lambda calculus term assumes a lazy evaluation scheme.
+Using lambda calculus interpreters that lazily evaluate the standard input, the I/O instructions `putchar` and `getchar` run interactively, in a behavior equivalent to other backends for imperative languages.
+
+This backend is tested with the interpreter [uni](https://github.com/melvinzhang/binary-lambda-calculus),
+written by [@melvinzhang](https://github.com/melvinzhang).
+tools/runblc.sh automatically clones and builds uni via tools/runblc.sh when the tests are run.
+
 
 ### Lazy K
 The [Lazy K](https://tromp.github.io/cl/lazy-k.html) backend was contributed by [@woodrush](https://github.com/woodrush/).
