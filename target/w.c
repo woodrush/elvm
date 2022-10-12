@@ -3,22 +3,20 @@
 #include <target/wcore.h>
 
 
+#define GRASS_N_BITS 24
 
-static const int GRASS_N_BITS = 24;
+#define GRASS_INST_MOV 8
+#define GRASS_INST_ADDSUB 7
+#define GRASS_INST_STORE 6
+#define GRASS_INST_LOAD 5
+#define GRASS_INST_JMP 4
+#define GRASS_INST_CMP 3
+#define GRASS_INST_JMPCMP 2
+#define GRASS_INST_IO 1
 
-
-static const int GRASS_INST_MOV = 8;
-static const int GRASS_INST_ADDSUB = 7;
-static const int GRASS_INST_STORE = 6;
-static const int GRASS_INST_LOAD = 5;
-static const int GRASS_INST_JMP = 4;
-static const int GRASS_INST_CMP = 3;
-static const int GRASS_INST_JMPCMP = 2;
-static const int GRASS_INST_IO = 1;
-
-static const int GRASS_IO_GETC = 1;
-static const int GRASS_IO_PUTC = 2;
-static const int GRASS_IO_EXIT = 3;
+#define GRASS_IO_GETC 1
+#define GRASS_IO_PUTC 2
+#define GRASS_IO_EXIT 3
 
 static const char GRASS_REG_A[]  = "wvwwWWWwwvwwvwWwwwWwwwv";
 static const char GRASS_REG_B[]  = "wwvwvwwWWWwwvwWwwWwwwwwvwWwwwWWWWWwwwWWwvwWwwwwwwWWWWWWwwwWWwv";
@@ -26,12 +24,12 @@ static const char GRASS_REG_C[]  = "wwvwWwwWwwwvwvwWwwwwWWWwwwwWWwvwWwwwwwWWWWww
 static const char GRASS_REG_D[]  = "wwvwvwwWWWwwvwWwwWwwwwwvwWwwwwwWWWWWwwwWWwvwWwwwwwwWWWWWWwwwWWwv";
 static const char GRASS_REG_SP[] = "wwvwvwwWWWwwvwWwwwwWwwwwwvwWwwwWWWWWwwwWWwvwWwwwwwwWWWWWWwwwWWwv";
 static const char GRASS_REG_BP[] = "wwvwvwwWWWwwvwWwwWwwwwwvwWwwwwwWWWWWwwwWWwvwWwwwwwwWWWWWWwwwWWwvwWwwwwwwwWWWWWWWwwwWWwv";
-static const int GRASS_REG_A_WEIGHT = 4;
-static const int GRASS_REG_B_WEIGHT = 6;
-static const int GRASS_REG_C_WEIGHT = 6;
-static const int GRASS_REG_D_WEIGHT = 6;
-static const int GRASS_REG_SP_WEIGHT = 6;
-static const int GRASS_REG_BP_WEIGHT = 7;
+#define GRASS_REG_A_WEIGHT 4
+#define GRASS_REG_B_WEIGHT 6
+#define GRASS_REG_C_WEIGHT 6
+#define GRASS_REG_D_WEIGHT 6
+#define GRASS_REG_SP_WEIGHT 6
+#define GRASS_REG_BP_WEIGHT 7
 
 static const char GRASS_CMP_GT[] = "wwvwvwwWWWwwvwWwwwwWwwwwwWwwwwv";
 static const char GRASS_CMP_LT[] = "wwvwvwwWWWwwvwWwwwwWwwwWwwwwwwv";
@@ -39,7 +37,7 @@ static const char GRASS_CMP_EQ[] = "wvwwWWWwwvwwvwWwwwWwwwWwwwwv";
 static const char GRASS_CMP_LE[] = "wvwwWWWwwvwwvwWwwwWwwwwWwwwwv";
 static const char GRASS_CMP_GE[] = "wvwwWWWwwvwwvwWwwwWwwwWwwwwwv";
 static const char GRASS_CMP_NE[] = "wwvwvwwWWWwwvwWwwwwWwwwWwwwwv";
-static const int GRASS_CMP_WEIGHT = 4;
+#define GRASS_CMP_WEIGHT 4
 
 
 static int GRASS_BP = 1;
@@ -71,7 +69,7 @@ static int grass_put_t_nil(int t_nil) {
   if (t_nil) {
     // \x.x
     fputs("wv", stdout);
-    // \x.\y.(3 2)
+    // \x.\y.x = \x.\y.(3 2)
     fputs("wwWWWwwv", stdout);
     GRASS_BP += 2;
   } else {
@@ -171,6 +169,7 @@ static Data* grass_reverse_data(Data* data) {
 
 static void grass_emit_data_list(Data* data) {
   data = grass_reverse_data(data);
+  putchar('\n');
   for (; data; data = data->next){
     grass_emit_int_data(data->v);
   }
@@ -181,6 +180,7 @@ static void grass_emit_data_list(Data* data) {
   grass_apply(GRASS_BP, 1);
   putchar('v');
   GRASS_BP = 1;
+  putchar('\n');
 }
 
 static int grass_put_inst_tag(int i_tag) {
@@ -424,9 +424,6 @@ static void grass_emit_text_list(Inst* inst) {
 void target_w(Module* module) {
   fputs(GRASS_VM, stdout);
   putchar('v');
-  GRASS_BP = 1;
-  putchar('\n');
   grass_emit_data_list(module->data);
-  putchar('\n');
   grass_emit_text_list(module->text);
 }
