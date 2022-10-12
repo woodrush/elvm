@@ -42,9 +42,10 @@ static const char GRASS_CMP_NE[] = "wwvwvwwWWWwwvwWwwwwWwwwWwwwwv";
 
 static int GRASS_BP = 1;
 
-static void grass_emit_reg_helper(const char* s, const int i) {
+static int grass_emit_reg_helper(const char* s, const int i) {
   fputs(s, stdout);
   GRASS_BP += i;
+  return GRASS_BP;
 }
 
 static void grass_emit_reg(Reg r) {
@@ -255,6 +256,15 @@ static void grass_emit_jmpcmp_inst(const char* enum_cmp, Inst* inst, int* cons4_
   *cons4_4 = GRASS_BP;
 }
 
+static int grass_emit_make_cons(int cons_1_bp, int cons_2_bp) {
+  putchar('w');
+  grass_apply(1, 0 + 1 + GRASS_BP - (cons_1_bp - 1));
+  grass_apply(1, 1 + 1 + GRASS_BP - (cons_2_bp - 1));
+  putchar('v');
+  GRASS_BP++;
+  return GRASS_BP;
+}
+
 static void grass_emit_inst(Inst* inst) {
   int cons4_1 = 0;
   int cons4_2 = 0;
@@ -290,26 +300,16 @@ static void grass_emit_inst(Inst* inst) {
     cons4_3 = emit_grass_value_str(&inst->src);
     const int add_cons_1 = emit_grass_value_str(&inst->dst);
     const int add_cons_2 = grass_put_t_nil(1);
-    putchar('w');
-    grass_apply(1, 0 + 1 + GRASS_BP - (add_cons_1 - 1));
-    grass_apply(1, 1 + 1 + GRASS_BP - (add_cons_2 - 1));
-    putchar('v');
-    GRASS_BP++;
-    cons4_4 = GRASS_BP;
+    cons4_4 = grass_emit_make_cons(add_cons_1, add_cons_2);
     break;
   }
   case SUB: {
     cons4_1 = grass_put_inst_tag(GRASS_INST_ADDSUB);
     cons4_2 = emit_grass_isimm(&inst->src);
     cons4_3 = emit_grass_value_str(&inst->src);
-    const int add_cons_1 = emit_grass_value_str(&inst->dst);
-    const int add_cons_2 = grass_put_t_nil(0);
-    putchar('w');
-    grass_apply(1, 0 + 1 + GRASS_BP - (add_cons_1 - 1));
-    grass_apply(1, 1 + 1 + GRASS_BP - (add_cons_2 - 1));
-    putchar('v');
-    GRASS_BP++;
-    cons4_4 = GRASS_BP;
+    const int sub_cons_1 = emit_grass_value_str(&inst->dst);
+    const int sub_cons_2 = grass_put_t_nil(0);
+    cons4_4 = grass_emit_make_cons(sub_cons_1, sub_cons_2);
     break;
   }
 
@@ -360,10 +360,8 @@ static void grass_emit_inst(Inst* inst) {
   case DUMP: {
     cons4_1 = grass_put_inst_tag(GRASS_INST_MOV);
     cons4_2 = grass_put_t_nil(0);
-    grass_emit_reg_helper(GRASS_REG_A, GRASS_REG_A_WEIGHT);
-    cons4_3 = GRASS_BP;
-    grass_emit_reg_helper(GRASS_REG_A, GRASS_REG_A_WEIGHT);
-    cons4_4 = GRASS_BP;
+    cons4_3 = grass_emit_reg_helper(GRASS_REG_A, GRASS_REG_A_WEIGHT);
+    cons4_4 = grass_emit_reg_helper(GRASS_REG_A, GRASS_REG_A_WEIGHT);
     break;
   }
 
