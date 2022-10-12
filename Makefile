@@ -156,6 +156,7 @@ ELC_SRCS := \
 	ulamb.c \
 	unl.c \
 	vim.c \
+	w.c \
 	wasi.c \
 	wasm.c \
 	whirl.c \
@@ -611,6 +612,13 @@ TARGET := ulamb
 RUNNER := tools/runulamb.sh
 ifndef FULL
 TEST_FILTER := out/8cc.c.eir.ulamb out/elc.c.eir.ulamb out/eli.c.eir.ulamb out/dump_ir.c.eir.ulamb
+endif
+include target.mk
+
+TARGET := w
+RUNNER := tools/runw.sh
+ifndef FULL
+TEST_FILTER := out/elc.c.eir.w out/eli.c.eir.w out/dump_ir.c.eir.w
 endif
 include target.mk
 
