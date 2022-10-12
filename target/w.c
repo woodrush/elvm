@@ -266,7 +266,7 @@ static int grass_emit_int_inst(int n) {
     const int checkbit = 1 << i;
     const int t_index = i + 1 + 2;
     const int nil_index = i + 1 + 1;
-    fputs("\n        ", stdout);
+    fputs("\n ", stdout);
     putchar('w');
     grass_apply(1, (n & checkbit) ? nil_index : t_index);
     grass_apply(1, 3);
@@ -280,15 +280,15 @@ static int grass_emit_int_inst(int n) {
 static void grass_emit_text_list(Inst* inst) {
   inst = grass_reverse_instructions(inst);
 
-  fputs("\n  ", stdout);
+  fputs("\n", stdout);
   const int cons4_1 = grass_put_inst_tag(GRASS_INST_IO);
-  fputs("\n  ", stdout);
+  fputs("\n", stdout);
   const int cons4_2 = grass_put_t_nil(1);
-  fputs("\n  ", stdout);
+  fputs("\n", stdout);
   const int cons4_3 = grass_emit_int_inst('A');
-  fputs("\n  ", stdout);
+  fputs("\n", stdout);
   const int cons4_4 = grass_put_io_tag(GRASS_IO_PUTC);
-  fputs("\n  ", stdout);
+  fputs("\n", stdout);
 
   putchar('w');
   grass_apply(1, 0 + 1 + GRASS_BP - (cons4_1 - 1));
