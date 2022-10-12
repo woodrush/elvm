@@ -19,19 +19,38 @@ static const int GRASS_INST_IO = 1;
 static const int GRASS_IO_PUTC = 2;
 static const int GRASS_IO_EXIT = 3;
 
+static const char GRASS_REG_A[]  = "wvwwWWWwwvwwvwWwwwWwwwv";
+static const char GRASS_REG_B[]  = "wwvwvwwWWWwwvwvwwWWWwwvwwvwWwwwWwwwvwvwWwwwwwwwWWWwwwwWWwvwvwWwwwwwwwwwwwWWWwwwwWWwv";
+static const char GRASS_REG_C[]  = "wwvwwvwwvwwvwwvwWwwwWwwwvwvwWwwwwwwWWWwwwwWWwvwvwWwwwwwwwwwWWWwwwwWWwvwvwWwwwwwwwwwwwwWWWwwwwWWwv";
+static const char GRASS_REG_D[]  = "wwvwwvwvwwWWWwwvwwvwWwwwWwwwvwvwWwwwwwwwWWWwwwwWWwvwvwWwwwwwwwwwwWWWwwwwWWwv";
+static const char GRASS_REG_SP[] = "wwvwvwwWWWwwvwwvwwvwWwwwWwwwvwvwWwwwwwwWWWwwwwWWwvwvwWwwwwwwwwwwWWWwwwwWWwv";
+static const char GRASS_REG_BP[] = "wwvwwvwwvwvwwWWWwwvwwvwWwwwWwwwvwvwWwwwwwwwWWWwwwwWWwvwvwWwwwwwwwwwwWWWwwwwWWwvwvwWwwwwwwwwwwwwwWWWwwwwWWwv";
+static const int GRASS_REG_A_BP = 4;
+static const int GRASS_REG_B_BP = 11;
+static const int GRASS_REG_C_BP = 12;
+static const int GRASS_REG_D_BP = 10;
+static const int GRASS_REG_SP_BP = 10;
+static const int GRASS_REG_BP_BP = 13;
 
-// static const char* grass_reg(Reg r) {
-//   switch (r) {
-//   case A: return GRASS_REG_A;
-//   case B: return GRASS_REG_B;
-//   case C: return GRASS_REG_C;
-//   case D: return GRASS_REG_D;
-//   case BP: return GRASS_REG_BP;
-//   case SP: return GRASS_REG_SP;
-//   default:
-//     error("unknown register: %d", r);
-//   }
-// }
+static int GRASS_BP = 1;
+
+static void grass_emit_reg_helper(const char* s, const int i) {
+  fputs(s, stdout);
+  GRASS_BP += i;
+}
+
+static void grass_emit_reg(Reg r) {
+  switch (r) {
+  case A: grass_emit_reg_helper(GRASS_REG_A, GRASS_REG_A_BP); return;
+  case B: grass_emit_reg_helper(GRASS_REG_B, GRASS_REG_B_BP); return;
+  case C: grass_emit_reg_helper(GRASS_REG_C, GRASS_REG_C_BP); return;
+  case D: grass_emit_reg_helper(GRASS_REG_D, GRASS_REG_D_BP); return;
+  case BP: grass_emit_reg_helper(GRASS_REG_BP, GRASS_REG_BP_BP); return;
+  case SP: grass_emit_reg_helper(GRASS_REG_SP, GRASS_REG_SP_BP); return;
+  default:
+    error("unknown register: %d", r);
+  }
+}
 
 // static void grass_emit_int(int n) {
 // #ifndef __eir__
@@ -43,8 +62,6 @@ static const int GRASS_IO_EXIT = 3;
 //   }
 //   fputs(GRASS_INT_FOOTER, stdout);
 // }
-
-static int GRASS_BP = 1;
 
 static void grass_apply(int W, int w) {
   for (; W; W--) putchar('W');
@@ -106,7 +123,7 @@ static int emit_grass_isimm(Value* v) {
 
 static int emit_grass_value_str(Value* v) {
   if (v->type == REG) {
-    // fputs(grass_reg(v->reg), stdout);
+    grass_emit_reg(v->reg);
   } else if (v->type == IMM) {
     grass_emit_int_inst(v->imm);
   } else {
@@ -229,7 +246,14 @@ static void grass_emit_inst(Inst* inst) {
   int cons4_4 = 0;
 
   switch (inst->op) {
-  case MOV: break;
+  case MOV: {
+    fputs("\nmov\n", stdout);
+    cons4_1 = grass_put_inst_tag(GRASS_INST_MOV); fputs("\n", stdout);
+    cons4_2 = emit_grass_isimm(&inst->src); fputs("\n", stdout);
+    cons4_3 = emit_grass_value_str(&inst->src); fputs("\n", stdout);
+    cons4_4 = emit_grass_value_str(&inst->dst); fputs("\n", stdout);
+    break;
+  }
   case LOAD: break;
   case STORE: break;
 
