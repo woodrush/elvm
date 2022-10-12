@@ -15,6 +15,7 @@ static const int GRASS_INST_JMP = 4;
 static const int GRASS_INST_CMP = 3;
 static const int GRASS_INST_JMPCMP = 2;
 static const int GRASS_INST_IO = 1;
+
 static const int GRASS_IO_GETC = 1;
 static const int GRASS_IO_PUTC = 2;
 static const int GRASS_IO_EXIT = 3;
@@ -25,12 +26,12 @@ static const char GRASS_REG_C[]  = "wwvwWwwWwwwvwvwWwwwwWWWwwwwWWwvwWwwwwwWWWWww
 static const char GRASS_REG_D[]  = "wwvwvwwWWWwwvwWwwWwwwwwvwWwwwwwWWWWWwwwWWwvwWwwwwwwWWWWWWwwwWWwv";
 static const char GRASS_REG_SP[] = "wwvwvwwWWWwwvwWwwwwWwwwwwvwWwwwWWWWWwwwWWwvwWwwwwwwWWWWWWwwwWWwv";
 static const char GRASS_REG_BP[] = "wwvwvwwWWWwwvwWwwWwwwwwvwWwwwwwWWWWWwwwWWwvwWwwwwwwWWWWWWwwwWWwvwWwwwwwwwWWWWWWWwwwWWwv";
-static const int GRASS_REG_A_BP = 4;
-static const int GRASS_REG_B_BP = 6;
-static const int GRASS_REG_C_BP = 6;
-static const int GRASS_REG_D_BP = 6;
-static const int GRASS_REG_SP_BP = 6;
-static const int GRASS_REG_BP_BP = 7;
+static const int GRASS_REG_A_WEIGHT = 4;
+static const int GRASS_REG_B_WEIGHT = 6;
+static const int GRASS_REG_C_WEIGHT = 6;
+static const int GRASS_REG_D_WEIGHT = 6;
+static const int GRASS_REG_SP_WEIGHT = 6;
+static const int GRASS_REG_BP_WEIGHT = 7;
 
 static const char GRASS_CMP_GT[] = "wwvwvwwWWWwwvwWwwwwWwwwwwWwwwwv";
 static const char GRASS_CMP_LT[] = "wwvwvwwWWWwwvwWwwwwWwwwWwwwwwwv";
@@ -50,12 +51,12 @@ static void grass_emit_reg_helper(const char* s, const int i) {
 
 static void grass_emit_reg(Reg r) {
   switch (r) {
-  case A: grass_emit_reg_helper(GRASS_REG_A, GRASS_REG_A_BP); return;
-  case B: grass_emit_reg_helper(GRASS_REG_B, GRASS_REG_B_BP); return;
-  case C: grass_emit_reg_helper(GRASS_REG_C, GRASS_REG_C_BP); return;
-  case D: grass_emit_reg_helper(GRASS_REG_D, GRASS_REG_D_BP); return;
-  case BP: grass_emit_reg_helper(GRASS_REG_BP, GRASS_REG_BP_BP); return;
-  case SP: grass_emit_reg_helper(GRASS_REG_SP, GRASS_REG_SP_BP); return;
+  case A: grass_emit_reg_helper(GRASS_REG_A, GRASS_REG_A_WEIGHT); return;
+  case B: grass_emit_reg_helper(GRASS_REG_B, GRASS_REG_B_WEIGHT); return;
+  case C: grass_emit_reg_helper(GRASS_REG_C, GRASS_REG_C_WEIGHT); return;
+  case D: grass_emit_reg_helper(GRASS_REG_D, GRASS_REG_D_WEIGHT); return;
+  case BP: grass_emit_reg_helper(GRASS_REG_BP, GRASS_REG_BP_WEIGHT); return;
+  case SP: grass_emit_reg_helper(GRASS_REG_SP, GRASS_REG_SP_WEIGHT); return;
   default:
     error("unknown register: %d", r);
   }
@@ -187,64 +188,6 @@ static void grass_emit_data_list(Data* data) {
   putchar('v');
   GRASS_BP = 1;
 }
-
-// static void grass_emit_inst_header(const char* inst_tag, Value* v) {
-//   fputs(GRASS_CONS4_HEAD, stdout);
-//   fputs(inst_tag, stdout);
-//   emit_grass_isimm(v);
-//   emit_grass_value_str(v);
-// }
-
-// static void grass_emit_basic_inst(Inst* inst, const char* inst_tag) {
-//   grass_emit_inst_header(inst_tag, &inst->src);
-//   emit_grass_value_str(&inst->dst);
-// }
-
-// static void grass_emit_addsub_inst(Inst* inst, const char* is_add) {
-//   grass_emit_inst_header(GRASS_INST_ADDSUB, &inst->src);
-//   fputs(GRASS_CONS_HEAD, stdout);
-//   emit_grass_value_str(&inst->dst);
-//   fputs(is_add, stdout);
-// }
-
-// static void grass_emit_jmpcmp_inst(Inst* inst, const char* cmp_tag) {
-//   grass_emit_inst_header(GRASS_INST_JMPCMP, &inst->src);
-//   grass_emit_inst_header(cmp_tag, &inst->jmp);
-//   emit_grass_value_str(&inst->dst);
-// }
-
-// static void grass_emit_cmp_inst(Inst* inst, const char* cmp_tag) {
-//   grass_emit_inst_header(GRASS_INST_CMP, &inst->src);
-//   fputs(GRASS_CONS_HEAD, stdout);
-//   fputs(cmp_tag, stdout);
-//   emit_grass_value_str(&inst->dst);
-// }
-
-// static void grass_emit_io_inst(const char* io_tag, Value* v) {
-//   grass_emit_inst_header(GRASS_INST_IO, v);
-//   fputs(io_tag, stdout);
-// }
-
-// static void grass_emit_exit_inst() {
-//   fputs(GRASS_CONS4_HEAD, stdout);
-//   fputs(GRASS_INST_IO, stdout);
-//   fputs(GRASS_NIL, stdout);
-//   fputs(GRASS_NIL, stdout);
-//   fputs(GRASS_IO_EXIT, stdout);
-// }
-
-// static void grass_emit_jmp_inst(Inst* inst) {
-//   grass_emit_inst_header(GRASS_INST_JMP, &inst->jmp);
-//   fputs(GRASS_PLACEHOLDER, stdout);
-// }
-
-// static void grass_emit_dump_inst(void) {
-//   fputs(GRASS_CONS4_HEAD, stdout);
-//   fputs(GRASS_INST_MOV, stdout);
-//   fputs(GRASS_NIL, stdout);
-//   fputs(GRASS_REG_A, stdout);
-//   fputs(GRASS_REG_A, stdout);
-// }
 
 static int grass_put_inst_tag(int i_tag) {
   if (i_tag == GRASS_INST_MOV) {
@@ -437,9 +380,9 @@ static void grass_emit_inst(Inst* inst) {
     fputs("\ndump\n", stdout);
     cons4_1 = grass_put_inst_tag(GRASS_INST_MOV); fputs("\n", stdout);
     cons4_2 = grass_put_t_nil(0); fputs("\n", stdout);
-    grass_emit_reg_helper(GRASS_REG_A, GRASS_REG_A_BP);
+    grass_emit_reg_helper(GRASS_REG_A, GRASS_REG_A_WEIGHT);
     cons4_3 = GRASS_BP; fputs("\n", stdout);
-    grass_emit_reg_helper(GRASS_REG_A, GRASS_REG_A_BP);
+    grass_emit_reg_helper(GRASS_REG_A, GRASS_REG_A_WEIGHT);
     cons4_4 = GRASS_BP; fputs("\n", stdout);
     break;
   }
