@@ -269,6 +269,7 @@ static int grass_emit_int_inst(int n) {
     fputs("\n        ", stdout);
     putchar('w');
     grass_apply(1, (n & checkbit) ? nil_index : t_index);
+    grass_apply(1, 3);
     putchar('v');
     GRASS_BP++;
   }
