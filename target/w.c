@@ -429,8 +429,4 @@ void target_w(Module* module) {
   grass_emit_data_list(module->data);
   putchar('\n');
   grass_emit_text_list(module->text);
-  putchar('\n');
-  // main
-  fputs("wv", stdout);
-  fputs("wWWwww", stdout);
 }
