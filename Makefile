@@ -618,7 +618,9 @@ include target.mk
 TARGET := w
 RUNNER := tools/runw.sh
 ifndef FULL
-TEST_FILTER := out/elc.c.eir.w out/eli.c.eir.w out/dump_ir.c.eir.w
+TEST_FILTER := out/8cc.c.eir.w out/elc.c.eir.w out/eli.c.eir.w out/dump_ir.c.eir.w \
+out/24_cmp.c.eir.w out/24_cmp2.c.eir.w out/24_muldiv.c.eir.w \
+out/eof.c.eir.w out/fgets.c.eir.w out/fizzbuzz.c.eir.w out/fizzbuzz_fast.c.eir.w out/qsort.c.eir.w
 endif
 include target.mk
 
