@@ -243,28 +243,28 @@ static int grass_emit_enum_cmp(const char* enum_cmp) {
   return GRASS_BP;
 }
 
-static void grass_emit_cmp_inst(const char* enum_cmp, Inst* inst, int* cons4_1, int* cons4_2, int* cons4_3, int* cons4_4) {
-  *cons4_1 = grass_put_inst_tag(GRASS_INST_CMP);
-  *cons4_2 = emit_grass_isimm(&inst->src);
-  *cons4_3 = emit_grass_value_str(&inst->src);
+static void grass_emit_cmp_inst(const char* enum_cmp, Inst* inst, int* inst_cons4) {
+  inst_cons4[0] = grass_put_inst_tag(GRASS_INST_CMP);
+  inst_cons4[1] = emit_grass_isimm(&inst->src);
+  inst_cons4[2] = emit_grass_value_str(&inst->src);
   int cmp_cons[3];
   cmp_cons[0] = grass_emit_enum_cmp(enum_cmp);
   cmp_cons[1] = emit_grass_value_str(&inst->dst);
   cmp_cons[2] = 0;
-  *cons4_4 = grass_emit_make_tuple(cmp_cons);
+  inst_cons4[3] = grass_emit_make_tuple(cmp_cons);
 }
 
-static void grass_emit_jmpcmp_inst(const char* enum_cmp, Inst* inst, int* cons4_1, int* cons4_2, int* cons4_3, int* cons4_4) {
-  *cons4_1 = grass_put_inst_tag(GRASS_INST_JMPCMP);
-  *cons4_2 = emit_grass_isimm(&inst->src);
-  *cons4_3 = emit_grass_value_str(&inst->src);
+static void grass_emit_jmpcmp_inst(const char* enum_cmp, Inst* inst, int* inst_cons4) {
+  inst_cons4[0] = grass_put_inst_tag(GRASS_INST_JMPCMP);
+  inst_cons4[1] = emit_grass_isimm(&inst->src);
+  inst_cons4[2] = emit_grass_value_str(&inst->src);
   int jmpcmp_cons[5];
   jmpcmp_cons[0] = grass_emit_enum_cmp(enum_cmp);
   jmpcmp_cons[1] = emit_grass_isimm(&inst->jmp);
   jmpcmp_cons[2] = emit_grass_value_str(&inst->jmp);
   jmpcmp_cons[3] = emit_grass_value_str(&inst->dst);
   jmpcmp_cons[4] = 0;
-  *cons4_4 = grass_emit_make_tuple(jmpcmp_cons);
+  inst_cons4[3] = grass_emit_make_tuple(jmpcmp_cons);
 }
 
 static void grass_emit_inst(Inst* inst) {
@@ -313,19 +313,19 @@ static void grass_emit_inst(Inst* inst) {
     break;
   }
 
-  case EQ: grass_emit_cmp_inst(GRASS_CMP_EQ, inst, &inst_cons4[0], &inst_cons4[1], &inst_cons4[2], &inst_cons4[3]); break;
-  case NE: grass_emit_cmp_inst(GRASS_CMP_NE, inst, &inst_cons4[0], &inst_cons4[1], &inst_cons4[2], &inst_cons4[3]); break;
-  case LT: grass_emit_cmp_inst(GRASS_CMP_LT, inst, &inst_cons4[0], &inst_cons4[1], &inst_cons4[2], &inst_cons4[3]); break;
-  case GT: grass_emit_cmp_inst(GRASS_CMP_GT, inst, &inst_cons4[0], &inst_cons4[1], &inst_cons4[2], &inst_cons4[3]); break;
-  case LE: grass_emit_cmp_inst(GRASS_CMP_LE, inst, &inst_cons4[0], &inst_cons4[1], &inst_cons4[2], &inst_cons4[3]); break;
-  case GE: grass_emit_cmp_inst(GRASS_CMP_GE, inst, &inst_cons4[0], &inst_cons4[1], &inst_cons4[2], &inst_cons4[3]); break;
+  case EQ: grass_emit_cmp_inst(GRASS_CMP_EQ, inst, inst_cons4); break;
+  case NE: grass_emit_cmp_inst(GRASS_CMP_NE, inst, inst_cons4); break;
+  case LT: grass_emit_cmp_inst(GRASS_CMP_LT, inst, inst_cons4); break;
+  case GT: grass_emit_cmp_inst(GRASS_CMP_GT, inst, inst_cons4); break;
+  case LE: grass_emit_cmp_inst(GRASS_CMP_LE, inst, inst_cons4); break;
+  case GE: grass_emit_cmp_inst(GRASS_CMP_GE, inst, inst_cons4); break;
 
-  case JEQ: grass_emit_jmpcmp_inst(GRASS_CMP_EQ, inst, &inst_cons4[0], &inst_cons4[1], &inst_cons4[2], &inst_cons4[3]); break;
-  case JNE: grass_emit_jmpcmp_inst(GRASS_CMP_NE, inst, &inst_cons4[0], &inst_cons4[1], &inst_cons4[2], &inst_cons4[3]); break;
-  case JLT: grass_emit_jmpcmp_inst(GRASS_CMP_LT, inst, &inst_cons4[0], &inst_cons4[1], &inst_cons4[2], &inst_cons4[3]); break;
-  case JGT: grass_emit_jmpcmp_inst(GRASS_CMP_GT, inst, &inst_cons4[0], &inst_cons4[1], &inst_cons4[2], &inst_cons4[3]); break;
-  case JLE: grass_emit_jmpcmp_inst(GRASS_CMP_LE, inst, &inst_cons4[0], &inst_cons4[1], &inst_cons4[2], &inst_cons4[3]); break;
-  case JGE: grass_emit_jmpcmp_inst(GRASS_CMP_GE, inst, &inst_cons4[0], &inst_cons4[1], &inst_cons4[2], &inst_cons4[3]); break;
+  case JEQ: grass_emit_jmpcmp_inst(GRASS_CMP_EQ, inst, inst_cons4); break;
+  case JNE: grass_emit_jmpcmp_inst(GRASS_CMP_NE, inst, inst_cons4); break;
+  case JLT: grass_emit_jmpcmp_inst(GRASS_CMP_LT, inst, inst_cons4); break;
+  case JGT: grass_emit_jmpcmp_inst(GRASS_CMP_GT, inst, inst_cons4); break;
+  case JLE: grass_emit_jmpcmp_inst(GRASS_CMP_LE, inst, inst_cons4); break;
+  case JGE: grass_emit_jmpcmp_inst(GRASS_CMP_GE, inst, inst_cons4); break;
 
   case JMP: {
     inst_cons4[0] = grass_put_inst_tag(GRASS_INST_JMP);
