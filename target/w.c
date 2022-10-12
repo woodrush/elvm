@@ -398,9 +398,11 @@ static void grass_emit_inst(Inst* inst) {
   case DUMP: {
     fputs("\ndump\n", stdout);
     cons4_1 = grass_put_inst_tag(GRASS_INST_MOV); fputs("\n", stdout);
-    cons4_2 = grass_put_t_nil(1); fputs("\n", stdout);
-    cons4_3 = grass_put_t_nil(0); fputs("\n", stdout);
-    cons4_4 = grass_put_t_nil(0); fputs("\n", stdout);
+    cons4_2 = grass_put_t_nil(0); fputs("\n", stdout);
+    grass_emit_reg_helper(GRASS_REG_A, GRASS_REG_A_BP);
+    cons4_3 = GRASS_BP; fputs("\n", stdout);
+    grass_emit_reg_helper(GRASS_REG_A, GRASS_REG_A_BP);
+    cons4_4 = GRASS_BP; fputs("\n", stdout);
     break;
   }
 
