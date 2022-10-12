@@ -12,8 +12,8 @@ static const int GRASS_INST_ADDSUB = 7;
 static const int GRASS_INST_STORE = 6;
 static const int GRASS_INST_LOAD = 5;
 static const int GRASS_INST_JMP = 4;
-// static const int GRASS_INST_CMP = 3;
-// static const int GRASS_INST_JMPCMP = 2;
+static const int GRASS_INST_CMP = 3;
+static const int GRASS_INST_JMPCMP = 2;
 static const int GRASS_INST_IO = 1;
 static const int GRASS_IO_GETC = 1;
 static const int GRASS_IO_PUTC = 2;
@@ -282,7 +282,7 @@ static int grass_put_io_tag(int io_tag) {
 
 static void grass_emit_cmp_inst(const char* enum_cmp, Inst* inst, int* cons4_1, int* cons4_2, int* cons4_3, int* cons4_4) {
   fputs("\nadd\n", stdout);
-  *cons4_1 = grass_put_inst_tag(GRASS_INST_ADDSUB); fputs("\n", stdout);
+  *cons4_1 = grass_put_inst_tag(GRASS_INST_CMP); fputs("\n", stdout);
   *cons4_2 = emit_grass_isimm(&inst->src); fputs("\n", stdout);
   *cons4_3 = emit_grass_value_str(&inst->src); fputs("\n", stdout);
   fputs(enum_cmp, stdout);
@@ -292,6 +292,28 @@ static void grass_emit_cmp_inst(const char* enum_cmp, Inst* inst, int* cons4_1, 
   putchar('w');
   grass_apply(1, 0 + 1 + GRASS_BP - (cmp_cons_1 - 1));
   grass_apply(1, 1 + 1 + GRASS_BP - (cmp_cons_2 - 1));
+  putchar('v');
+  GRASS_BP++;
+  fputs("\n", stdout);
+  *cons4_4 = GRASS_BP;
+}
+
+static void grass_emit_jmpcmp_inst(const char* enum_cmp, Inst* inst, int* cons4_1, int* cons4_2, int* cons4_3, int* cons4_4) {
+  fputs("\nadd\n", stdout);
+  *cons4_1 = grass_put_inst_tag(GRASS_INST_JMPCMP); fputs("\n", stdout);
+  *cons4_2 = emit_grass_isimm(&inst->src); fputs("\n", stdout);
+  *cons4_3 = emit_grass_value_str(&inst->src); fputs("\n", stdout);
+  fputs(enum_cmp, stdout);
+  GRASS_BP += GRASS_CMP_WEIGHT;
+  const int jmpcmp_cons_1 = GRASS_BP;
+  const int jmpcmp_cons_2 = emit_grass_isimm(&inst->jmp);
+  const int jmpcmp_cons_3 = emit_grass_value_str(&inst->jmp);
+  const int jmpcmp_cons_4 = emit_grass_value_str(&inst->dst);
+  putchar('w');
+  grass_apply(1, 0 + 1 + GRASS_BP - (jmpcmp_cons_1 - 1));
+  grass_apply(1, 1 + 1 + GRASS_BP - (jmpcmp_cons_2 - 1));
+  grass_apply(1, 2 + 1 + GRASS_BP - (jmpcmp_cons_3 - 1));
+  grass_apply(1, 3 + 1 + GRASS_BP - (jmpcmp_cons_4 - 1));
   putchar('v');
   GRASS_BP++;
   fputs("\n", stdout);
@@ -370,12 +392,12 @@ static void grass_emit_inst(Inst* inst) {
   case LE: grass_emit_cmp_inst(GRASS_CMP_LE, inst, &cons4_1, &cons4_2, &cons4_3, &cons4_4); break;
   case GE: grass_emit_cmp_inst(GRASS_CMP_GE, inst, &cons4_1, &cons4_2, &cons4_3, &cons4_4); break;
 
-  case JEQ: break;
-  case JNE: break;
-  case JLT: break;
-  case JGT: break;
-  case JLE: break;
-  case JGE: break;
+  case JEQ: grass_emit_jmpcmp_inst(GRASS_CMP_EQ, inst, &cons4_1, &cons4_2, &cons4_3, &cons4_4); break;
+  case JNE: grass_emit_jmpcmp_inst(GRASS_CMP_NE, inst, &cons4_1, &cons4_2, &cons4_3, &cons4_4); break;
+  case JLT: grass_emit_jmpcmp_inst(GRASS_CMP_LT, inst, &cons4_1, &cons4_2, &cons4_3, &cons4_4); break;
+  case JGT: grass_emit_jmpcmp_inst(GRASS_CMP_GT, inst, &cons4_1, &cons4_2, &cons4_3, &cons4_4); break;
+  case JLE: grass_emit_jmpcmp_inst(GRASS_CMP_LE, inst, &cons4_1, &cons4_2, &cons4_3, &cons4_4); break;
+  case JGE: grass_emit_jmpcmp_inst(GRASS_CMP_GE, inst, &cons4_1, &cons4_2, &cons4_3, &cons4_4); break;
 
   case JMP: {
     fputs("\njmp\n", stdout);
