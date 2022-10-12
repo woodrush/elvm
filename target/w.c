@@ -151,7 +151,7 @@ static int grass_emit_int_data(int n) {
 
   // Apply integers
   for (int i = 0; i < GRASS_N_BITS; i++) {
-    const int checkbit = 1 << i;
+    const int checkbit = 1 << (GRASS_N_BITS - 1 - i);
     const int nil_index = i + 3;
     const int t_index = i + 2;
     fputs("\n ", stdout);
