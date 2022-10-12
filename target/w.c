@@ -42,6 +42,17 @@ static const char GRASS_CMP_NE[] = "wwvwvwwWWWwwvwWwwwwWwwwWwwwwv";
 
 static int GRASS_BP = 1;
 
+static void grass_apply(int W, int w) {
+  for (; W; W--) putchar('W');
+  for (; w; w--) putchar('w');
+}
+
+static void grass_apply_stack_top_to_grassvm() {
+  grass_apply(GRASS_BP, 1);
+  putchar('v');
+  GRASS_BP = 1;
+}
+
 static int grass_emit_reg_helper(const char* s, const int i) {
   fputs(s, stdout);
   GRASS_BP += i;
@@ -59,11 +70,6 @@ static void grass_emit_reg(Reg r) {
   default:
     error("unknown register: %d", r);
   }
-}
-
-static void grass_apply(int W, int w) {
-  for (; W; W--) putchar('W');
-  for (; w; w--) putchar('w');
 }
 
 static int grass_put_t_nil(int t_nil) {
@@ -140,9 +146,7 @@ static int grass_emit_int_data(int n) {
   GRASS_BP += 3;
 
   // Apply t to initialize data insertion
-  grass_apply(GRASS_BP, 1);
-  putchar('v');
-  GRASS_BP = 1;
+  grass_apply_stack_top_to_grassvm();
 
   // Apply integers
   for (int i = 0; i < GRASS_N_BITS; i++) {
@@ -178,9 +182,7 @@ static void grass_emit_data_list(Data* data) {
   fputs("wwv", stdout);
   GRASS_BP++;
   // Apply nil to end data insertion
-  grass_apply(GRASS_BP, 1);
-  putchar('v');
-  GRASS_BP = 1;
+  grass_apply_stack_top_to_grassvm();
   putchar('\n');
 }
 
@@ -274,29 +276,6 @@ static void grass_emit_inst(Inst* inst) {
   case LOAD: grass_emit_basic_inst(GRASS_INST_LOAD, inst, inst_cons4); break;
   case STORE: grass_emit_basic_inst(GRASS_INST_STORE, inst, inst_cons4); break;
 
-  case ADD: {
-    inst_cons4[0] = grass_put_inst_tag(GRASS_INST_ADDSUB);
-    inst_cons4[1] = emit_grass_isimm(&inst->src);
-    inst_cons4[2] = emit_grass_value_str(&inst->src);
-    int add_cons[3];
-    add_cons[0] = emit_grass_value_str(&inst->dst);
-    add_cons[1] = grass_put_t_nil(1);
-    add_cons[2] = 0;
-    inst_cons4[3] = grass_emit_n_tuple(add_cons);
-    break;
-  }
-  case SUB: {
-    inst_cons4[0] = grass_put_inst_tag(GRASS_INST_ADDSUB);
-    inst_cons4[1] = emit_grass_isimm(&inst->src);
-    inst_cons4[2] = emit_grass_value_str(&inst->src);
-    int sub_cons[3];
-    sub_cons[0] = emit_grass_value_str(&inst->dst);
-    sub_cons[1] = grass_put_t_nil(0);
-    sub_cons[2] = 0;
-    inst_cons4[3] = grass_emit_n_tuple(sub_cons);
-    break;
-  }
-
   case EQ: grass_emit_cmp_inst(GRASS_CMP_EQ, inst, inst_cons4); break;
   case NE: grass_emit_cmp_inst(GRASS_CMP_NE, inst, inst_cons4); break;
   case LT: grass_emit_cmp_inst(GRASS_CMP_LT, inst, inst_cons4); break;
@@ -319,6 +298,30 @@ static void grass_emit_inst(Inst* inst) {
     break;
   }
 
+  case ADD: {
+    inst_cons4[0] = grass_put_inst_tag(GRASS_INST_ADDSUB);
+    inst_cons4[1] = emit_grass_isimm(&inst->src);
+    inst_cons4[2] = emit_grass_value_str(&inst->src);
+    int add_cons[3];
+    add_cons[0] = emit_grass_value_str(&inst->dst);
+    add_cons[1] = grass_put_t_nil(1);
+    add_cons[2] = 0;
+    inst_cons4[3] = grass_emit_n_tuple(add_cons);
+    break;
+  }
+
+  case SUB: {
+    inst_cons4[0] = grass_put_inst_tag(GRASS_INST_ADDSUB);
+    inst_cons4[1] = emit_grass_isimm(&inst->src);
+    inst_cons4[2] = emit_grass_value_str(&inst->src);
+    int sub_cons[3];
+    sub_cons[0] = emit_grass_value_str(&inst->dst);
+    sub_cons[1] = grass_put_t_nil(0);
+    sub_cons[2] = 0;
+    inst_cons4[3] = grass_emit_n_tuple(sub_cons);
+    break;
+  }
+
   case PUTC: {
     inst_cons4[0] = grass_put_inst_tag(GRASS_INST_IO);
     inst_cons4[1] = emit_grass_isimm(&inst->src);
@@ -326,6 +329,7 @@ static void grass_emit_inst(Inst* inst) {
     inst_cons4[3] = grass_put_io_tag(GRASS_IO_PUTC);
     break;
   }
+
   case GETC: {
     inst_cons4[0] = grass_put_inst_tag(GRASS_INST_IO);
     inst_cons4[1] = grass_put_t_nil(0);
@@ -341,6 +345,7 @@ static void grass_emit_inst(Inst* inst) {
     inst_cons4[3] = grass_put_io_tag(GRASS_IO_EXIT);
     break;
   }
+
   case DUMP: {
     inst_cons4[0] = grass_put_inst_tag(GRASS_INST_MOV);
     inst_cons4[1] = grass_put_t_nil(0);
@@ -354,10 +359,7 @@ static void grass_emit_inst(Inst* inst) {
   }
 
   grass_emit_n_tuple(inst_cons4);
-
-  grass_apply(GRASS_BP, 1);
-  putchar('v');
-  GRASS_BP = 1;
+  grass_apply_stack_top_to_grassvm();
   fputs("\n", stdout);
 }
 
@@ -378,9 +380,7 @@ static Inst* grass_emit_chunk(Inst* inst) {
     grass_emit_inst(inst);
   }
   grass_put_t_nil(0);
-  grass_apply(GRASS_BP, 1);
-  putchar('v');
-  GRASS_BP = 1;
+  grass_apply_stack_top_to_grassvm();
   putchar('\n');
   return inst;
 }
@@ -392,9 +392,7 @@ static void grass_emit_text_list(Inst* inst) {
     inst = grass_emit_chunk(inst);
   }
   grass_put_t_nil(0);
-  grass_apply(GRASS_BP, 1);
-  putchar('v');
-  GRASS_BP = 1;
+  grass_apply_stack_top_to_grassvm();
 }
 
 void target_w(Module* module) {
