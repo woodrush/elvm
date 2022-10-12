@@ -20,17 +20,17 @@ static const int GRASS_IO_PUTC = 2;
 static const int GRASS_IO_EXIT = 3;
 
 static const char GRASS_REG_A[]  = "wvwwWWWwwvwwvwWwwwWwwwv";
-static const char GRASS_REG_B[]  = "wwvwvwwWWWwwvwvwwWWWwwvwwvwWwwwWwwwvwvwWwwwwwwwWWWwwwwWWwvwvwWwwwwwwwwwwwWWWwwwwWWwv";
-static const char GRASS_REG_C[]  = "wwvwwvwwvwwvwwvwWwwwWwwwvwvwWwwwwwwWWWwwwwWWwvwvwWwwwwwwwwwWWWwwwwWWwvwvwWwwwwwwwwwwwwWWWwwwwWWwv";
-static const char GRASS_REG_D[]  = "wwvwwvwvwwWWWwwvwwvwWwwwWwwwvwvwWwwwwwwwWWWwwwwWWwvwvwWwwwwwwwwwwWWWwwwwWWwv";
-static const char GRASS_REG_SP[] = "wwvwvwwWWWwwvwwvwwvwWwwwWwwwvwvwWwwwwwwWWWwwwwWWwvwvwWwwwwwwwwwwWWWwwwwWWwv";
-static const char GRASS_REG_BP[] = "wwvwwvwwvwvwwWWWwwvwwvwWwwwWwwwvwvwWwwwwwwwWWWwwwwWWwvwvwWwwwwwwwwwwWWWwwwwWWwvwvwWwwwwwwwwwwwwwWWWwwwwWWwv";
+static const char GRASS_REG_B[]  = "wwvwvwwWWWwwvwWwwWwwwwwvwWwwwWWWWWwwwWWwvwWwwwwwwWWWWWWwwwWWwv";
+static const char GRASS_REG_C[]  = "wwvwWwwWwwwvwvwWwwwwWWWwwwwWWwvwWwwwwwWWWWwwwWWwvwWwwwwwwWWWWWwwwWWwv";
+static const char GRASS_REG_D[]  = "wwvwvwwWWWwwvwWwwWwwwwwvwWwwwwwWWWWWwwwWWwvwWwwwwwwWWWWWWwwwWWwv";
+static const char GRASS_REG_SP[] = "wwvwvwwWWWwwvwWwwwwWwwwwwvwWwwwWWWWWwwwWWwvwWwwwwwwWWWWWWwwwWWwv";
+static const char GRASS_REG_BP[] = "wwvwvwwWWWwwvwWwwWwwwwwvwWwwwwwWWWWWwwwWWwvwWwwwwwwWWWWWWwwwWWwvwWwwwwwwwWWWWWWWwwwWWwv";
 static const int GRASS_REG_A_BP = 4;
-static const int GRASS_REG_B_BP = 11;
-static const int GRASS_REG_C_BP = 12;
-static const int GRASS_REG_D_BP = 10;
-static const int GRASS_REG_SP_BP = 10;
-static const int GRASS_REG_BP_BP = 13;
+static const int GRASS_REG_B_BP = 6;
+static const int GRASS_REG_C_BP = 6;
+static const int GRASS_REG_D_BP = 6;
+static const int GRASS_REG_SP_BP = 6;
+static const int GRASS_REG_BP_BP = 7;
 
 static int GRASS_BP = 1;
 
@@ -281,6 +281,10 @@ static int grass_put_io_tag(int io_tag) {
   }
   return GRASS_BP;
 }
+
+// static void grass_emit_cmp_inst(Inst* inst) {
+
+// }
 
 static void grass_emit_inst(Inst* inst) {
   int cons4_1 = 0;
