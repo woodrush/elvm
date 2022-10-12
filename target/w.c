@@ -6,8 +6,6 @@
 
 static const int GRASS_N_BITS = 24;
 
-static const char GRASS_APPLY[] = "01";
-
 // (cons x y) = (lambda (f) (f x y)) = 00010110[x][y]
 static const char GRASS_CONS_HEAD[] = "00010110";
 
@@ -26,7 +24,7 @@ static const char GRASS_INT_BIT0[] = "110";
 static const char GRASS_INT_FOOTER[] = "000010000001011000001011000000101100000110110";
 
 static const char GRASS_T[] = "0000110";
-static const char GRASS_NIL[] = "000010";
+static const char GRASS_NIL[] = "wwv\n";
 
 static const char GRASS_REG_A[]  = "00010110000010000101100000110000010";
 static const char GRASS_REG_B[]  = "00010110000011000010110000011000010110000010000010";
@@ -72,7 +70,6 @@ static void grass_emit_int(int n) {
 #endif
   fputs(GRASS_INT_HEADER, stdout);
   for (int checkbit = 1 << (GRASS_N_BITS - 1); checkbit; checkbit >>= 1) {
-    fputs(GRASS_APPLY, stdout);
     fputs((n & checkbit) ? GRASS_INT_BIT1 : GRASS_INT_BIT0, stdout);
   }
   fputs(GRASS_INT_FOOTER, stdout);
@@ -99,11 +96,14 @@ static void emit_grass_value_str(Value* v) {
 }
 
 static void grass_emit_data_list(Data* data) {
-  for (; data; data = data->next){
-    fputs(GRASS_CONS_HEAD, stdout);
-    grass_emit_int(data->v);
-  }
   fputs(GRASS_NIL, stdout);
+  fputs("WWwv ; Integers\n", stdout);
+  if (!data) {
+    for (; data; data = data->next){
+      fputs(GRASS_CONS_HEAD, stdout);
+      grass_emit_int(data->v);
+    }
+  }
 }
 
 static void grass_emit_inst_header(const char* inst_tag, Value* v) {
@@ -211,18 +211,16 @@ static Inst* grass_emit_chunk(Inst* inst) {
 }
 
 static void grass_emit_text_list(Inst* inst) {
-  while (inst) {
-    fputs(GRASS_CONS_HEAD, stdout);
-    inst = grass_emit_chunk(inst);
+  if (!inst) {
+    while (inst) {
+      fputs(GRASS_CONS_HEAD, stdout);
+      inst = grass_emit_chunk(inst);
+    }
+    fputs(GRASS_NIL, stdout);
   }
-  fputs(GRASS_NIL, stdout);
 }
 
 void target_w(Module* module) {
-  fputs(GRASS_APPLY, stdout);
-  fputs(GRASS_APPLY, stdout);
-  fputs(GRASS_APPLY, stdout);
-  fputs(GRASS_APPLY, stdout);
   fputs(GRASS_VM, stdout);
   grass_emit_data_list(module->data);
   grass_emit_text_list(module->text);
