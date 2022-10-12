@@ -70,14 +70,12 @@ static void grass_apply(int W, int w) {
 static int grass_put_t_nil(int t_nil) {
   if (t_nil) {
     // \x.x
-    fputs("t: ", stdout);
     fputs("wv", stdout);
     // \x.\y.(3 2)
     fputs("wwWWWwwv", stdout);
     GRASS_BP += 2;
   } else {
     // \x.\y.y
-    fputs("nil: ", stdout);
     fputs("wwv", stdout);
     GRASS_BP++;
   }
@@ -99,7 +97,6 @@ static int grass_emit_int_inst(int n) {
     const int checkbit = 1 << i;
     const int t_index = i + 1 + 2;
     const int nil_index = i + 1 + 1;
-    fputs("\n ", stdout);
     putchar('w');
     grass_apply(1, (n & checkbit) ? nil_index : t_index);
     grass_apply(1, 3);
@@ -153,11 +150,11 @@ static int grass_emit_int_data(int n) {
     const int checkbit = 1 << (GRASS_N_BITS - 1 - i);
     const int nil_index = i + 3;
     const int t_index = i + 2;
-    fputs("\n ", stdout);
     grass_apply(1, (n & checkbit) ? nil_index : t_index);
   }
   putchar('v');
   GRASS_BP = 1;
+  putchar('\n');
   return GRASS_BP;
 }
 
@@ -175,11 +172,8 @@ static Data* grass_reverse_data(Data* data) {
 static void grass_emit_data_list(Data* data) {
   data = grass_reverse_data(data);
   for (; data; data = data->next){
-    fprintf(stdout, "data int: %d", data->v);
     grass_emit_int_data(data->v);
   }
-
-  fputs("\n", stdout);
   // \x.\y.y
   fputs("wwv", stdout);
   GRASS_BP++;
@@ -224,10 +218,9 @@ static int grass_put_io_tag(int io_tag) {
 }
 
 static void grass_emit_cmp_inst(const char* enum_cmp, Inst* inst, int* cons4_1, int* cons4_2, int* cons4_3, int* cons4_4) {
-  fputs("\nadd\n", stdout);
-  *cons4_1 = grass_put_inst_tag(GRASS_INST_CMP); fputs("\n", stdout);
-  *cons4_2 = emit_grass_isimm(&inst->src); fputs("\n", stdout);
-  *cons4_3 = emit_grass_value_str(&inst->src); fputs("\n", stdout);
+  *cons4_1 = grass_put_inst_tag(GRASS_INST_CMP);
+  *cons4_2 = emit_grass_isimm(&inst->src);
+  *cons4_3 = emit_grass_value_str(&inst->src);
   fputs(enum_cmp, stdout);
   GRASS_BP += GRASS_CMP_WEIGHT;
   const int cmp_cons_1 = GRASS_BP;
@@ -242,10 +235,9 @@ static void grass_emit_cmp_inst(const char* enum_cmp, Inst* inst, int* cons4_1, 
 }
 
 static void grass_emit_jmpcmp_inst(const char* enum_cmp, Inst* inst, int* cons4_1, int* cons4_2, int* cons4_3, int* cons4_4) {
-  fputs("\nadd\n", stdout);
-  *cons4_1 = grass_put_inst_tag(GRASS_INST_JMPCMP); fputs("\n", stdout);
-  *cons4_2 = emit_grass_isimm(&inst->src); fputs("\n", stdout);
-  *cons4_3 = emit_grass_value_str(&inst->src); fputs("\n", stdout);
+  *cons4_1 = grass_put_inst_tag(GRASS_INST_JMPCMP);
+  *cons4_2 = emit_grass_isimm(&inst->src);
+  *cons4_3 = emit_grass_value_str(&inst->src);
   fputs(enum_cmp, stdout);
   GRASS_BP += GRASS_CMP_WEIGHT;
   const int jmpcmp_cons_1 = GRASS_BP;
@@ -271,35 +263,31 @@ static void grass_emit_inst(Inst* inst) {
 
   switch (inst->op) {
   case MOV: {
-    fputs("\nmov\n", stdout);
-    cons4_1 = grass_put_inst_tag(GRASS_INST_MOV); fputs("\n", stdout);
-    cons4_2 = emit_grass_isimm(&inst->src); fputs("\n", stdout);
-    cons4_3 = emit_grass_value_str(&inst->src); fputs("\n", stdout);
-    cons4_4 = emit_grass_value_str(&inst->dst); fputs("\n", stdout);
+    cons4_1 = grass_put_inst_tag(GRASS_INST_MOV);
+    cons4_2 = emit_grass_isimm(&inst->src);
+    cons4_3 = emit_grass_value_str(&inst->src);
+    cons4_4 = emit_grass_value_str(&inst->dst);
     break;
   }
   case LOAD: {
-    fputs("\nload\n", stdout);
-    cons4_1 = grass_put_inst_tag(GRASS_INST_LOAD); fputs("\n", stdout);
-    cons4_2 = emit_grass_isimm(&inst->src); fputs("\n", stdout);
-    cons4_3 = emit_grass_value_str(&inst->src); fputs("\n", stdout);
-    cons4_4 = emit_grass_value_str(&inst->dst); fputs("\n", stdout);
+    cons4_1 = grass_put_inst_tag(GRASS_INST_LOAD);
+    cons4_2 = emit_grass_isimm(&inst->src);
+    cons4_3 = emit_grass_value_str(&inst->src);
+    cons4_4 = emit_grass_value_str(&inst->dst);
     break;
   }
   case STORE: {
-    fputs("\nstore\n", stdout);
-    cons4_1 = grass_put_inst_tag(GRASS_INST_STORE); fputs("\n", stdout);
-    cons4_2 = emit_grass_isimm(&inst->src); fputs("\n", stdout);
-    cons4_3 = emit_grass_value_str(&inst->src); fputs("\n", stdout);
-    cons4_4 = emit_grass_value_str(&inst->dst); fputs("\n", stdout);
+    cons4_1 = grass_put_inst_tag(GRASS_INST_STORE);
+    cons4_2 = emit_grass_isimm(&inst->src);
+    cons4_3 = emit_grass_value_str(&inst->src);
+    cons4_4 = emit_grass_value_str(&inst->dst);
     break;
   }
 
   case ADD: {
-    fputs("\nadd\n", stdout);
-    cons4_1 = grass_put_inst_tag(GRASS_INST_ADDSUB); fputs("\n", stdout);
-    cons4_2 = emit_grass_isimm(&inst->src); fputs("\n", stdout);
-    cons4_3 = emit_grass_value_str(&inst->src); fputs("\n", stdout);
+    cons4_1 = grass_put_inst_tag(GRASS_INST_ADDSUB);
+    cons4_2 = emit_grass_isimm(&inst->src);
+    cons4_3 = emit_grass_value_str(&inst->src);
     const int add_cons_1 = emit_grass_value_str(&inst->dst);
     const int add_cons_2 = grass_put_t_nil(1);
     putchar('w');
@@ -307,15 +295,13 @@ static void grass_emit_inst(Inst* inst) {
     grass_apply(1, 1 + 1 + GRASS_BP - (add_cons_2 - 1));
     putchar('v');
     GRASS_BP++;
-    fputs("\n", stdout);
     cons4_4 = GRASS_BP;
     break;
   }
   case SUB: {
-    fputs("\nadd\n", stdout);
-    cons4_1 = grass_put_inst_tag(GRASS_INST_ADDSUB); fputs("\n", stdout);
-    cons4_2 = emit_grass_isimm(&inst->src); fputs("\n", stdout);
-    cons4_3 = emit_grass_value_str(&inst->src); fputs("\n", stdout);
+    cons4_1 = grass_put_inst_tag(GRASS_INST_ADDSUB);
+    cons4_2 = emit_grass_isimm(&inst->src);
+    cons4_3 = emit_grass_value_str(&inst->src);
     const int add_cons_1 = emit_grass_value_str(&inst->dst);
     const int add_cons_2 = grass_put_t_nil(0);
     putchar('w');
@@ -323,7 +309,6 @@ static void grass_emit_inst(Inst* inst) {
     grass_apply(1, 1 + 1 + GRASS_BP - (add_cons_2 - 1));
     putchar('v');
     GRASS_BP++;
-    fputs("\n", stdout);
     cons4_4 = GRASS_BP;
     break;
   }
@@ -343,47 +328,42 @@ static void grass_emit_inst(Inst* inst) {
   case JGE: grass_emit_jmpcmp_inst(GRASS_CMP_GE, inst, &cons4_1, &cons4_2, &cons4_3, &cons4_4); break;
 
   case JMP: {
-    fputs("\njmp\n", stdout);
-    cons4_1 = grass_put_inst_tag(GRASS_INST_JMP); fputs("\n", stdout);
-    cons4_2 = emit_grass_isimm(&inst->jmp); fputs("\n", stdout);
-    cons4_3 = emit_grass_value_str(&inst->jmp); fputs("\n", stdout);
-    cons4_4 = grass_put_t_nil(0); fputs("\n", stdout);
+    cons4_1 = grass_put_inst_tag(GRASS_INST_JMP);
+    cons4_2 = emit_grass_isimm(&inst->jmp);
+    cons4_3 = emit_grass_value_str(&inst->jmp);
+    cons4_4 = grass_put_t_nil(0);
     break;
   }
 
   case PUTC: {
-    fputs("\nputc\n", stdout);
-    cons4_1 = grass_put_inst_tag(GRASS_INST_IO); fputs("\n", stdout);
-    cons4_2 = emit_grass_isimm(&inst->src); fputs("\n", stdout);
-    cons4_3 = emit_grass_value_str(&inst->src); fputs("\n", stdout);
-    cons4_4 = grass_put_io_tag(GRASS_IO_PUTC); fputs("\n", stdout);
+    cons4_1 = grass_put_inst_tag(GRASS_INST_IO);
+    cons4_2 = emit_grass_isimm(&inst->src);
+    cons4_3 = emit_grass_value_str(&inst->src);
+    cons4_4 = grass_put_io_tag(GRASS_IO_PUTC);
     break;
   }
   case GETC: {
-    fputs("\ngetc\n", stdout);
-    cons4_1 = grass_put_inst_tag(GRASS_INST_IO); fputs("\n", stdout);
-    cons4_2 = grass_put_t_nil(0); fputs("\n", stdout);
-    cons4_3 = emit_grass_value_str(&inst->dst); fputs("\n", stdout);
-    cons4_4 = grass_put_io_tag(GRASS_IO_GETC); fputs("\n", stdout);
+    cons4_1 = grass_put_inst_tag(GRASS_INST_IO);
+    cons4_2 = grass_put_t_nil(0);
+    cons4_3 = emit_grass_value_str(&inst->dst);
+    cons4_4 = grass_put_io_tag(GRASS_IO_GETC);
     break;
   }
 
   case EXIT: {
-    fputs("\nexit\n", stdout);
-    cons4_1 = grass_put_inst_tag(GRASS_INST_IO); fputs("\n", stdout);
-    cons4_2 = grass_put_t_nil(0); fputs("\n", stdout);
-    cons4_3 = grass_put_t_nil(0); fputs("\n", stdout);
-    cons4_4 = grass_put_io_tag(GRASS_IO_EXIT); fputs("\n", stdout);    
+    cons4_1 = grass_put_inst_tag(GRASS_INST_IO);
+    cons4_2 = grass_put_t_nil(0);
+    cons4_3 = grass_put_t_nil(0);
+    cons4_4 = grass_put_io_tag(GRASS_IO_EXIT);
     break;
   }
   case DUMP: {
-    fputs("\ndump\n", stdout);
-    cons4_1 = grass_put_inst_tag(GRASS_INST_MOV); fputs("\n", stdout);
-    cons4_2 = grass_put_t_nil(0); fputs("\n", stdout);
+    cons4_1 = grass_put_inst_tag(GRASS_INST_MOV);
+    cons4_2 = grass_put_t_nil(0);
     grass_emit_reg_helper(GRASS_REG_A, GRASS_REG_A_WEIGHT);
-    cons4_3 = GRASS_BP; fputs("\n", stdout);
+    cons4_3 = GRASS_BP;
     grass_emit_reg_helper(GRASS_REG_A, GRASS_REG_A_WEIGHT);
-    cons4_4 = GRASS_BP; fputs("\n", stdout);
+    cons4_4 = GRASS_BP;
     break;
   }
 
@@ -398,7 +378,6 @@ static void grass_emit_inst(Inst* inst) {
   grass_apply(1, 3 + 1 + GRASS_BP - (cons4_4 - 1));
   putchar('v');
   GRASS_BP++;
-  fputs("\n", stdout);
 
   grass_apply(GRASS_BP, 1);
   putchar('v');
@@ -426,6 +405,7 @@ static Inst* grass_emit_chunk(Inst* inst) {
   grass_apply(GRASS_BP, 1);
   putchar('v');
   GRASS_BP = 1;
+  putchar('\n');
   return inst;
 }
 
@@ -433,12 +413,9 @@ static void grass_emit_text_list(Inst* inst) {
   inst = grass_reverse_instructions(inst);
   
   while (inst) {
-    fputs("\nNext pc\n", stdout);
     inst = grass_emit_chunk(inst);
   }
-  fputs("\n", stdout);
   grass_put_t_nil(0);
-  fputs("\n", stdout);
   grass_apply(GRASS_BP, 1);
   putchar('v');
   GRASS_BP = 1;
@@ -453,7 +430,6 @@ void target_w(Module* module) {
   putchar('\n');
   grass_emit_text_list(module->text);
   putchar('\n');
-
   // main
   fputs("wv", stdout);
   fputs("wWWwww", stdout);
