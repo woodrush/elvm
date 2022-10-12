@@ -211,7 +211,7 @@ static int grass_put_inst_tag(int i_tag) {
     // \x.x
     fputs("wv", stdout);
     // (\x.\y.\z.\a.\b.\c.\d.\e. (2 i_tag))
-    putchar('w');
+    fputs("wwwwwwww", stdout);
     grass_apply(9, 9 - i_tag);
     putchar('v');
     GRASS_BP += 2;
@@ -277,9 +277,7 @@ static int grass_emit_int_inst(int n) {
 
 
 static void grass_emit_text_list(Inst* inst) {
-  if (!inst) {
-    inst = grass_reverse_instructions(inst);
-  }
+  inst = grass_reverse_instructions(inst);
 
   fputs("\n  ", stdout);
   const int cons4_1 = grass_put_inst_tag(GRASS_INST_IO);
@@ -297,8 +295,9 @@ static void grass_emit_text_list(Inst* inst) {
   grass_apply(1, 2 + 1 + GRASS_BP - (cons4_3 - 1));
   grass_apply(1, 3 + 1 + GRASS_BP - (cons4_4 - 1));
   putchar('v');
+  GRASS_BP++;
 
-  grass_apply(GRASS_BP + 1, 1);
+  grass_apply(GRASS_BP, 1);
   putchar('v');
 
   grass_put_t_nil(0);
