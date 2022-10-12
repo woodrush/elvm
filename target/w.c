@@ -32,6 +32,15 @@ static const int GRASS_REG_D_BP = 6;
 static const int GRASS_REG_SP_BP = 6;
 static const int GRASS_REG_BP_BP = 7;
 
+static const char GRASS_CMP_GT[] = "wwvwvwwWWWwwvwWwwwwWwwwwwWwwwwv";
+static const char GRASS_CMP_LT[] = "wwvwvwwWWWwwvwWwwwwWwwwWwwwwwwv";
+static const char GRASS_CMP_EQ[] = "wvwwWWWwwvwwvwWwwwWwwwWwwwwv";
+static const char GRASS_CMP_LE[] = "wvwwWWWwwvwwvwWwwwWwwwwWwwwwv";
+static const char GRASS_CMP_GE[] = "wvwwWWWwwvwwvwWwwwWwwwWwwwwwv";
+static const char GRASS_CMP_NE[] = "wwvwvwwWWWwwvwWwwwwWwwwWwwwwv";
+static const int GRASS_CMP_WEIGHT = 4;
+
+
 static int GRASS_BP = 1;
 
 static void grass_emit_reg_helper(const char* s, const int i) {
@@ -51,17 +60,6 @@ static void grass_emit_reg(Reg r) {
     error("unknown register: %d", r);
   }
 }
-
-// static void grass_emit_int(int n) {
-// #ifndef __eir__
-//   n &= ((1 << GRASS_N_BITS) - 1);
-// #endif
-//   fputs(GRASS_INT_HEADER, stdout);
-//   for (int checkbit = 1 << (GRASS_N_BITS - 1); checkbit; checkbit >>= 1) {
-//     fputs((n & checkbit) ? GRASS_INT_BIT1 : GRASS_INT_BIT0, stdout);
-//   }
-//   fputs(GRASS_INT_FOOTER, stdout);
-// }
 
 static void grass_apply(int W, int w) {
   for (; W; W--) putchar('W');
@@ -282,9 +280,23 @@ static int grass_put_io_tag(int io_tag) {
   return GRASS_BP;
 }
 
-// static void grass_emit_cmp_inst(Inst* inst) {
-
-// }
+static void grass_emit_cmp_inst(const char* enum_cmp, Inst* inst, int* cons4_1, int* cons4_2, int* cons4_3, int* cons4_4) {
+  fputs("\nadd\n", stdout);
+  *cons4_1 = grass_put_inst_tag(GRASS_INST_ADDSUB); fputs("\n", stdout);
+  *cons4_2 = emit_grass_isimm(&inst->src); fputs("\n", stdout);
+  *cons4_3 = emit_grass_value_str(&inst->src); fputs("\n", stdout);
+  fputs(enum_cmp, stdout);
+  GRASS_BP += GRASS_CMP_WEIGHT;
+  const int cmp_cons_1 = GRASS_BP;
+  const int cmp_cons_2 = emit_grass_value_str(&inst->dst);
+  putchar('w');
+  grass_apply(1, 0 + 1 + GRASS_BP - (cmp_cons_1 - 1));
+  grass_apply(1, 1 + 1 + GRASS_BP - (cmp_cons_2 - 1));
+  putchar('v');
+  GRASS_BP++;
+  fputs("\n", stdout);
+  *cons4_4 = GRASS_BP;
+}
 
 static void grass_emit_inst(Inst* inst) {
   int cons4_1 = 0;
@@ -351,12 +363,12 @@ static void grass_emit_inst(Inst* inst) {
     break;
   }
 
-  case EQ: break;
-  case NE: break;
-  case LT: break;
-  case GT: break;
-  case LE: break;
-  case GE: break;
+  case EQ: grass_emit_cmp_inst(GRASS_CMP_EQ, inst, &cons4_1, &cons4_2, &cons4_3, &cons4_4); break;
+  case NE: grass_emit_cmp_inst(GRASS_CMP_NE, inst, &cons4_1, &cons4_2, &cons4_3, &cons4_4); break;
+  case LT: grass_emit_cmp_inst(GRASS_CMP_LT, inst, &cons4_1, &cons4_2, &cons4_3, &cons4_4); break;
+  case GT: grass_emit_cmp_inst(GRASS_CMP_GT, inst, &cons4_1, &cons4_2, &cons4_3, &cons4_4); break;
+  case LE: grass_emit_cmp_inst(GRASS_CMP_LE, inst, &cons4_1, &cons4_2, &cons4_3, &cons4_4); break;
+  case GE: grass_emit_cmp_inst(GRASS_CMP_GE, inst, &cons4_1, &cons4_2, &cons4_3, &cons4_4); break;
 
   case JEQ: break;
   case JNE: break;
