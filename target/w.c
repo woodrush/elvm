@@ -8,9 +8,9 @@ static const int GRASS_N_BITS = 24;
 
 
 static const int GRASS_INST_MOV = 8;
-// static const int GRASS_INST_ADDSUB = 7;
-// static const int GRASS_INST_STORE = 6;
-// static const int GRASS_INST_LOAD = 5;
+static const int GRASS_INST_ADDSUB = 7;
+static const int GRASS_INST_STORE = 6;
+static const int GRASS_INST_LOAD = 5;
 static const int GRASS_INST_JMP = 4;
 // static const int GRASS_INST_CMP = 3;
 // static const int GRASS_INST_JMPCMP = 2;
@@ -254,10 +254,39 @@ static void grass_emit_inst(Inst* inst) {
     cons4_4 = emit_grass_value_str(&inst->dst); fputs("\n", stdout);
     break;
   }
-  case LOAD: break;
-  case STORE: break;
+  case LOAD: {
+    fputs("\nload\n", stdout);
+    cons4_1 = grass_put_inst_tag(GRASS_INST_LOAD); fputs("\n", stdout);
+    cons4_2 = emit_grass_isimm(&inst->src); fputs("\n", stdout);
+    cons4_3 = emit_grass_value_str(&inst->src); fputs("\n", stdout);
+    cons4_4 = emit_grass_value_str(&inst->dst); fputs("\n", stdout);
+    break;
+  }
+  case STORE: {
+    fputs("\nstore\n", stdout);
+    cons4_1 = grass_put_inst_tag(GRASS_INST_STORE); fputs("\n", stdout);
+    cons4_2 = emit_grass_isimm(&inst->src); fputs("\n", stdout);
+    cons4_3 = emit_grass_value_str(&inst->src); fputs("\n", stdout);
+    cons4_4 = emit_grass_value_str(&inst->dst); fputs("\n", stdout);
+    break;
+  }
 
-  case ADD: break;
+  case ADD: {
+    fputs("\nadd\n", stdout);
+    cons4_1 = grass_put_inst_tag(GRASS_INST_ADDSUB); fputs("\n", stdout);
+    cons4_2 = emit_grass_isimm(&inst->src); fputs("\n", stdout);
+    cons4_3 = emit_grass_value_str(&inst->src); fputs("\n", stdout);
+    const int add_cons_1 = emit_grass_value_str(&inst->dst);
+    const int add_cons_2 = grass_put_t_nil(1);
+    putchar('w');
+    grass_apply(1, 0 + 1 + GRASS_BP - (add_cons_1 - 1));
+    grass_apply(1, 1 + 1 + GRASS_BP - (add_cons_2 - 1));
+    putchar('v');
+    GRASS_BP++;
+    fputs("\n", stdout);
+    cons4_4 = GRASS_BP;
+    break;
+  }
   case SUB: break;
 
   case EQ: break;
@@ -308,7 +337,14 @@ static void grass_emit_inst(Inst* inst) {
     cons4_4 = grass_put_io_tag(GRASS_IO_EXIT); fputs("\n", stdout);    
     break;
   }
-  case DUMP: break;
+  case DUMP: {
+    fputs("\ndump\n", stdout);
+    cons4_1 = grass_put_inst_tag(GRASS_INST_MOV); fputs("\n", stdout);
+    cons4_2 = grass_put_t_nil(1); fputs("\n", stdout);
+    cons4_3 = grass_put_t_nil(0); fputs("\n", stdout);
+    cons4_4 = grass_put_t_nil(0); fputs("\n", stdout);
+    break;
+  }
 
   default:
     error("oops");
