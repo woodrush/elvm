@@ -132,19 +132,62 @@ static int emit_grass_value_str(Value* v) {
   return GRASS_BP;
 }
 
-static void grass_emit_data_list(Data* data) {
-  if (data) {
-    fputs("wwv", stdout);
-    fputs("WWwv", stdout);
+static int grass_emit_int_data(int n) {
+#ifndef __eir__
+  n &= ((1 << GRASS_N_BITS) - 1);
+#endif
+  // \x.x
+  fputs("wv", stdout);
+  // \x.\y.y
+  fputs("wwv", stdout);
+  // \x.\y.x
+  fputs("wwWWWWwwv", stdout);
+  GRASS_BP += 3;
+
+  // Apply t to initialize data insertion
+  grass_apply(GRASS_BP, 1);
+  putchar('v');
+  GRASS_BP = 1;
+
+  // Apply integers
+  for (int i = 0; i < GRASS_N_BITS; i++) {
+    const int checkbit = 1 << i;
+    const int nil_index = i + 3;
+    const int t_index = i + 2;
+    fputs("\n ", stdout);
+    grass_apply(1, (n & checkbit) ? nil_index : t_index);
   }
-  // fputs(GRASS_NIL, stdout);
-  // fputs("WWwv ; Integers\n", stdout);
-  // if (!data) {
-  //   for (; data; data = data->next){
-  //     fputs(GRASS_CONS_HEAD, stdout);
-  //     grass_emit_int(data->v);
-  //   }
-  // }
+  putchar('v');
+  GRASS_BP = 1;
+  return GRASS_BP;
+}
+
+static Data* grass_reverse_data(Data* data) {
+  Data* prev = NULL;
+  while (data) {
+    Data* next = data->next;
+    data->next = prev;
+    prev = data;
+    data = next;
+  }
+  return prev;
+}
+
+static void grass_emit_data_list(Data* data) {
+  data = grass_reverse_data(data);
+  for (; data; data = data->next){
+    fprintf(stdout, "data int: %d", data->v);
+    grass_emit_int_data(data->v);
+  }
+
+  fputs("\n", stdout);
+  // \x.\y.y
+  fputs("wwv", stdout);
+  GRASS_BP++;
+  // Apply nil to end data insertion
+  grass_apply(GRASS_BP, 1);
+  putchar('v');
+  GRASS_BP = 1;
 }
 
 // static void grass_emit_inst_header(const char* inst_tag, Value* v) {
@@ -287,7 +330,22 @@ static void grass_emit_inst(Inst* inst) {
     cons4_4 = GRASS_BP;
     break;
   }
-  case SUB: break;
+  case SUB: {
+    fputs("\nadd\n", stdout);
+    cons4_1 = grass_put_inst_tag(GRASS_INST_ADDSUB); fputs("\n", stdout);
+    cons4_2 = emit_grass_isimm(&inst->src); fputs("\n", stdout);
+    cons4_3 = emit_grass_value_str(&inst->src); fputs("\n", stdout);
+    const int add_cons_1 = emit_grass_value_str(&inst->dst);
+    const int add_cons_2 = grass_put_t_nil(0);
+    putchar('w');
+    grass_apply(1, 0 + 1 + GRASS_BP - (add_cons_1 - 1));
+    grass_apply(1, 1 + 1 + GRASS_BP - (add_cons_2 - 1));
+    putchar('v');
+    GRASS_BP++;
+    fputs("\n", stdout);
+    cons4_4 = GRASS_BP;
+    break;
+  }
 
   case EQ: break;
   case NE: break;
@@ -406,6 +464,7 @@ static void grass_emit_text_list(Inst* inst) {
 void target_w(Module* module) {
   fputs(GRASS_VM, stdout);
   putchar('v');
+  GRASS_BP = 1;
   putchar('\n');
   grass_emit_data_list(module->data);
   putchar('\n');
