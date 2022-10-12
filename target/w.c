@@ -18,6 +18,9 @@
 #define GRASS_IO_PUTC 2
 #define GRASS_IO_EXIT 3
 
+#define GRASS_NIL 0
+#define GRASS_T 1
+
 static const char GRASS_REG_A[]  = "wvwwWWWwwvwwvwWwwwWwwwv";
 static const char GRASS_REG_B[]  = "wwvwvwwWWWwwvwWwwWwwwwwvwWwwwWWWWWwwwWWwvwWwwwwwwWWWWWWwwwWWwv";
 static const char GRASS_REG_C[]  = "wwvwWwwWwwwvwvwWwwwwWWWwwwwWWwvwWwwwwwWWWWwwwWWwvwWwwwwwwWWWWWwwwWWwv";
@@ -113,9 +116,9 @@ static int emit_grass_int_inst(int n) {
 
 static int emit_grass_isimm(Value* v) {
   if (v->type == REG) {
-    emit_grass_t_nil(0);
+    emit_grass_t_nil(GRASS_NIL);
   } else if (v->type == IMM) {
-    emit_grass_t_nil(1);
+    emit_grass_t_nil(GRASS_T);
   } else {
     error("invalid value");
   }
@@ -294,7 +297,7 @@ static void emit_grass_inst(Inst* inst) {
     inst_cons4[0] = emit_grass_inst_tag(GRASS_INST_JMP);
     inst_cons4[1] = emit_grass_isimm(&inst->jmp);
     inst_cons4[2] = emit_grass_value_str(&inst->jmp);
-    inst_cons4[3] = emit_grass_t_nil(0);
+    inst_cons4[3] = emit_grass_t_nil(GRASS_NIL);
     break;
   }
 
@@ -304,7 +307,7 @@ static void emit_grass_inst(Inst* inst) {
     inst_cons4[2] = emit_grass_value_str(&inst->src);
     int add_cons[3];
     add_cons[0] = emit_grass_value_str(&inst->dst);
-    add_cons[1] = emit_grass_t_nil(1);
+    add_cons[1] = emit_grass_t_nil(GRASS_T);
     add_cons[2] = 0;
     inst_cons4[3] = emit_grass_n_tuple(add_cons);
     break;
@@ -316,7 +319,7 @@ static void emit_grass_inst(Inst* inst) {
     inst_cons4[2] = emit_grass_value_str(&inst->src);
     int sub_cons[3];
     sub_cons[0] = emit_grass_value_str(&inst->dst);
-    sub_cons[1] = emit_grass_t_nil(0);
+    sub_cons[1] = emit_grass_t_nil(GRASS_NIL);
     sub_cons[2] = 0;
     inst_cons4[3] = emit_grass_n_tuple(sub_cons);
     break;
@@ -332,7 +335,7 @@ static void emit_grass_inst(Inst* inst) {
 
   case GETC: {
     inst_cons4[0] = emit_grass_inst_tag(GRASS_INST_IO);
-    inst_cons4[1] = emit_grass_t_nil(0);
+    inst_cons4[1] = emit_grass_t_nil(GRASS_NIL);
     inst_cons4[2] = emit_grass_value_str(&inst->dst);
     inst_cons4[3] = emit_grass_io_tag(GRASS_IO_GETC);
     break;
@@ -340,15 +343,15 @@ static void emit_grass_inst(Inst* inst) {
 
   case EXIT: {
     inst_cons4[0] = emit_grass_inst_tag(GRASS_INST_IO);
-    inst_cons4[1] = emit_grass_t_nil(0);
-    inst_cons4[2] = emit_grass_t_nil(0);
+    inst_cons4[1] = emit_grass_t_nil(GRASS_NIL);
+    inst_cons4[2] = emit_grass_t_nil(GRASS_NIL);
     inst_cons4[3] = emit_grass_io_tag(GRASS_IO_EXIT);
     break;
   }
 
   case DUMP: {
     inst_cons4[0] = emit_grass_inst_tag(GRASS_INST_MOV);
-    inst_cons4[1] = emit_grass_t_nil(0);
+    inst_cons4[1] = emit_grass_t_nil(GRASS_NIL);
     inst_cons4[2] = emit_grass_reg_helper(GRASS_REG_A, GRASS_REG_A_WEIGHT);
     inst_cons4[3] = emit_grass_reg_helper(GRASS_REG_A, GRASS_REG_A_WEIGHT);
     break;
@@ -379,7 +382,7 @@ static Inst* emit_grass_chunk(Inst* inst) {
   for (; inst && (inst->pc == init_pc); inst = inst->next) {
     emit_grass_inst(inst);
   }
-  emit_grass_t_nil(0);
+  emit_grass_t_nil(GRASS_NIL);
   grass_apply_stack_top_to_grassvm();
   putchar('\n');
   return inst;
@@ -391,7 +394,7 @@ static void emit_grass_text_list(Inst* inst) {
   while (inst) {
     inst = emit_grass_chunk(inst);
   }
-  emit_grass_t_nil(0);
+  emit_grass_t_nil(GRASS_NIL);
   grass_apply_stack_top_to_grassvm();
   putchar('\n');
 }
