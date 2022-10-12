@@ -15,7 +15,7 @@ static const int GRASS_INST_JMP = 4;
 // static const int GRASS_INST_CMP = 3;
 // static const int GRASS_INST_JMPCMP = 2;
 static const int GRASS_INST_IO = 1;
-// static const int GRASS_IO_GETC = 1;
+static const int GRASS_IO_GETC = 1;
 static const int GRASS_IO_PUTC = 2;
 static const int GRASS_IO_EXIT = 3;
 
@@ -291,7 +291,14 @@ static void grass_emit_inst(Inst* inst) {
     cons4_4 = grass_put_io_tag(GRASS_IO_PUTC); fputs("\n", stdout);
     break;
   }
-  case GETC: break;
+  case GETC: {
+    fputs("\ngetc\n", stdout);
+    cons4_1 = grass_put_inst_tag(GRASS_INST_IO); fputs("\n", stdout);
+    cons4_2 = grass_put_t_nil(0); fputs("\n", stdout);
+    cons4_3 = emit_grass_value_str(&inst->dst); fputs("\n", stdout);
+    cons4_4 = grass_put_io_tag(GRASS_IO_GETC); fputs("\n", stdout);
+    break;
+  }
 
   case EXIT: {
     fputs("\nexit\n", stdout);
