@@ -57,6 +57,10 @@ elif [ ${TARGET} = unl ]; then
     run_trg() {
         ${time} ./tools/rununl.sh $1
     }
+elif [ ${TARGET} = w ]; then
+    run_trg() {
+        ${time} ./tools/runw.sh $1
+    }
 else
     echo "Unknown target: ${TARGET}"
     exit 1
