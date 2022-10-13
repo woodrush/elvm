@@ -10,7 +10,7 @@ if [ ! -e out/grass_ml ]; then
 
     git clone https://gist.github.com/woodrush/3d85a6569ef3c85b63bfaf9211881af6
     mv 3d85a6569ef3c85b63bfaf9211881af6/grass.ml .
-    ocamlc -o grass_ml grass.ml
+    ocamlopt -O3 -o grass_ml grass.ml
     mv grass_ml ${orig_dir}/out
 
     cd $orig_dir
